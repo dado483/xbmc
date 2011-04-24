@@ -1077,6 +1077,9 @@ void CGUIWindowSettingsCategory::UpdateSettings()
     }
 #endif
   }
+
+  g_guiSettings.SetChanged();
+  g_guiSettings.NotifyObservers("settings", true);
 }
 
 void CGUIWindowSettingsCategory::UpdateRealTimeSettings()
