@@ -74,6 +74,9 @@ namespace PVR
      */
     virtual bool UpdateGroupEntries(const CPVRChannelGroup &channels);
 
+    virtual bool AddAndUpdateChannels(const CPVRChannelGroup &channels, bool bUseBackendChannelNumbers);
+    virtual bool RemoveDeletedChannels(const CPVRChannelGroup &channels);
+
     /*!
      * @brief Remove invalid channels from this container.
      */
@@ -105,8 +108,9 @@ namespace PVR
 
     /*!
      * @brief Remove invalid channels and updates the channel numbers.
+     * @return True if something changed, false otherwise.
      */
-    void Renumber(void);
+    bool Renumber(void);
 
     /*!
      * @return Cache all channel icons in this group if guisetting "pvrmenu.iconpath" is set.
