@@ -948,7 +948,10 @@ void CDVDPlayer::Process()
   m_ready.Set();
 
   // make sure all selected stream have data on startup
-  SetCaching(CACHESTATE_INIT);
+  if (m_pInputStream->IsStreamType(DVDSTREAM_TYPE_PVRMANAGER))
+    SetCaching(CACHESTATE_PVR);
+  else
+    SetCaching(CACHESTATE_INIT);
 
   while (!m_bAbortRequest)
   {
@@ -1008,7 +1011,7 @@ void CDVDPlayer::Process()
         {
           FlushBuffers(false);
           SAFE_DELETE(m_pDemuxer);
-          SetCaching(CACHESTATE_INIT);
+          SetCaching(CACHESTATE_PVR);
           continue;
         }
         else
@@ -2063,9 +2066,9 @@ void CDVDPlayer::HandleMessages()
         CDVDInputStream::IChannel* input = dynamic_cast<CDVDInputStream::IChannel*>(m_pInputStream);
         if(input && input->SelectChannelByNumber(static_cast<CDVDMsgInt*>(pMsg)->m_value))
         {
-
           FlushBuffers(false);
           SAFE_DELETE(m_pDemuxer);
+          SetCaching(CACHESTATE_PVR);
         }
       }
       else if (pMsg->IsType(CDVDMsg::PLAYER_CHANNEL_NEXT) || pMsg->IsType(CDVDMsg::PLAYER_CHANNEL_PREV))
@@ -2099,6 +2102,7 @@ void CDVDPlayer::HandleMessages()
               FlushBuffers(false);
               SAFE_DELETE(m_pDemuxer);
             }
+            SetCaching(CACHESTATE_PVR);
           }
         }
       }
@@ -3163,6 +3167,21 @@ int CDVDPlayer::OnDVDNavResult(void* pData, int iMessage)
   return NAVRESULT_NOP;
 }
 
+bool CDVDPlayer::ShowPVRChannelInfo(void)
+{
+  bool bReturn(false);
+
+  if (g_guiSettings.GetBool("pvrmenu.infoswitch"))
+  {
+    int iTimeout = g_guiSettings.GetBool("pvrmenu.infotimeout") ? g_guiSettings.GetInt("pvrmenu.infotime") : 0;
+    g_PVRManager.ShowPlayerInfo(iTimeout);
+
+    bReturn = true;
+  }
+
+  return bReturn;
+}
+
 bool CDVDPlayer::OnAction(const CAction &action)
 {
 #define THREAD_ACTION(action) \
@@ -3352,19 +3371,7 @@ bool CDVDPlayer::OnAction(const CAction &action)
       case ACTION_PAGE_UP:
         m_messenger.Put(new CDVDMsg(CDVDMsg::PLAYER_CHANNEL_NEXT));
         g_infoManager.SetDisplayAfterSeek();
-        if (g_guiSettings.GetBool("pvrmenu.infoswitch"))
-        {
-          CGUIDialogFullScreenInfo* pDialog = (CGUIDialogFullScreenInfo*)g_windowManager.GetWindow(WINDOW_DIALOG_FULLSCREEN_INFO);
-          if (pDialog)
-          {
-            if (g_guiSettings.GetBool("pvrmenu.infotimeout"))
-            {
-              pDialog->SetAutoClose(g_guiSettings.GetInt("pvrmenu.infotime")*1000);
-            }
-            if (m_ChannelEntryTimeOut == 0)
-              pDialog->DoModal();
-          }
-        }
+        ShowPVRChannelInfo();
         return true;
       break;
 
@@ -3373,19 +3380,7 @@ bool CDVDPlayer::OnAction(const CAction &action)
       case ACTION_PAGE_DOWN:
         m_messenger.Put(new CDVDMsg(CDVDMsg::PLAYER_CHANNEL_PREV));
         g_infoManager.SetDisplayAfterSeek();
-        if (g_guiSettings.GetBool("pvrmenu.infoswitch"))
-        {
-          CGUIDialogFullScreenInfo* pDialog = (CGUIDialogFullScreenInfo*)g_windowManager.GetWindow(WINDOW_DIALOG_FULLSCREEN_INFO);
-          if (pDialog)
-          {
-            if (g_guiSettings.GetBool("pvrmenu.infotimeout"))
-            {
-              pDialog->SetAutoClose(g_guiSettings.GetInt("pvrmenu.infotime")*1000);
-            }
-            if (m_ChannelEntryTimeOut == 0)
-              pDialog->DoModal();
-          }
-        }
+        ShowPVRChannelInfo();
         return true;
       break;
 
@@ -3395,18 +3390,7 @@ bool CDVDPlayer::OnAction(const CAction &action)
         int channel = action.GetAmount();
         m_messenger.Put(new CDVDMsgInt(CDVDMsg::PLAYER_CHANNEL_SELECT, channel));
         g_infoManager.SetDisplayAfterSeek();
-        if (g_guiSettings.GetBool("pvrmenu.infoswitch"))
-        {
-          CGUIDialogFullScreenInfo* pDialog = (CGUIDialogFullScreenInfo*)g_windowManager.GetWindow(WINDOW_DIALOG_FULLSCREEN_INFO);
-          if (pDialog)
-          {
-            if (g_guiSettings.GetBool("pvrmenu.infotimeout"))
-            {
-              pDialog->SetAutoClose(g_guiSettings.GetInt("pvrmenu.infotime")*1000);
-            }
-            pDialog->DoModal();
-          }
-        }
+        ShowPVRChannelInfo();
         return true;
       }
       break;
