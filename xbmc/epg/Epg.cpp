@@ -215,6 +215,8 @@ void CEpg::RemoveTagsBetween(time_t start, time_t end, bool bRemoveFromDb /* = f
     }
   }
 
+  Sort();
+
   if (bRemoveFromDb)
   {
     CEpgDatabase *database = g_EpgContainer.GetDatabase();
@@ -268,6 +270,19 @@ const CEpgInfoTag *CEpg::InfoTagNext(void) const
   }
 
   return NULL;
+}
+
+void CEpg::CheckPlayingEvent(void)
+{
+  CSingleLock lock(m_critSection);
+  const CEpgInfoTag *currentEvent = m_nowActive;
+  const CEpgInfoTag *updatedEvent = InfoTagNow();
+
+  if (!currentEvent || !updatedEvent || *currentEvent != *updatedEvent)
+  {
+    SetChanged();
+    NotifyObservers("epg");
+  }
 }
 
 const CEpgInfoTag *CEpg::GetTag(int uniqueID, const CDateTime &StartTime) const
