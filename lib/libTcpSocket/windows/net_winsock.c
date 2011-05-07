@@ -285,3 +285,12 @@ tcp_close(socket_t fdSock)
   if (fdSock != SOCKET_ERROR)
     closesocket(fdSock);
 }
+
+int
+tcp_send(__in SOCKET fdSock, __in_bcount(len) const char FAR * buf, __in int len, __in int flags)
+{
+  if (fdSock != SOCKET_ERROR)
+    return send(fdSock, buf, len, flags);
+  else
+    return -1;
+}

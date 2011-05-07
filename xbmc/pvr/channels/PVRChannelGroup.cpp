@@ -99,7 +99,7 @@ int CPVRChannelGroup::Load(void)
 
   m_bUsingBackendChannelOrder = g_guiSettings.GetBool("pvrmanager.backendchannelorder");
 
-  int iChannelCount = LoadFromDb();
+  int iChannelCount = m_iGroupId > 0 ? LoadFromDb() : 0;
   CLog::Log(LOGDEBUG, "PVRChannelGroup - %s - %d channels loaded from the database for group '%s'",
         __FUNCTION__, iChannelCount, m_strGroupName.c_str());
 
@@ -870,13 +870,6 @@ bool CPVRChannelGroup::HasChanges(void) const
   return m_bChanged || HasNewChannels() || HasChangedChannels();
 }
 
-void CPVRChannelGroup::CacheIcons(void)
-{
-  CSingleLock lock(m_critSection);
-  for (unsigned int iChannelPtr = 0; iChannelPtr < size(); iChannelPtr++)
-    at(iChannelPtr).channel->CheckCachedIcon();
-}
-
 void CPVRChannelGroup::ResetChannelNumbers(void)
 {
   CSingleLock lock(m_critSection);
@@ -925,10 +918,5 @@ void CPVRChannelGroup::Notify(const Observable &obs, const CStdString& msg)
         Persist();
       }
     }
-    lock.Leave();
-
-    /* check whether cached icons are still valid */
-    if (IsInternalGroup())
-      CacheIcons();
   }
 }
