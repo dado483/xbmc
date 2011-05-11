@@ -78,8 +78,18 @@ int tcp_read_timeout(socket_t fdSock, void *buf, size_t nLen, int nTimeout);
  */
 void tcp_close(socket_t fdSock);
 
-#if defined(__WINDOWS__)
-int tcp_send(__in SOCKET fdSock, __in_bcount(len) const char FAR * buf, __in int len, __in int flags);
-#else
-ssize_t tcp_send(socket_t fdSock, __const void *buf, size_t len, int flags);
-#endif
+/*!
+ * @brief Shutdown a socket connection opened with tcp_connect.
+ * @param fdSock The socket to shutdown.
+ */
+void tcp_shutdown(socket_t fdSock);
+
+/*!
+ * @brief Send data over a tcp socket opened with tcp_connect.
+ * @param fdSock The socket to write to.
+ * @param buf The buffer to write to the socket.
+ * @param len The length of the buffer.
+ * @param flags The flags to provide to send().
+ * @return The number of bytes written.
+ */
+int tcp_send(socket_t fdSock, void *buf, int len, int flags);

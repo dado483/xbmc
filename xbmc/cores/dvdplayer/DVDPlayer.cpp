@@ -1358,9 +1358,17 @@ void CDVDPlayer::HandlePlaySpeed()
   if (m_caching == CACHESTATE_PVR)
   {
     /* if all streams got at least g_advancedSettings.m_iPVRMinCacheLevel in their buffers, we're done */
-    if (m_dvdPlayerAudio.m_messageQueue.GetLevel() >= g_advancedSettings.m_iPVRMinCacheLevel &&
-        m_dvdPlayerVideo.m_messageQueue.GetLevel() >= g_advancedSettings.m_iPVRMinCacheLevel)
+    bool bGotAudio(m_pDemuxer->GetNrOfAudioStreams() > 0);
+    bool bGotVideo(m_pDemuxer->GetNrOfVideoStreams() > 0);
+
+    if ((bGotVideo || bGotAudio) &&
+        (!bGotAudio || m_dvdPlayerAudio.m_messageQueue.GetLevel() > g_advancedSettings.m_iPVRMinCacheLevel) &&
+        (!bGotVideo || m_dvdPlayerVideo.m_messageQueue.GetLevel() > g_advancedSettings.m_iPVRMinCacheLevel))
+    {
+      CLog::Log(LOGDEBUG, "set caching from pvr to done. audio (%d) = %d. video (%d) = %d", bGotAudio, m_dvdPlayerAudio.m_messageQueue.GetLevel(),
+                                                                                            bGotVideo, m_dvdPlayerVideo.m_messageQueue.GetLevel());
       SetCaching(CACHESTATE_DONE);
+    }
   }
 
   if(m_caching == CACHESTATE_PLAY)
@@ -1951,12 +1959,14 @@ void CDVDPlayer::HandleMessages()
             {
               m_dvd.iSelectedAudioStream = -1;
               CloseAudioStream(false);
+              m_messenger.Put(new CDVDMsgPlayerSeek(GetTime(), true, true, true));
             }
           }
           else
           {
             CloseAudioStream(false);
             OpenAudioStream(st.id, st.source);
+            m_messenger.Put(new CDVDMsgPlayerSeek(GetTime(), true, true, true));
           }
         }
       }
@@ -3644,6 +3654,12 @@ void CDVDPlayer::UpdatePlayState(double timeout)
     {
       m_State.canrecord = input->CanRecord();
       m_State.recording = input->IsRecording();
+
+      if(input->GetTotalTime() > 0 && input->GetStartTime() > 0)
+      {
+        m_State.time       = input->GetStartTime();
+        m_State.time_total = input->GetTotalTime();
+      }
     }
 
     m_State.file_position = m_pInputStream->Seek(0, SEEK_CUR);

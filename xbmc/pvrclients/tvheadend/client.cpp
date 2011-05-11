@@ -267,7 +267,6 @@ void ADDON_FreeSettings()
 
 PVR_ERROR GetAddonCapabilities(PVR_ADDON_CAPABILITIES* pCapabilities)
 {
-  pCapabilities->bSupportsChannelLogo     = false;
   pCapabilities->bSupportsChannelSettings = false;
   pCapabilities->bSupportsTimeshift       = false;
   pCapabilities->bSupportsEPG             = true;
@@ -411,7 +410,9 @@ PVR_ERROR UpdateTimer(const PVR_TIMER &timer)
   if (!HTSPData || !HTSPData->IsConnected())
     return PVR_ERROR_SERVER_ERROR;
 
-  return HTSPData->UpdateTimer(timer);
+  return timer.state == PVR_TIMER_STATE_CANCELLED || timer.state == PVR_TIMER_STATE_ABORTED ?
+      HTSPData->DeleteTimer(timer, false) :
+      HTSPData->UpdateTimer(timer);
 }
 
 bool OpenLiveStream(const PVR_CHANNEL &channel)

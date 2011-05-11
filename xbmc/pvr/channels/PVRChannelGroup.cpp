@@ -110,7 +110,7 @@ int CPVRChannelGroup::Load(void)
         __FUNCTION__, (int) size() - iChannelCount, m_strGroupName.c_str());
   }
 
-  g_guiSettings.AddObserver(this);
+  g_guiSettings.RegisterObserver(this);
   m_bLoaded = true;
 
   return size();
@@ -118,7 +118,7 @@ int CPVRChannelGroup::Load(void)
 
 void CPVRChannelGroup::Unload(void)
 {
-  g_guiSettings.RemoveObserver(this);
+  g_guiSettings.UnregisterObserver(this);
   clear();
 }
 
@@ -288,6 +288,24 @@ const CPVRChannel *CPVRChannelGroup::GetByChannelID(int iChannelID) const
   {
     PVRChannelGroupMember groupMember = at(ptr);
     if (groupMember.channel->ChannelID() == iChannelID)
+    {
+      channel = groupMember.channel;
+      break;
+    }
+  }
+
+  return channel;
+}
+
+const CPVRChannel *CPVRChannelGroup::GetByChannelEpgID(int iEpgID) const
+{
+  CPVRChannel *channel = NULL;
+  CSingleLock lock(m_critSection);
+
+  for (unsigned int ptr = 0; ptr < size(); ptr++)
+  {
+    PVRChannelGroupMember groupMember = at(ptr);
+    if (groupMember.channel->EpgID() == iEpgID)
     {
       channel = groupMember.channel;
       break;
@@ -919,4 +937,9 @@ void CPVRChannelGroup::Notify(const Observable &obs, const CStdString& msg)
       }
     }
   }
+}
+
+bool CPVRPersistGroupJob::DoWork(void)
+{
+  return m_group->Persist();
 }
