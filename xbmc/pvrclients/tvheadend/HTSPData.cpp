@@ -22,6 +22,7 @@
 #include "HTSPData.h"
 
 extern "C" {
+#include "cmyth/include/refmem/atomic.h"
 #include "libhts/htsmsg.h"
 #include "libhts/htsmsg_binary.h"
 }
@@ -68,7 +69,7 @@ htsmsg_t* CHTSPData::ReadResult(htsmsg_t *m)
     return NULL;
 
   m_Mutex.Lock();
-  unsigned seq (m_session->AddSequence());
+  uint32_t seq = mvp_atomic_inc(&g_iPacketSequence);
 
   SMessage &message(m_queue[seq]);
   message.event = new cCondWait();
@@ -575,8 +576,12 @@ void CHTSPData::Action()
 
   while (IsConnected() && Running())
   {
-    if((msg = m_session->ReadMessage()) == NULL)
-      break;
+    if((msg = m_session->ReadMessage(250)) == NULL)
+    {
+      if (!IsConnected() && Running())
+        m_session->Connect();
+      continue;
+    }
 
     uint32_t seq;
     if(htsmsg_get_u32(msg, "seq", &seq) == 0)

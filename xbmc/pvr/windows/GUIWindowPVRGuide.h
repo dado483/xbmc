@@ -70,7 +70,5 @@ namespace PVR
     CFileItemList *  m_epgData;
     bool             m_bLastEpgView; /*!< true for radio, false for tv */
     bool             m_bGotInitialEpg;
-    bool             m_bObservingEpg;
-    bool             m_bObservingTimers;
   };
 }

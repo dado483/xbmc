@@ -593,7 +593,13 @@ bool CPVRChannelGroup::RemoveDeletedChannels(const CPVRChannelGroup &channels)
 
       /* remove this channel from all non-system groups if this is the internal group */
       if (IsInternalGroup())
+      {
         g_PVRChannelGroups->Get(m_bRadio)->RemoveFromAllGroups(channel);
+        CPVRChannelGroup::RemoveFromGroup(channel);
+
+        /* since it was not found in the internal group, it was deleted from the backend */
+        channel->Delete();
+      }
       else
         RemoveFromGroup(channel);
 

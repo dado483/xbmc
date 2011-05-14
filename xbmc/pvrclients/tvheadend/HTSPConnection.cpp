@@ -24,15 +24,17 @@
 
 extern "C" {
 #include "libTcpSocket/os-dependent_socket.h"
+#include "cmyth/include/refmem/atomic.h"
 #include "libhts/htsmsg_binary.h"
 #include "libhts/sha1.h"
 }
 
 using namespace std;
 
+#define RW_LOCK cMutexLock RWLock((cMutex*)&m_Mutex)
+
 CHTSPConnection::CHTSPConnection() :
     m_fd(INVALID_SOCKET),
-    m_iSequence(0),
     m_challenge(NULL),
     m_iChallengeLength(0),
     m_iProtocol(0),
@@ -113,6 +115,8 @@ void CHTSPConnection::Close()
     m_challenge     = NULL;
     m_iChallengeLength = 0;
   }
+
+  XBMC->QueueNotification(QUEUE_INFO, "Disconnected from %s", m_strHostname.c_str());
 }
 
 void CHTSPConnection::Abort(void)
@@ -137,6 +141,7 @@ htsmsg_t* CHTSPConnection::ReadMessage(int timeout)
     return m;
   }
 
+  RW_LOCK;
   x = tcp_read_timeout(m_fd, &l, 4, timeout);
   if(x == ETIMEDOUT)
     return htsmsg_create_map();
@@ -178,6 +183,7 @@ bool CHTSPConnection::SendMessage(htsmsg_t* m)
   }
   htsmsg_destroy(m);
 
+  RW_LOCK;
   if(tcp_send(m_fd, (char*)buf, len, 0) < 0)
   {
     free(buf);
@@ -193,7 +199,7 @@ htsmsg_t* CHTSPConnection::ReadResult(htsmsg_t* m, bool sequence)
   uint32_t iSequence = 0;
   if(sequence)
   {
-    iSequence = AddSequence();
+    iSequence = mvp_atomic_inc(&g_iPacketSequence);
     htsmsg_add_u32(m, "seq", iSequence);
   }
 
@@ -251,17 +257,6 @@ bool CHTSPConnection::ReadSuccess(htsmsg_t* m, bool sequence, std::string action
   }
   htsmsg_destroy(m);
   return true;
-}
-
-unsigned int CHTSPConnection::AddSequence()
-{
-  int iReturn;
-
-  m_Mutex.Lock();
-  iReturn = ++m_iSequence;
-  m_Mutex.Unlock();
-
-  return iReturn;
 }
 
 bool CHTSPConnection::SendGreeting(void)
