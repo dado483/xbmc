@@ -72,9 +72,9 @@ CPVRManager::~CPVRManager(void)
 {
   Stop();
 
+  delete m_timers;
   delete m_epg;
   delete m_recordings;
-  delete m_timers;
   delete m_channelGroups;
   delete m_addons;
   delete m_guiInfo;
@@ -1080,6 +1080,8 @@ void CPVRManager::ExecutePendingJobs(void)
 
     job->DoWork();
     delete job;
+
+    lock.Enter();
   }
 
   ResetEvent(m_triggerEvent);
