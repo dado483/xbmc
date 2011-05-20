@@ -31,18 +31,21 @@ extern "C" {
 #define CMD_LOCK cMutexLock CmdLock((cMutex*)&m_Mutex)
 
 cVNSIData::cVNSIData()
+ : m_aborting(false)
 {
 }
 
 cVNSIData::~cVNSIData()
 {
   Abort();
-  Cancel(3);
+  Cancel(1);
   Close();
 }
 
 bool cVNSIData::Open(const std::string& hostname, int port, const char* name)
 {
+  m_aborting = false;
+
   if(!cVNSISession::Open(hostname, port, name))
     return false;
 
@@ -59,6 +62,23 @@ bool cVNSIData::Login()
 
   Start();
   return true;
+}
+
+void cVNSIData::Abort()
+{
+  CMD_LOCK;
+  m_aborting = true;
+  cVNSISession::Abort();
+}
+
+void cVNSIData::SignalConnectionLost()
+{
+  CMD_LOCK;
+
+  if(m_aborting)
+    return;
+
+  cVNSISession::SignalConnectionLost();
 }
 
 void cVNSIData::OnDisconnect()
@@ -164,24 +184,6 @@ bool cVNSIData::EnableStatusInterface(bool onOff)
 {
   cRequestPacket vrp;
   if (!vrp.init(VNSI_ENABLESTATUSINTERFACE)) return false;
-  if (!vrp.add_U8(onOff)) return false;
-
-  cResponsePacket* vresp = ReadResult(&vrp);
-  if (!vresp)
-  {
-    XBMC->Log(LOG_ERROR, "%s - Can't get response packed", __FUNCTION__);
-    return false;
-  }
-
-  uint32_t ret = vresp->extract_U32();
-  delete vresp;
-  return ret == VNSI_RET_OK ? true : false;
-}
-
-bool cVNSIData::EnableOSDInterface(bool onOff)
-{
-  cRequestPacket vrp;
-  if (!vrp.init(VNSI_ENABLEOSDINTERFACE)) return false;
   if (!vrp.add_U8(onOff)) return false;
 
   cResponsePacket* vresp = ReadResult(&vrp);
@@ -750,7 +752,7 @@ PVR_ERROR cVNSIData::DeleteRecording(const PVR_RECORDING& recinfo)
   return PVR_ERROR_NO_ERROR;
 }
 
-bool cVNSIData::onResponsePacket(cResponsePacket* pkt)
+bool cVNSIData::OnResponsePacket(cResponsePacket* pkt)
 {
   return false;
 }
@@ -876,10 +878,103 @@ void cVNSIData::Action()
 
     // UNKOWN CHANNELID
 
-    else if (!onResponsePacket(vresp))
+    else if (!OnResponsePacket(vresp))
     {
       XBMC->Log(LOG_ERROR, "%s - Rxd a response packet on channel %lu !!", __FUNCTION__, vresp->getChannelID());
       delete vresp;
     }
   }
+}
+
+int cVNSIData::GetChannelGroupCount(bool automatic)
+{
+  cRequestPacket vrp;
+  if (!vrp.init(VNSI_CHANNELGROUP_GETCOUNT))
+  {
+    XBMC->Log(LOG_ERROR, "%s - Can't init cRequestPacket", __FUNCTION__);
+    return 0;
+  }
+
+  if (!vrp.add_U32(automatic))
+  {
+    return 0;
+  }
+
+  cResponsePacket* vresp = ReadResult(&vrp);
+  if (vresp == NULL || vresp->noResponse())
+  {
+    delete vresp;
+    return 0;
+  }
+
+  uint32_t count = vresp->extract_U32();
+
+  delete vresp;
+  return count;
+}
+
+bool cVNSIData::GetChannelGroupList(PVR_HANDLE handle, bool bRadio)
+{
+  cRequestPacket vrp;
+  if (!vrp.init(VNSI_CHANNELGROUP_LIST))
+  {
+    XBMC->Log(LOG_ERROR, "%s - Can't init cRequestPacket", __FUNCTION__);
+    return false;
+  }
+
+  vrp.add_U8(bRadio);
+
+  cResponsePacket* vresp = ReadResult(&vrp);
+  if (vresp == NULL || vresp->noResponse())
+  {
+    delete vresp;
+    return false;
+  }
+
+  while (!vresp->end())
+  {
+    PVR_CHANNEL_GROUP tag;
+
+    tag.strGroupName = vresp->extract_String();
+    tag.bIsRadio = vresp->extract_U8();
+    PVR->TransferChannelGroup(handle, &tag);
+
+    delete[] tag.strGroupName;
+  }
+
+  delete vresp;
+  return true;
+}
+
+bool cVNSIData::GetChannelGroupMembers(PVR_HANDLE handle, const PVR_CHANNEL_GROUP &group)
+{
+  cRequestPacket vrp;
+  if (!vrp.init(VNSI_CHANNELGROUP_MEMBERS))
+  {
+    XBMC->Log(LOG_ERROR, "%s - Can't init cRequestPacket", __FUNCTION__);
+    return false;
+  }
+
+  vrp.add_String(group.strGroupName);
+  vrp.add_U8(group.bIsRadio);
+
+  cResponsePacket* vresp = ReadResult(&vrp);
+  if (vresp == NULL || vresp->noResponse())
+  {
+    delete vresp;
+    return false;
+  }
+
+  while (!vresp->end())
+  {
+    PVR_CHANNEL_GROUP_MEMBER tag;
+    tag.strGroupName = group.strGroupName;
+    tag.iChannelUniqueId = vresp->extract_U32();
+    tag.iChannelNumber = vresp->extract_U32();
+
+    PVR->TransferChannelGroupMember(handle, &tag);
+  }
+
+  delete vresp;
+  return true;
 }

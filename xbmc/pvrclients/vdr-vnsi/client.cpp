@@ -33,10 +33,7 @@
 using namespace std;
 
 bool m_bCreated               = false;
-bool m_connected              = false;
-int  m_retries                = 0;
 ADDON_STATUS m_CurStatus      = ADDON_STATUS_UNKNOWN;
-int g_clientID                = -1;
 
 /* User adjustable settings are saved here.
  * Default values are defined inside client.h
@@ -48,11 +45,12 @@ bool          g_bCharsetConv            = DEFAULT_CHARCONV;     ///< Convert VDR
 bool          g_bHandleMessages         = DEFAULT_HANDLE_MSG;   ///< Send VDR's OSD status messages to XBMC OSD
 int           g_iConnectTimeout         = DEFAULT_TIMEOUT;      ///< The Socket connection timeout
 int           g_iPriority               = DEFAULT_PRIORITY;     ///< The Priority this client have in response to other clients
-std::string   g_szUserPath              = "";
-std::string   g_szClientPath            = "";
+bool          g_bAutoChannelGroups      = DEFAULT_AUTOGROUPS;
+
 CHelper_libXBMC_addon *XBMC   = NULL;
 CHelper_libXBMC_gui   *GUI    = NULL;
 CHelper_libXBMC_pvr   *PVR    = NULL;
+
 cVNSIDemux      *VNSIDemuxer       = NULL;
 cVNSIData       *VNSIData          = NULL;
 cVNSIRecording  *VNSIRecording     = NULL;
@@ -67,8 +65,6 @@ ADDON_STATUS ADDON_Create(void* hdl, void* props)
 {
   if (!hdl || !props)
     return ADDON_STATUS_UNKNOWN;
-
-  PVR_PROPERTIES* pvrprops = (PVR_PROPERTIES*)props;
 
   XBMC = new CHelper_libXBMC_addon;
   if (!XBMC->RegisterMe(hdl))
@@ -85,13 +81,9 @@ ADDON_STATUS ADDON_Create(void* hdl, void* props)
   XBMC->Log(LOG_DEBUG, "Creating VDR VNSI PVR-Client");
 
   m_CurStatus    = ADDON_STATUS_UNKNOWN;
-  g_clientID     = pvrprops->iClienId;
-  g_szUserPath   = pvrprops->strUserPath;
-  g_szClientPath = pvrprops->strClientPath;
 
   /* Read setting "host" from settings.xml */
-  char * buffer;
-  buffer = (char*) malloc (1024);
+  char * buffer = (char*) malloc(128);
   buffer[0] = 0; /* Set the end of string */
 
   if (XBMC->GetSetting("host", buffer))
@@ -102,7 +94,7 @@ ADDON_STATUS ADDON_Create(void* hdl, void* props)
     XBMC->Log(LOG_ERROR, "Couldn't get 'host' setting, falling back to '%s' as default", DEFAULT_HOST);
     g_szHostname = DEFAULT_HOST;
   }
-  buffer[0] = 0; /* Set the end of string */
+  free(buffer);
 
   /* Read setting "port" from settings.xml */
   if (!XBMC->GetSetting("port", &g_iPort))
@@ -142,6 +134,14 @@ ADDON_STATUS ADDON_Create(void* hdl, void* props)
     /* If setting is unknown fallback to defaults */
     XBMC->Log(LOG_ERROR, "Couldn't get 'handlemessages' setting, falling back to 'true' as default");
     g_bHandleMessages = DEFAULT_HANDLE_MSG;
+  }
+
+  /* Read setting "autochannelgroups" from settings.xml */
+  if (!XBMC->GetSetting("autochannelgroups", &g_bAutoChannelGroups))
+  {
+    /* If setting is unknown fallback to defaults */
+    XBMC->Log(LOG_ERROR, "Couldn't get 'autochannelgroups' setting, falling back to 'false' as default");
+    g_bAutoChannelGroups = DEFAULT_AUTOGROUPS;
   }
 
   VNSIData = new cVNSIData;
@@ -235,6 +235,15 @@ ADDON_STATUS ADDON_SetSetting(const char *settingName, const void *settingValue)
     g_bHandleMessages = *(bool*) settingValue;
     if (VNSIData) VNSIData->EnableStatusInterface(g_bHandleMessages);
   }
+  else if (str == "autochannelgroups")
+  {
+    XBMC->Log(LOG_INFO, "Changed Setting 'autochannelgroups' from %u to %u", g_bAutoChannelGroups, *(bool*) settingValue);
+    if (g_bAutoChannelGroups != *(bool*) settingValue)
+    {
+      g_bAutoChannelGroups = *(bool*) settingValue;
+      return ADDON_STATUS_NEED_RESTART;
+    }
+  }
 
   return ADDON_STATUS_OK;
 }
@@ -261,7 +270,7 @@ PVR_ERROR GetAddonCapabilities(PVR_ADDON_CAPABILITIES* pCapabilities)
   pCapabilities->bSupportsTV                 = true;
   pCapabilities->bSupportsRadio              = true;
   pCapabilities->bSupportsChannelSettings    = false;
-  pCapabilities->bSupportsChannelGroups      = false;
+  pCapabilities->bSupportsChannelGroups      = true;
   pCapabilities->bHandlesInputStream         = true;
   pCapabilities->bHandlesDemuxing            = true;
   if (VNSIData && VNSIData->SupportChannelScan())
@@ -348,6 +357,37 @@ PVR_ERROR GetChannels(PVR_HANDLE handle, bool bRadio)
     return PVR_ERROR_SERVER_ERROR;
 
   return (VNSIData->GetChannelsList(handle, bRadio) ? PVR_ERROR_NO_ERROR : PVR_ERROR_SERVER_ERROR);
+}
+
+
+/*******************************************/
+/** PVR Channelgroups Functions           **/
+
+int GetChannelGroupsAmount()
+{
+  if (!VNSIData)
+    return PVR_ERROR_SERVER_ERROR;
+
+  return VNSIData->GetChannelGroupCount(g_bAutoChannelGroups);
+}
+
+PVR_ERROR GetChannelGroups(PVR_HANDLE handle, bool bRadio)
+{
+  if (!VNSIData)
+    return PVR_ERROR_SERVER_ERROR;
+
+  if(VNSIData->GetChannelGroupCount(g_bAutoChannelGroups) > 0)
+    return VNSIData->GetChannelGroupList(handle, bRadio) ? PVR_ERROR_NO_ERROR : PVR_ERROR_SERVER_ERROR;
+
+  return PVR_ERROR_NO_ERROR;
+}
+
+PVR_ERROR GetChannelGroupMembers(PVR_HANDLE handle, const PVR_CHANNEL_GROUP &group)
+{
+  if (!VNSIData)
+    return PVR_ERROR_SERVER_ERROR;
+
+  return VNSIData->GetChannelGroupMembers(handle, group) ? PVR_ERROR_NO_ERROR : PVR_ERROR_SERVER_ERROR;
 }
 
 
@@ -556,9 +596,6 @@ long long LengthRecordedStream(void)
 
 /** UNUSED API FUNCTIONS */
 PVR_ERROR CallMenuHook(const PVR_MENUHOOK &menuhook) { return PVR_ERROR_NOT_IMPLEMENTED; }
-int GetChannelGroupsAmount(void) { return -1; }
-PVR_ERROR GetChannelGroups(PVR_HANDLE handle, bool bRadio) { return PVR_ERROR_NOT_IMPLEMENTED; }
-PVR_ERROR GetChannelGroupMembers(PVR_HANDLE hanlde, const PVR_CHANNEL_GROUP &group) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR DeleteChannel(const PVR_CHANNEL &channel) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR RenameChannel(const PVR_CHANNEL &channel) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR MoveChannel(const PVR_CHANNEL &channel) { return PVR_ERROR_NOT_IMPLEMENTED; }
