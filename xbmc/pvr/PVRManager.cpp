@@ -311,14 +311,14 @@ bool CPVRManager::ChannelSwitch(unsigned int iChannelNumber)
 bool CPVRManager::ChannelUpDown(unsigned int *iNewChannelNumber, bool bPreview, bool bUp)
 {
   bool bReturn = false;
-
-  CPVRChannel currentChannel;
-  if (m_addons->GetPlayingChannel(&currentChannel))
+  if (IsPlayingTV() || IsPlayingRadio())
   {
-    const CPVRChannelGroup *group = GetPlayingGroup(currentChannel.IsRadio());
+    CFileItem currentFile(g_application.CurrentFileItem());
+    CPVRChannel *currentChannel = currentFile.GetPVRChannelInfoTag();
+    const CPVRChannelGroup *group = GetPlayingGroup(currentChannel->IsRadio());
     if (group)
     {
-      const CPVRChannel *newChannel = bUp ? group->GetByChannelUp(currentChannel) : group->GetByChannelDown(currentChannel);
+      const CPVRChannel *newChannel = bUp ? group->GetByChannelUp(*currentChannel) : group->GetByChannelDown(*currentChannel);
       if (PerformChannelSwitch(*newChannel, bPreview))
       {
         *iNewChannelNumber = newChannel->ChannelNumber();
@@ -642,6 +642,9 @@ void CPVRManager::LoadCurrentChannelSettings()
     g_settings.m_currentVideoSettings.m_AudioStream         = loadedChannelSettings.m_AudioStream;
     g_settings.m_currentVideoSettings.m_SubtitleOn          = loadedChannelSettings.m_SubtitleOn;
     g_settings.m_currentVideoSettings.m_SubtitleDelay       = loadedChannelSettings.m_SubtitleDelay;
+    g_settings.m_currentVideoSettings.m_CustomNonLinStretch = loadedChannelSettings.m_CustomNonLinStretch;
+    g_settings.m_currentVideoSettings.m_ScalingMethod       = loadedChannelSettings.m_ScalingMethod;
+    g_settings.m_currentVideoSettings.m_PostProcess         = loadedChannelSettings.m_PostProcess;
 
     /* only change the view mode if it's different */
     if (g_settings.m_currentVideoSettings.m_ViewMode != loadedChannelSettings.m_ViewMode)
@@ -909,7 +912,8 @@ bool CPVRManager::PerformChannelSwitch(const CPVRChannel &channel, bool bPreview
       __FUNCTION__, channel.ChannelName().c_str());
 
   /* make sure that channel settings are persisted */
-  SaveCurrentChannelSettings();
+  if (!bPreview)
+    SaveCurrentChannelSettings();
 
   if (m_currentFile)
   {
@@ -917,7 +921,7 @@ bool CPVRManager::PerformChannelSwitch(const CPVRChannel &channel, bool bPreview
     m_currentFile = NULL;
   }
 
-  if (channel.ClientID() < 0 || !m_addons->SwitchChannel(channel))
+  if (!bPreview && (channel.ClientID() < 0 || !m_addons->SwitchChannel(channel)))
   {
     CLog::Log(LOGERROR, "PVRManager - %s - failed to switch to channel '%s'",
         __FUNCTION__, channel.ChannelName().c_str());
@@ -926,10 +930,14 @@ bool CPVRManager::PerformChannelSwitch(const CPVRChannel &channel, bool bPreview
   }
 
   m_currentFile = new CFileItem(channel);
-  LoadCurrentChannelSettings();
 
-  CLog::Log(LOGNOTICE, "PVRManager - %s - switched to channel '%s'",
-      __FUNCTION__, channel.ChannelName().c_str());
+  if (!bPreview)
+  {
+    LoadCurrentChannelSettings();
+
+    CLog::Log(LOGNOTICE, "PVRManager - %s - switched to channel '%s'",
+        __FUNCTION__, channel.ChannelName().c_str());
+  }
 
   return true;
 }
