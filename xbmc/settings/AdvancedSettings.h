@@ -78,6 +78,7 @@ class CAdvancedSettings
     static void GetCustomRegexpReplacers(TiXmlElement *pRootElement, CStdStringArray& settings);
     static void GetCustomExtensions(TiXmlElement *pRootElement, CStdString& extensions);
 
+    bool m_audioForceRAWPassthrough;
     int m_audioHeadRoom;
     float m_ac3Gain;
     CStdString m_audioDefaultPlayer;
@@ -85,6 +86,8 @@ class CAdvancedSettings
     bool m_dvdplayerIgnoreDTSinWAV;
     float m_limiterHold;
     float m_limiterRelease;
+    int m_audioResample;
+    CStdString m_audioTranscodeTo;
 
     float m_videoSubsDelayRange;
     float m_videoAudioDelayRange;
@@ -111,12 +114,12 @@ class CAdvancedSettings
     int m_musicPercentSeekBackward;
     int m_musicPercentSeekForwardBig;
     int m_musicPercentSeekBackwardBig;
-    int m_musicResample;
     int m_videoBlackBarColour;
     int m_videoIgnoreSecondsAtStart;
     float m_videoIgnorePercentAtEnd;
     CStdString m_audioHost;
     bool m_audioApplyDrc;
+    bool m_audioForceDirectSound;
 
     bool  m_videoVDPAUScaling;
     float m_videoNonLinStretchRatio;

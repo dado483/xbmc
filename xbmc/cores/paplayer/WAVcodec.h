@@ -36,12 +36,13 @@ public:
   virtual int ReadPCM(BYTE *pBuffer, int size, int *actualsize);
   virtual int ReadSamples(float *pBuffer, int numsamples, int *actualsamples);
   virtual bool CanInit();
-  virtual bool HasFloatData() const { return m_bHasFloat; }
 
 private:
   bool m_bHasFloat;
-  uint32_t m_iDataStart;
-  uint32_t m_iDataLen;
+//  uint32_t m_iDataStart;
+//  uint32_t m_iDataLen;
+  long m_iDataStart;
+  long m_iDataLen;
   DWORD m_ChannelMask;
 };
 

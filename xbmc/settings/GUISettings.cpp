@@ -39,12 +39,15 @@
 #include "windowing/WindowingFactory.h"
 #include "powermanagement/PowerManager.h"
 #include "cores/dvdplayer/DVDCodecs/Video/CrystalHD.h"
-#include "utils/PCMRemap.h"
+#include "cores/AudioEngine/AEAudioFormat.h"
 #include "guilib/GUIFont.h" // for FONT_STYLE_* definitions
 #include "guilib/GUIFontManager.h"
 #include "utils/Weather.h"
 #include "LangInfo.h"
 #include "pvr/PVRManager.h"
+#if defined __APPLE__ && !defined __arm__
+#include "CoreAudioAEHALOSX.h"
+#endif
 #if defined(__APPLE__)
   #include "osx/DarwinUtils.h"
 #endif
@@ -439,14 +442,28 @@ void CGUISettings::Initialize()
   AddInt(ao, "audiooutput.mode", 337, AUDIO_ANALOG, audiomode, SPIN_CONTROL_TEXT);
 
   map<int,int> channelLayout;
-  for(int layout = 0; layout < PCM_MAX_LAYOUT; ++layout)
-    channelLayout.insert(make_pair(34101+layout, layout));
-  AddInt(ao, "audiooutput.channellayout", 34100, PCM_LAYOUT_2_0, channelLayout, SPIN_CONTROL_TEXT);
+  for(int layout = AE_CH_LAYOUT_2_0; layout < AE_CH_LAYOUT_MAX; ++layout)
+    channelLayout.insert(make_pair(34100+layout, layout));
+#if (defined(__APPLE__) && defined(__arm__))
+  AddInt(NULL, "audiooutput.channellayout", 34100, AE_CH_LAYOUT_2_0, channelLayout, SPIN_CONTROL_TEXT);
+#else
+  AddInt(ao, "audiooutput.channellayout", 34100, AE_CH_LAYOUT_2_0, channelLayout, SPIN_CONTROL_TEXT);
+#endif
   AddBool(ao, "audiooutput.dontnormalizelevels", 346, true);
 
 #if (defined(__APPLE__) && defined(__arm__))
   AddBool(g_sysinfo.IsAppleTV2() ? ao : NULL, "audiooutput.ac3passthrough", 364, false);
   AddBool(g_sysinfo.IsAppleTV2() ? ao : NULL, "audiooutput.dtspassthrough", 254, false);
+  //if (g_sysinfo.IsAppleTV2())
+  //{
+    AddBool(ao, "audiooutput.ac3passthrough", 364, false);
+    AddBool(ao, "audiooutput.dtspassthrough", 254, false);
+  //}
+  //else
+  //{
+  //  AddBool(NULL, "audiooutput.ac3passthrough", 364, false);
+  //  AddBool(NULL, "audiooutput.dtspassthrough", 254, false);
+  //}
 #else
   AddBool(ao, "audiooutput.ac3passthrough", 364, true);
   AddBool(ao, "audiooutput.dtspassthrough", 254, true);
@@ -456,19 +473,42 @@ void CGUISettings::Initialize()
   AddBool(NULL, "audiooutput.passthroughmp2", 301, false);
   AddBool(NULL, "audiooutput.passthroughmp3", 302, false);
 
-#ifdef __APPLE__
-  AddString(ao, "audiooutput.audiodevice", 545, "Default", SPIN_CONTROL_TEXT);
+#if defined __APPLE__
+  AddBool(NULL, "audiooutput.multichannellpcm", 348, false);
+  AddBool(NULL, "audiooutput.truehdpassthrough", 349, false);
+  AddBool(NULL, "audiooutput.dtshdpassthrough", 407, false);
+#else
+  AddBool(ao, "audiooutput.multichannellpcm", 348, true);
+  AddBool(ao, "audiooutput.truehdpassthrough", 349, true);
+  AddBool(ao, "audiooutput.dtshdpassthrough", 407, true);
+#endif
+
+#if defined __APPLE__
+#if defined __arm__
+  CStdString defaultDeviceName = "Default";
+#else
+  CStdString defaultDeviceName;
+  CCoreAudioHardware::GetOutputDeviceName(defaultDeviceName);
+#endif
+  
+  AddString(ao, "audiooutput.audiodevice", 545, defaultDeviceName.c_str(), SPIN_CONTROL_TEXT);
+  AddString(NULL, "audiooutput.passthroughdevice", 546, defaultDeviceName.c_str(), SPIN_CONTROL_TEXT);
 #elif defined(_LINUX)
   AddSeparator(ao, "audiooutput.sep1");
   AddString(ao, "audiooutput.audiodevice", 545, "default", SPIN_CONTROL_TEXT);
   AddString(ao, "audiooutput.customdevice", 1300, "", EDIT_CONTROL_INPUT);
   AddSeparator(ao, "audiooutput.sep2");
-  AddString(ao, "audiooutput.passthroughdevice", 546, "iec958", SPIN_CONTROL_TEXT);
+  AddString(ao, "audiooutput.passthroughdevice", 546, "default", SPIN_CONTROL_TEXT);
   AddString(ao, "audiooutput.custompassthrough", 1301, "", EDIT_CONTROL_INPUT);
   AddSeparator(ao, "audiooutput.sep3");
 #elif defined(_WIN32)
+  AddSeparator(ao, "audiooutput.sep1");
+  if(g_sysinfo.IsVistaOrHigher())
+    AddBool(ao, "audiooutput.useexclusivemode", 347, false);
   AddString(ao, "audiooutput.audiodevice", 545, "Default", SPIN_CONTROL_TEXT);
 #endif
+
+  AddBool(ao, "audiooutput.guisoundwhileplayback", 34120, true);
 
   CSettingsCategory* in = AddCategory(4, "input", 14094);
   AddString(in, "input.peripherals", 35000, "", BUTTON_CONTROL_STANDARD);
@@ -1269,15 +1309,16 @@ void CGUISettings::LoadXML(TiXmlElement *pRootElement, bool hideSettings /* = fa
   // Get hardware based stuff...
   CLog::Log(LOGNOTICE, "Getting hardware information now...");
   // FIXME: Check if the hardware supports it (if possible ;)
-  //SetBool("audiooutput.ac3passthrough", g_audioConfig.GetAC3Enabled());
-  //SetBool("audiooutput.dtspassthrough", g_audioConfig.GetDTSEnabled());
   CLog::Log(LOGINFO, "Using %s output", GetInt("audiooutput.mode") == AUDIO_ANALOG ? "analog" : "digital");
-  CLog::Log(LOGINFO, "AC3 pass through is %s", GetBool("audiooutput.ac3passthrough") ? "enabled" : "disabled");
-  CLog::Log(LOGINFO, "DTS pass through is %s", GetBool("audiooutput.dtspassthrough") ? "enabled" : "disabled");
-  CLog::Log(LOGINFO, "AAC pass through is %s", GetBool("audiooutput.passthroughaac") ? "enabled" : "disabled");
-  CLog::Log(LOGINFO, "MP1 pass through is %s", GetBool("audiooutput.passthroughmp1") ? "enabled" : "disabled");
-  CLog::Log(LOGINFO, "MP2 pass through is %s", GetBool("audiooutput.passthroughmp2") ? "enabled" : "disabled");
-  CLog::Log(LOGINFO, "MP3 pass through is %s", GetBool("audiooutput.passthroughmp3") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "AC3 pass through is %s" , GetBool("audiooutput.ac3passthrough") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "DTS pass through is %s" , GetBool("audiooutput.dtspassthrough") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "AAC pass through is %s" , GetBool("audiooutput.passthroughaac") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "MP1 pass through is %s" , GetBool("audiooutput.passthroughmp1") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "MP2 pass through is %s" , GetBool("audiooutput.passthroughmp2") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "MP3 pass through is %s" , GetBool("audiooutput.passthroughmp3") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "Multichannel LPCM is %s", GetBool("audiooutput.multichannellpcm") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "TrueHD pass through is %s", GetBool("audiooutput.truehdpassthrough") ? "enabled" : "disabled");
+  CLog::Log(LOGINFO, "dtsHD pass through is %s", GetBool("audiooutput.dtshdpassthrough") ? "enabled" : "disabled");
 
   g_guiSettings.m_LookAndFeelResolution = GetResolution();
 #ifdef __APPLE__

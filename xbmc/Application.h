@@ -169,8 +169,9 @@ public:
   void ProcessSlow();
   void ResetScreenSaver();
   int GetVolume() const;
-  void SetVolume(long iValue, bool isPercentage = true);
+//  void SetVolume(long iValue, bool isPercentage = true);
   bool IsMuted() const;
+  void SetVolume(long iValue);
   void ToggleMute(void);
   void ShowVolumeBar(const CAction *action = NULL);
   int GetPlaySpeed() const;
@@ -356,7 +357,7 @@ protected:
   void Mute();
   void UnMute();
 
-  void SetHardwareVolume(long hardwareVolume);
+  void SetHardwareVolume(float hardwareVolume);
   void UpdateLCD();
   void FatalErrorHandler(bool WindowSystemInitialized, bool MapDrives, bool InitNetwork);
 

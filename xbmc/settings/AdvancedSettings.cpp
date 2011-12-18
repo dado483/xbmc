@@ -45,10 +45,13 @@ CAdvancedSettings::CAdvancedSettings()
 
 void CAdvancedSettings::Initialize()
 {
+  m_audioForceRAWPassthrough = false;
   m_audioHeadRoom = 0;
   m_ac3Gain = 12.0f;
   m_audioApplyDrc = true;
   m_dvdplayerIgnoreDTSinWAV = false;
+  m_audioResample = 0;
+  m_audioForceDirectSound = false;
 
   //default hold time of 25 ms, this allows a 20 hertz sine to pass undistorted
   m_limiterHold = 0.025f;
@@ -108,7 +111,6 @@ void CAdvancedSettings::Initialize()
   m_musicPercentSeekBackward = -1;
   m_musicPercentSeekForwardBig = 10;
   m_musicPercentSeekBackwardBig = -10;
-  m_musicResample = 0;
 
   m_slideshowPanAmount = 2.5f;
   m_slideshowZoomAmount = 5.0f;
@@ -356,6 +358,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
   TiXmlElement *pElement = pRootElement->FirstChildElement("audio");
   if (pElement)
   {
+    XMLUtils::GetBoolean(pElement, "forcerawpassthrough", m_audioForceRAWPassthrough);
     XMLUtils::GetFloat(pElement, "ac3downmixgain", m_ac3Gain, -96.0f, 96.0f);
     XMLUtils::GetInt(pElement, "headroom", m_audioHeadRoom, 0, 12);
     XMLUtils::GetString(pElement, "defaultplayer", m_audioDefaultPlayer);
@@ -373,7 +376,8 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetInt(pElement, "percentseekforwardbig", m_musicPercentSeekForwardBig, 0, 100);
     XMLUtils::GetInt(pElement, "percentseekbackwardbig", m_musicPercentSeekBackwardBig, -100, 0);
 
-    XMLUtils::GetInt(pElement, "resample", m_musicResample, 0, 192000);
+    XMLUtils::GetInt(pElement, "resample", m_audioResample, 0, 192000);
+    XMLUtils::GetString(pElement, "transcodeto", m_audioTranscodeTo);
 
     TiXmlElement* pAudioExcludes = pElement->FirstChildElement("excludefromlisting");
     if (pAudioExcludes)
@@ -389,6 +393,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
 
     XMLUtils::GetFloat(pElement, "limiterhold", m_limiterHold, 0.0f, 100.0f);
     XMLUtils::GetFloat(pElement, "limiterrelease", m_limiterRelease, 0.001f, 100.0f);
+    XMLUtils::GetBoolean(pElement, "forcedirectsound", m_audioForceDirectSound);
   }
 
   pElement = pRootElement->FirstChildElement("karaoke");

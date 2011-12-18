@@ -31,7 +31,7 @@ DIRECTORY_ARCHIVES=$(DVDPLAYER_ARCHIVES) \
                    lib/xbmc-dll-symbols/dll-symbols.a \
                    xbmc/addons/addons.a \
                    xbmc/cdrip/cdrip.a \
-                   xbmc/cores/AudioRenderers/audiorenderers.a \
+//                   xbmc/cores/AudioRenderers/audiorenderers.a \
                    xbmc/cores/DllLoader/dllloader.a \
                    xbmc/cores/DllLoader/exports/exports.a \
                    xbmc/cores/DllLoader/exports/util/exports_utils.a \
@@ -40,6 +40,7 @@ DIRECTORY_ARCHIVES=$(DVDPLAYER_ARCHIVES) \
                    xbmc/cores/VideoRenderers/VideoShaders/VideoShaders.a \
                    xbmc/cores/cores.a \
                    xbmc/cores/paplayer/paplayer.a \
+		   xbmc/cores/AudioEngine/audioengine.a \
                    xbmc/cores/playercorefactory/playercorefactory.a \
                    xbmc/dbwrappers/dbwrappers.a \
                    xbmc/dialogs/dialogs.a \
@@ -243,6 +244,8 @@ $(DVDPLAYER_ARCHIVES)         : dvdpcodecs
 $(DIRECTORY_ARCHIVES): force
 	@$(MAKE) $(if $(V),,-s) -C $(@D)
 
+xbmc/cores/AudioEngine/audioengine.a: force
+	$(MAKE) -C xbmc/cores/AudioEngine
 lib/libapetag/.libs/libapetag.a: force
 	$(MAKE) -C lib/libapetag
 lib/cpluff/libcpluff/.libs/libcpluff.a: force
