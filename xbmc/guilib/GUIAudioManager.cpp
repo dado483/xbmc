@@ -22,9 +22,6 @@
 #include "system.h"
 #include "GUIAudioManager.h"
 #include "Key.h"
-#include "AudioContext.h"
-#include "GUISound.h"
-#include "settings/Settings.h"
 #include "settings/GUISettings.h"
 #include "input/ButtonTranslator.h"
 #include "threads/SingleLock.h"
@@ -51,33 +48,6 @@ void CGUIAudioManager::Initialize()
 {
   if (g_guiSettings.GetString("lookandfeel.soundskin")=="OFF")
     return;
-
-  if (iDevice==CAudioContext::DEFAULT_DEVICE)
-  {
-    CSingleLock lock(m_cs);
-    
-    if (m_bInitialized)
-      return;
-
-    CLog::Log(LOGDEBUG, "CGUIAudioManager::Initialize");
-#ifdef _WIN32
-    bool bAudioOnAllSpeakers=false;
-    g_audioContext.SetupSpeakerConfig(2, bAudioOnAllSpeakers);
-    g_audioContext.SetActiveDevice(CAudioContext::DIRECTSOUND_DEVICE);
-    m_bInitialized = true;
-#elif defined(HAS_SDL_AUDIO)
-    Mix_CloseAudio();
-    if (Mix_OpenAudio(44100, AUDIO_S16, 2, 4096))
-       CLog::Log(LOGERROR, "Unable to open audio mixer");
-    Mix_Volume(0, (int)(128.f * (g_settings.m_nVolumeLevel - VOLUME_MINIMUM) / (float)(VOLUME_MAXIMUM - VOLUME_MINIMUM)));
-    m_bInitialized = true;
-#endif
-  }
-}
-
-void CGUIAudioManager::DeInitialize(int iDevice)
-{
-  if (!(iDevice == CAudioContext::DIRECTSOUND_DEVICE || iDevice == CAudioContext::DEFAULT_DEVICE)) return;
 
   CSingleLock lock(m_cs);
 }
