@@ -114,6 +114,10 @@
 #include "network/AirPlayServer.h"
 #endif
 
+#if defined(HAS_WEB_SERVER)
+#include "network/WebServer.h"
+#endif
+
 using namespace std;
 using namespace XFILE;
 using namespace ADDON;
@@ -587,8 +591,7 @@ void CGUIWindowSettingsCategory::UpdateSettings()
       CGUIControl *pControl = (CGUIControl *)GetControl(pSettingControl->GetID());
       if (pControl)
       {
-        int value = g_guiSettings.GetResolution();
-        if (g_settings.m_ResInfo[value].bFullScreen)
+        if (g_Windowing.IsFullScreen())
           pControl->SetEnabled(true);
         else
           pControl->SetEnabled(false);

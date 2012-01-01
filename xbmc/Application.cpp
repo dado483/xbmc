@@ -34,6 +34,10 @@
 #include "cores/AudioEngine/AEFactory.h"
 #include "PlayListPlayer.h"
 #include "Autorun.h"
+#include "video/Bookmark.h"
+#ifdef HAS_WEB_SERVER
+#include "network/WebServer.h"
+#endif
 #ifdef HAS_LCD
 #include "utils/LCDFactory.h"
 #endif
@@ -292,6 +296,7 @@
 #include "DarwinUtils.h"
 #endif
 
+
 #ifdef HAS_DVD_DRIVE
 #include <cdio/logging.h>
 #endif
@@ -345,7 +350,10 @@ using namespace XbmcThreads;
 #define MAX_FFWD_SPEED 5
 
 //extern IDirectSoundRenderer* m_pAudioDecoder;
-CApplication::CApplication(void) : m_itemCurrentFile(new CFileItem), m_progressTrackingItem(new CFileItem)
+CApplication::CApplication(void) : m_WebServer(*new CWebServer)
+  , m_itemCurrentFile(new CFileItem)
+  , m_progressTrackingVideoResumeBookmark(*new CBookmark)
+  , m_progressTrackingItem(new CFileItem)
 {
   m_iPlaySpeed = 1;
   m_pPlayer = NULL;
@@ -384,10 +392,18 @@ CApplication::CApplication(void) : m_itemCurrentFile(new CFileItem), m_progressT
   m_bEnableLegacyRes = false;
   m_bSystemScreenSaverEnable = false;
   m_pInertialScrollingHandler = new CInertialScrollingHandler();
+#ifdef HAS_DVD_DRIVE
+  m_Autorun = new CAutorun();
+#endif
 }
 
 CApplication::~CApplication(void)
 {
+  delete &m_WebServer;
+  delete &m_progressTrackingVideoResumeBookmark;
+#ifdef HAS_DVD_DRIVE
+  delete m_Autorun;
+#endif
   delete m_currentStack;
 
 #ifdef HAS_KARAOKE
@@ -531,15 +547,15 @@ bool CApplication::Create()
 
   CLog::Log(LOGNOTICE, "-----------------------------------------------------------------------");
 #if defined(TARGET_DARWIN_OSX)
-  CLog::Log(LOGNOTICE, "Starting XBMC, Platform: Darwin OSX (%s). Built on %s (Git:%s)", g_sysinfo.GetUnameVersion().c_str(), __DATE__, GIT_REV);
+  CLog::Log(LOGNOTICE, "Starting XBMC (%s), Platform: Darwin OSX (%s). Built on %s", g_infoManager.GetVersion().c_str(), g_sysinfo.GetUnameVersion().c_str(), __DATE__);
 #elif defined(TARGET_DARWIN_IOS)
-  CLog::Log(LOGNOTICE, "Starting XBMC, Platform: Darwin iOS (%s). Built on %s (Git:%s)", g_sysinfo.GetUnameVersion().c_str(), __DATE__, GIT_REV);
+  CLog::Log(LOGNOTICE, "Starting XBMC (%s), Platform: Darwin iOS (%s). Built on %s", g_infoManager.GetVersion().c_str(), g_sysinfo.GetUnameVersion().c_str(), __DATE__);
 #elif defined(__FreeBSD__)
-  CLog::Log(LOGNOTICE, "Starting XBMC, Platform: FreeBSD (%s). Built on %s (Git:%s)", g_sysinfo.GetUnameVersion().c_str(), __DATE__, GIT_REV);
+  CLog::Log(LOGNOTICE, "Starting XBMC (%s), Platform: FreeBSD (%s). Built on %s", g_infoManager.GetVersion().c_str(), g_sysinfo.GetUnameVersion().c_str(), __DATE__);
 #elif defined(_LINUX)
-  CLog::Log(LOGNOTICE, "Starting XBMC, Platform: Linux (%s, %s). Built on %s (Git:%s)", g_sysinfo.GetLinuxDistro().c_str(), g_sysinfo.GetUnameVersion().c_str(), __DATE__, GIT_REV);
+  CLog::Log(LOGNOTICE, "Starting XBMC (%s), Platform: Linux (%s, %s). Built on %s", g_infoManager.GetVersion().c_str(), g_sysinfo.GetLinuxDistro().c_str(), g_sysinfo.GetUnameVersion().c_str(), __DATE__);
 #elif defined(_WIN32)
-  CLog::Log(LOGNOTICE, "Starting XBMC, Platform: %s. Built on %s (Git:%s, compiler %i)",g_sysinfo.GetKernelVersion().c_str(), __DATE__, GIT_REV, _MSC_VER);
+  CLog::Log(LOGNOTICE, "Starting XBMC (%s), Platform: %s. Built on %s (compiler %i)", g_infoManager.GetVersion().c_str(), g_sysinfo.GetKernelVersion().c_str(), __DATE__, _MSC_VER);
   CLog::Log(LOGNOTICE, g_cpuInfo.getCPUModel().c_str());
   CLog::Log(LOGNOTICE, CWIN32Util::GetResInfoString());
   CLog::Log(LOGNOTICE, "Running with %s rights", (CWIN32Util::IsCurrentUserLocalAdministrator() == TRUE) ? "administrator" : "restricted");
@@ -549,6 +565,7 @@ bool CApplication::Create()
 
   CStdString executable = CUtil::ResolveExecutablePath();
   CLog::Log(LOGNOTICE, "The executable running is: %s", executable.c_str());
+  CLog::Log(LOGNOTICE, "Local hostname: %s", m_network.GetHostName().c_str());
   CLog::Log(LOGNOTICE, "Log File is located: %sxbmc.log", g_settings.m_logFolder.c_str());
   CLog::Log(LOGNOTICE, "-----------------------------------------------------------------------");
 
@@ -1213,7 +1230,12 @@ bool CApplication::Initialize()
   if (g_settings.UsingLoginScreen())
     g_windowManager.ActivateWindow(WINDOW_LOGIN_SCREEN);
   else
+  {
+#ifdef HAS_JSONRPC
+    CJSONRPC::Initialize();
+#endif
     g_windowManager.ActivateWindow(g_SkinInfo->GetFirstWindow());
+  }
 
   g_sysinfo.Refresh();
 
@@ -1232,7 +1254,7 @@ bool CApplication::Initialize()
   {
     UpdateLibraries();
 #ifdef HAS_PYTHON
-  g_pythonParser.m_bLogin = true;
+    g_pythonParser.m_bLogin = true;
 #endif
   }
 
@@ -1243,10 +1265,6 @@ bool CApplication::Initialize()
 #endif
 #if defined(HAVE_LIBCRYSTALHD)
   CCrystalHD::GetInstance();
-#endif
-
-#ifdef HAS_JSONRPC
-  CJSONRPC::Initialize();
 #endif
 
   CAddonMgr::Get().StartServices(false);
@@ -3632,7 +3650,9 @@ bool CApplication::PlayFile(const CFileItem& item, bool bRestart)
 #ifdef HAS_DVD_DRIVE
     // Display the Play Eject dialog
     if (CGUIDialogPlayEject::ShowAndGetInput(item))
-      return MEDIA_DETECT::CAutorun::PlayDiscAskResume(item.GetPath());
+      // PlayDiscAskResume takes path to disc. No parameter means default DVD drive.
+      // Can't do better as CGUIDialogPlayEject calls CMediaManager::IsDiscInDrive, which assumes default DVD drive anyway
+      return MEDIA_DETECT::CAutorun::PlayDiscAskResume(); 
 #endif
     return true;
   }
@@ -3728,9 +3748,9 @@ bool CApplication::PlayFile(const CFileItem& item, bool bRestart)
         options.starttime = 0.0f;
         CBookmark bookmark;
         CStdString path = item.GetPath();
-        if (item.IsDVD()) 
+        if (item.HasVideoInfoTag() && item.GetVideoInfoTag()->m_strFileNameAndPath.Find("removable://") == 0) 
           path = item.GetVideoInfoTag()->m_strFileNameAndPath;
-        if (item.HasProperty("original_listitem_url") && URIUtils::IsPlugin(item.GetProperty("original_listitem_url").asString()))
+        else if (item.HasProperty("original_listitem_url") && URIUtils::IsPlugin(item.GetProperty("original_listitem_url").asString()))
           path = item.GetProperty("original_listitem_url").asString();
         if(dbs.GetResumeBookMark(path, bookmark))
         {
@@ -4348,7 +4368,7 @@ bool CApplication::WakeUpScreenSaver()
 
     CAnnouncementManager::Announce(GUI, "xbmc", "OnScreensaverDeactivated");
 
-    if (m_screenSaver->ID() == "visualization" || m_screenSaver->ID() == "screensaver.xbmc.builtin.slideshow")
+    if (m_screenSaver->ID() == "visualization")
     {
       // we can just continue as usual from vis mode
       return false;
@@ -4359,6 +4379,8 @@ bool CApplication::WakeUpScreenSaver()
     { // we're in screensaver window
       if (g_windowManager.GetActiveWindow() == WINDOW_SCREENSAVER)
         g_windowManager.PreviousWindow();  // show the previous window
+      if (g_windowManager.GetActiveWindow() == WINDOW_SLIDESHOW)
+        g_application.getApplicationMessenger().SendAction(CAction(ACTION_STOP), WINDOW_SLIDESHOW);
     }
     return true;
   }
@@ -4884,7 +4906,7 @@ void CApplication::ProcessSlow()
 #ifdef HAS_DVD_DRIVE
   // checks whats in the DVD drive and tries to autostart the content (xbox games, dvd, cdda, avi files...)
   if (!IsPlayingVideo())
-    m_Autorun.HandleAutorun();
+    m_Autorun->HandleAutorun();
 #endif
 
   // update upnp server/renderer states
