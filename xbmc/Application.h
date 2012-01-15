@@ -170,7 +170,7 @@ public:
   void ProcessSlow();
   void ResetScreenSaver();
   int GetVolume() const;
-  void SetVolume(long iValue, bool isPercentage = true);
+  void SetVolume(long iValue);
   bool IsMuted() const;
   void ToggleMute(void);
   void ShowVolumeBar(const CAction *action = NULL);
@@ -358,7 +358,7 @@ protected:
   void Mute();
   void UnMute();
 
-  void SetHardwareVolume(long hardwareVolume);
+  void SetHardwareVolume(float hardwareVolume);
   void UpdateLCD();
   void FatalErrorHandler(bool WindowSystemInitialized, bool MapDrives, bool InitNetwork);
 
@@ -370,6 +370,7 @@ protected:
   bool ProcessEventServer(float frameTime);
   bool ProcessPeripherals(float frameTime);
   bool ProcessHTTPApiButtons();
+  bool ProcessJsonRpcButtons();
   bool ProcessJoystickEvent(const std::string& joystickName, int button, bool isAxis, float fAmount);
 
   float NavigationIdleTime();

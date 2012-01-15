@@ -41,7 +41,7 @@
 #include "Audio/DVDAudioCodecLibMad.h"
 #include "Audio/DVDAudioCodecPcm.h"
 #include "Audio/DVDAudioCodecLPcm.h"
-#include "Audio/DVDAudioCodecPassthroughFFmpeg.h"
+#include "Audio/DVDAudioCodecPassthrough.h"
 #include "Overlay/DVDOverlayCodecSSA.h"
 #include "Overlay/DVDOverlayCodecText.h"
 #include "Overlay/DVDOverlayCodecTX3G.h"
@@ -265,8 +265,8 @@ CDVDAudioCodec* CDVDFactoryCodec::CreateAudioCodec( CDVDStreamInfo &hint, bool p
 
   if (passthrough)
   {
-    pCodec = OpenCodec( new CDVDAudioCodecPassthroughFFmpeg(), hint, options);
-    if ( pCodec ) return pCodec;
+    pCodec = OpenCodec( new CDVDAudioCodecPassthrough(), hint, options );
+    if( pCodec ) return pCodec;
   }
 
   switch (hint.codec)

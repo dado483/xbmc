@@ -28,7 +28,10 @@
 #include "DVDDemuxers/DVDDemuxUtils.h"
 #include "DVDStreamInfo.h"
 #include "utils/BitstreamStats.h"
-#include "DVDPlayerAudioResampler.h"
+
+#include "cores/AudioEngine/AEFactory.h"
+#include "cores/AudioEngine/AEAudioFormat.h"
+#include "cores/AudioEngine/Utils/AEUtil.h"
 
 #include <list>
 #include <queue>
@@ -37,6 +40,12 @@ class CDVDPlayer;
 class CDVDAudioCodec;
 class IAudioCallback;
 class CDVDAudioCodec;
+
+#define PROPORTIONAL 20.0
+#define PROPREF       0.01
+#define PROPDIVMIN    2.0
+#define PROPDIVMAX   40.0
+#define INTEGRAL    200.0
 
 enum CodecID;
 
@@ -53,11 +62,14 @@ typedef struct stDVDAudioFrame
   double duration;
   unsigned int size;
 
-  int channels;
-  enum PCMChannels *channel_map;
-  int bits_per_sample;
-  int sample_rate;
-  bool passthrough;
+  int               channel_count;
+  int               encoded_channel_count;
+  CAEChannelInfo    channel_layout;
+  enum AEDataFormat data_format;
+  int               bits_per_sample;
+  int               sample_rate;
+  int               encoded_sample_rate;
+  bool              passthrough;
 } DVDAudioFrame;
 
 class CPTSOutputQueue
@@ -93,9 +105,6 @@ public:
   CDVDPlayerAudio(CDVDClock* pClock, CDVDMessageQueue& parent);
   virtual ~CDVDPlayerAudio();
 
-  void RegisterAudioCallback(IAudioCallback* pCallback) { m_dvdAudio.RegisterAudioCallback(pCallback); }
-  void UnRegisterAudioCallback()                        { m_dvdAudio.UnRegisterAudioCallback(); }
-
   bool OpenStream(CDVDStreamInfo &hints);
   void OpenStream(CDVDStreamInfo &hints, CDVDAudioCodec* codec);
   void CloseStream(bool bWaitForBuffers);
@@ -112,9 +121,7 @@ public:
   //! codec changes, in which case we may want to switch passthrough on/off.
   bool SwitchCodecIfNeeded();
 
-  void SetVolume(long nVolume)                          { m_dvdAudio.SetVolume(nVolume); }
-  void SetDynamicRangeCompression(long drc)             { m_dvdAudio.SetDynamicRangeCompression(drc); }
-  float GetCurrentAttenuation()                         { return m_dvdAudio.GetCurrentAttenuation(); }
+  void SetVolume(float fVolume)                         { m_dvdAudio.SetVolume(fVolume); }
 
   std::string GetPlayerInfo();
   int GetAudioBitrate();
@@ -180,8 +187,6 @@ protected:
   bool    m_started;
   double  m_duration; // last packets duration
   bool    m_silence;
-
-  CDVDPlayerResampler m_resampler;
 
   bool OutputPacket(DVDAudioFrame &audioframe);
 
