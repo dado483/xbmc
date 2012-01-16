@@ -81,19 +81,23 @@ protected:
 private:
   typedef struct {
     CAudioDecoder     m_decoder;             /* the stream decoder */
-    unsigned int      m_channels;            /* number of channels in the stream */
+    __int64           m_startOffset;         /* the stream start offset */
+    CAEChannelInfo    m_channelInfo;         /* channel layout information */
     unsigned int      m_sampleRate;          /* sample rate of the stream */
     enum AEDataFormat m_dataFormat;          /* data format of the samples */
     unsigned int      m_bytesPerSample;      /* number of bytes per audio sample */
+    unsigned int      m_framesPerSecond;     /* sample rate * channel count */
     
     bool              m_started;             /* if playback of this stream has been started */
     bool              m_finishing;           /* if this stream is finishing */
-    unsigned int      m_samplesSent;         /* number of frames sent to the stream */
-    unsigned int      m_prepareNextAtSample; /* when to prepare the next stream */
+    int               m_framesSent;          /* number of frames sent to the stream */
+    int               m_prepareNextAtFrame;  /* when to prepare the next stream */
     bool              m_prepareTriggered;    /* if the next stream has been prepared */
-    unsigned int      m_playNextAtSample;    /* when to start playing the next stream */
+    int               m_playNextAtFrame;     /* when to start playing the next stream */
     bool              m_playNextTriggered;   /* if this stream has started the next one */
     bool              m_fadeOutTriggered;    /* if the stream has been told to fade out */
+    int               m_seekNextAtFrame;     /* the FF/RR sample to seek at */
+    int               m_seekFrame;           /* the exact position to seek too, -1 for none */
     
     IAEStream*        m_stream;              /* the playback stream */
     float             m_volume;              /* the initial volume level to set the stream to on creation */
@@ -102,6 +106,7 @@ private:
   typedef std::list<StreamInfo*> StreamList;
 
   CCriticalSection       m_threadLock;
+  int                    m_playbackSpeed;    /* the playback speed (1 = normal) */
   bool                   m_isPlaying;
   bool                   m_isPaused;
   bool                   m_isFinished;       /* if there are no more songs in the queue */
@@ -120,6 +125,7 @@ private:
   void CloseAllStreams(bool fade = true);
   void ProcessStreams(float &delay, float &buffer);
   bool PrepareStream(StreamInfo *si);
-  bool ProcessStream(StreamInfo *si, float &delay, float &buffer);  
+  bool ProcessStream(StreamInfo *si, float &delay, float &buffer);
+  __int64 GetTotalTime64();
 };
 
