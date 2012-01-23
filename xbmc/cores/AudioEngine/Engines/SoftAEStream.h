@@ -23,7 +23,7 @@
 #include <samplerate.h>
 #include <list>
 
-#include "threads/CriticalSection.h"
+#include "threads/SharedSection.h"
 
 #include "AEAudioFormat.h"
 #include "Interfaces/AEStream.h"
@@ -78,11 +78,12 @@ public:
   virtual void              UnRegisterAudioCallback();
   virtual void              FadeVolume(float from, float to, unsigned int time);
   virtual bool              IsFading();
+  virtual void              RegisterSlave(IAEStream *stream);
 private:
   void InternalFlush();
   void CheckResampleBuffers();
 
-  CCriticalSection  m_critSection;
+  CSharedSection    m_lock;
   enum AEDataFormat m_initDataFormat;
   unsigned int      m_initSampleRate;
   CAEChannelInfo    m_initChannelLayout;
@@ -144,5 +145,8 @@ private:
   float              m_fadeStep;
   float              m_fadeTarget;
   unsigned int       m_fadeTime;
+
+  /* slave stream */
+  IAEStream         *m_slave;
 };
 

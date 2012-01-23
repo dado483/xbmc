@@ -274,6 +274,7 @@ bool PAPlayer::QueueNextFileEx(const CFileItem &file, bool fadeIn/* = true */)
   /* init the streaminfo struct */
   si->m_decoder.GetDataFormat(&si->m_channelInfo, &si->m_sampleRate, &si->m_dataFormat);
   si->m_startOffset        = file.m_lStartOffset * 1000 / 75;
+  si->m_endOffset          = file.m_lEndOffset   * 1000 / 75;
   si->m_bytesPerSample     = CAEUtil::DataFormatToBits(si->m_dataFormat) >> 3;
   si->m_framesPerSecond    = si->m_sampleRate * si->m_channelInfo.Count();
   si->m_started            = false;
@@ -284,6 +285,7 @@ bool PAPlayer::QueueNextFileEx(const CFileItem &file, bool fadeIn/* = true */)
   si->m_stream             = NULL;
   si->m_volume             = (fadeIn && m_crossFadeTime) ? 0.0f : 1.0f;
   si->m_fadeOutTriggered   = false;
+  si->m_isSlaved           = false;
   
   if (si->m_decoder.TotalTime() < TIME_TO_CACHE_NEXT_FILE + m_crossFadeTime)
        si->m_prepareNextAtFrame = 0;
@@ -307,7 +309,7 @@ inline bool PAPlayer::PrepareStream(StreamInfo *si)
   /* if we have a stream we are already prepared */
   if (si->m_stream)
     return true;
-  
+
   /* get a paused stream */
   si->m_stream = CAEFactory::AE->MakeStream(
     si->m_dataFormat,
@@ -321,12 +323,21 @@ inline bool PAPlayer::PrepareStream(StreamInfo *si)
     CLog::Log(LOGDEBUG, "PAPlayer::PrepareStream - Failed to get IAEStream");
     return false;
   }
-  
+
   si->m_stream->SetVolume    (si->m_volume);
   si->m_stream->SetReplayGain(si->m_decoder.GetReplayGain());
-  
+ 
+  /* if its not the first stream and crossfade is not enabled */
+  if (m_currentStream && m_currentStream != si && !m_crossFadeTime)
+  {
+    /* slave the stream for gapless */
+    si->m_isSlaved = true;
+    m_currentStream->m_stream->RegisterSlave(si->m_stream);
+  }
+ 
   CLog::Log(LOGINFO, "PAPlayer::PrepareStream - Ready");
-  return true;
+
+  return QueueData(si);
 }
 
 bool PAPlayer::CloseFile()
@@ -385,7 +396,7 @@ inline void PAPlayer::ProcessStreams(float &delay, float &buffer)
       CLog::Log(LOGDEBUG, "PAPlayer::ProcessStreams - Stream Freed");
     }
     else
-      ++itt;    
+      ++itt;
   }
     
   for(StreamList::iterator itt = m_streams.begin(); itt != m_streams.end(); ++itt)
@@ -478,7 +489,8 @@ inline bool PAPlayer::ProcessStream(StreamInfo *si, float &delay, float &buffer)
   {
     si->m_started = true;
     si->m_stream->RegisterAudioCallback(m_audioCallback);
-    si->m_stream->Resume();
+    if (!si->m_isSlaved)
+      si->m_stream->Resume();
     si->m_stream->FadeVolume(0.0f, 1.0f, m_crossFadeTime);
     m_callback.OnPlayBackStarted();
   }
@@ -527,21 +539,27 @@ inline bool PAPlayer::ProcessStream(StreamInfo *si, float &delay, float &buffer)
     return false;
   }
 
-  /* calculate the data size */
-  unsigned int size = std::min(si->m_decoder.GetDataSize(), space / si->m_bytesPerSample);
-  if (!size)
+  if (!QueueData(si))
+    return false;
+
+  /* update the delay time if we are running */
+  if (si->m_started)
   {
     float cacheTime = si->m_stream->GetCacheTime();
     float cacheTotalTime = si->m_stream->GetCacheTotal();
-
-    /* update the delay time if we are running */
-    if (si->m_started)
-    {
-      delay = std::min(delay, cacheTime);
-      buffer = std::min(buffer, cacheTime / cacheTotalTime);
-    }
-    return true;
+    delay  = std::min(delay, cacheTime);
+    buffer = std::min(buffer, cacheTime / cacheTotalTime);
   }
+
+  return true;
+}
+
+bool PAPlayer::QueueData(StreamInfo *si)
+{
+  unsigned int space = si->m_stream->GetSpace();
+  unsigned int size  = std::min(si->m_decoder.GetDataSize(), space / si->m_bytesPerSample);
+  if (!size)
+    return true;
   
   void* data = si->m_decoder.GetData(size);
   if (!data)
@@ -552,16 +570,6 @@ inline bool PAPlayer::ProcessStream(StreamInfo *si, float &delay, float &buffer)
   
   unsigned int added = si->m_stream->AddData(data, size * si->m_bytesPerSample);
   si->m_framesSent += added / si->m_bytesPerSample;
-
-  float cacheTime = si->m_stream->GetCacheTime();
-  float cacheTotalTime = si->m_stream->GetCacheTotal();
-
-  /* update the delay time if we are running */
-  if (si->m_started)
-  {
-    delay  = std::min(delay, cacheTime);
-    buffer = std::min(buffer, cacheTime / cacheTotalTime);
-  }
 
   return true;
 }
@@ -652,7 +660,11 @@ __int64 PAPlayer::GetTotalTime64()
   if (!m_currentStream)
     return 0;
 
-  return m_currentStream->m_decoder.TotalTime();
+  __int64 total = m_currentStream->m_decoder.TotalTime();
+  if (m_currentStream->m_endOffset)
+    total = m_currentStream->m_endOffset;
+  total -= m_currentStream->m_startOffset;
+  return total;
 }
 
 int PAPlayer::GetTotalTime()
