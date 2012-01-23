@@ -1250,14 +1250,7 @@ bool CApplication::Initialize()
 
   //  Restore volume
   if (g_settings.m_bMute)
-  {
-    SetVolume(g_settings.m_iPreMuteVolumeLevel);
     Mute();
-  }
-  else
-  {
-    SetVolume(g_settings.m_nVolumeLevel, false);
-  }
 
   // if the user shutoff the xbox during music scan
   // restore the settings
