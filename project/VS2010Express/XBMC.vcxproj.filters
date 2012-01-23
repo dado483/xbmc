@@ -5549,6 +5549,7 @@
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\ThreadedAE.h">
       <Filter>cores\AudioEngine</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioRenderers\IAudioRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\xbmc\win32\XBMC_PC.rc">
