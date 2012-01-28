@@ -21,6 +21,7 @@
  */
 
 #include <list>
+#include <vector>
 #include <map>
 
 #include "system.h"
@@ -81,6 +82,7 @@ public:
   unsigned int          GetSampleRate   ();
   unsigned int          GetChannelCount () {return m_chLayout.Count()      ;}
   CAEChannelInfo&       GetChannelLayout() {return m_chLayout              ;}
+  enum AEStdChLayout    GetStdChLayout  () {return m_stdChLayout           ;}
   unsigned int          GetFrames       () {return m_sinkFormat.m_frames   ;}
   unsigned int          GetFrameSize    () {return m_frameSize             ;}
 
@@ -92,6 +94,10 @@ public:
 
   virtual void EnumerateOutputDevices(AEDeviceList &devices, bool passthrough);
   virtual bool SupportsRaw();
+
+  /* internal stream methods */
+  void PauseStream (CSoftAEStream *stream);
+  void ResumeStream(CSoftAEStream *stream);
 
 #ifdef __SSE__
   inline static void SSEMulAddArray(float *data, float *add, const float mul, uint32_t count);
@@ -110,7 +116,7 @@ private:
   IAESink *GetSink(AEAudioFormat &desiredFormat, bool passthrough, CStdString &device);
   void StopAllSounds();
 
-  unsigned int m_delayFrames;
+  unsigned int m_delayTime;
   void DelayFrames();
 
   enum AEStdChLayout m_stdChLayout;
@@ -147,14 +153,14 @@ private:
     unsigned int  sampleCount;
   } SoundState;
 
-  typedef std::list<CSoftAEStream*> StreamList;
-  typedef std::list<CSoftAESound* > SoundList;
-  typedef std::list<SoundState    > SoundStateList;
+  typedef std::vector<CSoftAEStream*> StreamList;
+  typedef std::list  <CSoftAESound* > SoundList;
+  typedef std::list  <SoundState    > SoundStateList;
     
   /* the streams, sounds, output buffer and output buffer fill size */
   bool           m_transcode;
   bool           m_rawPassthrough;
-  StreamList     m_streams;
+  StreamList     m_streams, m_pausedStreams;
   SoundList      m_sounds;
   SoundStateList m_playing_sounds;
 
@@ -185,8 +191,11 @@ private:
   void         RunOutputStage   ();
 
   void         RunTranscodeStage();
-  unsigned int RunStreamStage   (unsigned int channelCount, void *out, bool &restart);
-  void         RunNormalizeStage(unsigned int channelCount, void *out, unsigned int mixed);
-  void         RunBufferStage   (void *out);
+  unsigned int (CSoftAE::*m_streamStageFn)(unsigned int channelCount, void *out, bool &restart);
+  unsigned int RunRawStreamStage (unsigned int channelCount, void *out, bool &restart);
+  unsigned int RunStreamStage    (unsigned int channelCount, void *out, bool &restart);
+  void         ResumeStreams     (StreamList &streams);
+  void         RunNormalizeStage (unsigned int channelCount, void *out, unsigned int mixed);
+  void         RunBufferStage    (void *out);
 };
 

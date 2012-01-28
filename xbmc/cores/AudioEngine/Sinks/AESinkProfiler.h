@@ -1,7 +1,7 @@
 #pragma once
 /*
  *      Copyright (C) 2005-2010 Team XBMC
- *      http://xbmc.org
+ *      http://www.xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,35 +20,27 @@
  *
  */
 
-#include "AEAudioFormat.h"
+#include "system.h"
 
-class CAERemap {
+#include "Interfaces/AESink.h"
+#include <stdint.h>
+
+class CAESinkProfiler : public IAESink
+{
 public:
-  CAERemap();
-  ~CAERemap();
+  virtual const char *GetName() { return "Profiler"; }
 
-  bool Initialize(CAEChannelInfo input, CAEChannelInfo output, bool finalStage, bool forceNormalize = false, enum AEStdChLayout stdChLayout = AE_CH_LAYOUT_INVALID);
-  void Remap(float * const in, float * const out, const unsigned int frames) const;
+  CAESinkProfiler();
+  virtual ~CAESinkProfiler();
 
+  virtual bool Initialize  (AEAudioFormat &format, CStdString &device);
+  virtual void Deinitialize();
+  virtual bool IsCompatible(const AEAudioFormat format, const CStdString device);
+
+  virtual float        GetDelay        ();
+  virtual unsigned int AddPackets      (uint8_t *data, unsigned int frames);
+  virtual void         Drain           ();
+  static void          EnumerateDevices(AEDeviceList &devices, bool passthrough);
 private:
-  typedef struct {
-    int   index;
-    float level;
-  } AEMixLevel;
-
-  typedef struct {
-    bool              in_src;
-    bool              in_dst;
-    int               outIndex;
-    int               srcCount;
-    AEMixLevel        srcIndex[AE_CH_MAX];
-  } AEMixInfo;
-
-  AEMixInfo      m_mixInfo[AE_CH_MAX+1];
-  CAEChannelInfo m_output;
-  int            m_inChannels;
-  int            m_outChannels;
-
-  void ResolveMix(const AEChannel from, CAEChannelInfo to);
+  int64_t m_ts;
 };
-

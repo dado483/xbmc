@@ -77,7 +77,7 @@ void CSoftAEStream::InitializeRemap()
   if (!AE_IS_RAW(m_initDataFormat))
   {
     /* re-init the remappers */
-    m_remap   .Initialize(m_initChannelLayout, AE.GetChannelLayout()           , false);
+    m_remap   .Initialize(m_initChannelLayout, AE.GetChannelLayout()           , false, false, AE.GetStdChLayout());
     m_vizRemap.Initialize(m_initChannelLayout, CAEChannelInfo(AE_CH_LAYOUT_2_0), false, true);
 
     /*
@@ -146,7 +146,7 @@ void CSoftAEStream::Initialize()
   if (!AE_IS_RAW(m_initDataFormat))
   {
     if (
-      !m_remap   .Initialize(m_initChannelLayout, m_aeChannelLayout               , false) ||
+      !m_remap   .Initialize(m_initChannelLayout, m_aeChannelLayout               , false, false, AE.GetStdChLayout()) ||
       !m_vizRemap.Initialize(m_initChannelLayout, CAEChannelInfo(AE_CH_LAYOUT_2_0), false, true))
     {
       m_valid = false;
@@ -316,6 +316,12 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
     consumed = frames * m_bytesPerFrame;
   }
 
+  if (m_refillBuffer)
+  {
+    if (frames > m_refillBuffer) m_refillBuffer = 0;
+    else m_refillBuffer -= frames;
+  }
+
   /* buffer the data */
   m_framesBuffered += frames;
   while(samples)
@@ -372,9 +378,6 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
     }
   }
 
-  if (m_refillBuffer)
-    m_refillBuffer = (unsigned int)std::max((int)m_refillBuffer - (int)frames, 0);
-
   return consumed;
 }
 
@@ -419,7 +422,7 @@ uint8_t* CSoftAEStream::GetFrame()
       else
       {
         /* underrun, we need to refill our buffers */
-        m_refillBuffer = m_waterLevel;
+        m_refillBuffer = m_waterLevel - m_framesBuffered;
         CLog::Log(LOGDEBUG, "CSoftAEStream::GetFrame - Underrun");
         return NULL;
       }
@@ -461,13 +464,6 @@ uint8_t* CSoftAEStream::GetFrame()
     }
   }
 
-  /* if we are draining and are out of packets, tell the slave to resume */
-  if (m_draining && m_slave && !m_packet.samples && m_outBuffer.empty())
-  {
-    m_slave->Resume();
-    m_slave = NULL;
-  }
-
   return ret;
 }
 
@@ -488,6 +484,20 @@ float CSoftAEStream::GetCacheTotal()
 {
   if (m_delete) return 0.0f;
   return (float)m_waterLevel / (float)AE.GetSampleRate();
+}
+
+void CSoftAEStream::Pause()
+{
+  if (m_paused) return;
+  m_paused = true;
+  AE.PauseStream(this);
+}
+
+void CSoftAEStream::Resume()
+{
+  if (!m_paused) return;
+  m_paused = false;
+  AE.ResumeStream(this);
 }
 
 void CSoftAEStream::Drain()
@@ -613,6 +623,6 @@ bool CSoftAEStream::IsFading()
 void CSoftAEStream::RegisterSlave(IAEStream *slave)
 {
   CSharedLock lock(m_lock);
-  m_slave = slave;
+  m_slave = (CSoftAEStream*)slave;
 }
 

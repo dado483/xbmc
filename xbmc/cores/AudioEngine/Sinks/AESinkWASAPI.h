@@ -39,7 +39,6 @@ public:
   virtual void Deinitialize();
   virtual bool IsCompatible(const AEAudioFormat format, const CStdString device);
 
-  virtual void         Stop             ();
   virtual float        GetDelay         ();
   virtual unsigned int AddPackets       (uint8_t *data, unsigned int frames);
   static  void         EnumerateDevices (AEDeviceList &devices, bool passthrough);
@@ -53,6 +52,7 @@ private:
 
   static const char  *WASAPIErrToStr(HRESULT err);
 
+  HANDLE              m_needDataEvent;
   IMMDevice          *m_pDevice;
   IAudioClient       *m_pAudioClient;
   IAudioRenderClient *m_pRenderClient;
@@ -67,7 +67,6 @@ private:
   bool                m_running;
   bool                m_initialized;
   bool                m_isExclusive;
-  CCriticalSection    m_runLock;
 
   unsigned int        m_uiBufferLen; // wasapi endpoint buffer size, in frames
 };

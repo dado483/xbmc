@@ -723,7 +723,8 @@ bool CSettings::LoadSettings(const CStdString& strSettingsFile)
   pElement = pRootElement->FirstChildElement("audio");
   if (pElement)
   {
-    GetFloat  (pElement, "volumelevel", m_fVolumeLevel, VOLUME_MAXIMUM, VOLUME_MINIMUM, VOLUME_MAXIMUM);
+    XMLUtils::GetBoolean(pElement, "mute", m_bMute);
+    GetFloat(pElement, "fvolumelevel", m_fVolumeLevel, VOLUME_MAXIMUM, VOLUME_MINIMUM, VOLUME_MAXIMUM);
   }
 
   LoadCalibration(pRootElement, strSettingsFile);
@@ -898,6 +899,7 @@ bool CSettings::SaveSettings(const CStdString& strSettingsFile, CGUISettings *lo
   TiXmlElement volumeNode("audio");
   pNode = pRoot->InsertEndChild(volumeNode);
   if (!pNode) return false;
+  XMLUtils::SetBoolean(pNode, "mute", m_bMute);
   XMLUtils::SetFloat(pNode, "volumelevel", m_fVolumeLevel);
 
   SaveCalibration(pRoot);

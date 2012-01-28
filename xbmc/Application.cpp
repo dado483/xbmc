@@ -282,17 +282,16 @@
 #define MEASURE_FUNCTION
 #endif
 
-<<<<<<< HEAD
 #ifdef _WIN32
-=======
 #ifdef HAS_SDL_AUDIO
 #include <SDL/SDL_mixer.h>
 #endif
+#endif
 #ifdef TARGET_WINDOWS
->>>>>>> origin/master
+#ifdef _WIN32
 #include <shlobj.h>
 #include "win32util.h"
-#include "storage/DetectDVDType.h"
+#endif
 #endif
 #ifdef HAS_XRANDR
 #include "windowing/X11/XRandR.h"
@@ -1272,7 +1271,7 @@ bool CApplication::Initialize()
   CLog::Log(LOGINFO, "removing tempfiles");
   CUtil::RemoveTempFiles();
 
-  //  Restore volume
+  //  Show mute symbol
   if (g_settings.m_bMute)
     Mute();
 
@@ -4868,11 +4867,6 @@ void CApplication::Process()
   // process messages, even if a movie is playing
   m_applicationMessenger.ProcessMessages();
   if (g_application.m_bStop) return; //we're done, everything has been unloaded
-
-  // check if we can free unused memory
-#ifndef _LINUX
-  g_audioManager.FreeUnused();
-#endif
 
   // check how far we are through playing the current item
   // and do anything that needs doing (lastfm submission, playcount updates etc)

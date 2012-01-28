@@ -30,10 +30,10 @@
 
 #include "../Utils/AEUtil.h"
 #include "settings/GUISettings.h"
-#include "StdString.h"
+#include "utils/StdString.h"
 #include "utils/log.h"
 #include "threads/SingleLock.h"
-#include "CharsetConverter.h"
+#include "utils/CharsetConverter.h"
 
 #pragma comment(lib, "Avrt.lib")
 
@@ -62,7 +62,7 @@ static const sampleFormat testFormats[] = { {KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, 32
                                             {KSDATAFORMAT_SUBTYPE_PCM, 32, 24},
                                             {KSDATAFORMAT_SUBTYPE_PCM, 16, 16} }; 
 
-#define EXIT_ON_FAILURE(hr, reason, ...) if(FAILED(hr)) {CLog::Log(LOGERROR, reason, __VA_ARGS__); goto failed;}
+#define EXIT_ON_FAILURE(hr, reason, ...) if(FAILED(hr)) {CLog::Log(LOGERROR, reason " - %s", __VA_ARGS__, WASAPIErrToStr(hr)); goto failed;}
 
 #define ERRTOSTR(err) case err: return #err
 
@@ -70,6 +70,7 @@ static const sampleFormat testFormats[] = { {KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, 32
 CAESinkWASAPI::CAESinkWASAPI() :
   m_pAudioClient(NULL),
   m_pRenderClient(NULL),
+  m_needDataEvent(0),
   m_pDevice(NULL),
   m_initialized(false),
   m_running(false),
@@ -84,13 +85,10 @@ CAESinkWASAPI::CAESinkWASAPI() :
 
 CAESinkWASAPI::~CAESinkWASAPI()
 {
-  Deinitialize();
 }
 
 bool CAESinkWASAPI::Initialize(AEAudioFormat &format, CStdString &device)
 {
-  CSingleLock lock(m_runLock);
-
   if(m_initialized) return false;
 
   m_device = device;
@@ -190,13 +188,20 @@ bool CAESinkWASAPI::Initialize(AEAudioFormat &format, CStdString &device)
     m_isExclusive = false;
   }
 
-  hr = m_pAudioClient->GetBufferSize(&m_uiBufferLen);
-  format.m_frames = m_uiBufferLen/8;
+  /* get the buffer size and device period to calculate the frames for AE */
+  REFERENCE_TIME hnsPeriod;
+  m_pAudioClient->GetBufferSize(&m_uiBufferLen);
+  m_pAudioClient->GetDevicePeriod(NULL, &hnsPeriod);
+  format.m_frames       = (unsigned int)(1.0 * hnsPeriod * format.m_sampleRate / 1000 / 10000 + 0.5);
   format.m_frameSamples = format.m_frames * format.m_channelLayout.Count();
   m_format = format;
 
   hr = m_pAudioClient->GetService(IID_IAudioRenderClient, (void**)&m_pRenderClient);
   EXIT_ON_FAILURE(hr, __FUNCTION__": Could not initialize the WASAPI render client interface.")
+
+  m_needDataEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+  hr = m_pAudioClient->SetEventHandle(m_needDataEvent);
+  EXIT_ON_FAILURE(hr, __FUNCTION__": Could not set the WASAPI event handler.");
 
   m_initialized = true;
   
@@ -209,6 +214,7 @@ failed:
   SAFE_RELEASE(m_pRenderClient);
   SAFE_RELEASE(m_pAudioClient);
   SAFE_RELEASE(m_pDevice);
+  CloseHandle(m_needDataEvent);
 
   return false;
 }
@@ -217,16 +223,20 @@ void CAESinkWASAPI::Deinitialize()
 {
   if(!m_initialized) return;
 
-  Stop();
+  if(m_running)
+    m_pAudioClient->Stop();
+  m_running = false;
 
   SAFE_RELEASE(m_pRenderClient);
   SAFE_RELEASE(m_pAudioClient);
   SAFE_RELEASE(m_pDevice);
+  CloseHandle(m_needDataEvent);
+
+  m_initialized = false;
 }
 
 bool CAESinkWASAPI::IsCompatible(const AEAudioFormat format, const CStdString device)
 {
-  CSingleLock lock(m_runLock);
   if(!m_initialized) return false;
 
   bool excSetting = g_guiSettings.GetBool("audiooutput.useexclusivemode");
@@ -256,20 +266,8 @@ bool CAESinkWASAPI::IsCompatible(const AEAudioFormat format, const CStdString de
   return false;
 }
 
-void CAESinkWASAPI::Stop()
-{
-  CSingleLock lock(m_runLock);
-  if(!m_initialized) return;
-
-  if(m_running)
-    m_pAudioClient->Stop();
-
-  m_running = false;
-}
-
 float CAESinkWASAPI::GetDelay()
 {
-  CSingleLock lock(m_runLock);
   if(!m_initialized) return 0.0f;
 
   UINT32 frames;
@@ -279,26 +277,26 @@ float CAESinkWASAPI::GetDelay()
 
 unsigned int CAESinkWASAPI::AddPackets(uint8_t *data, unsigned int frames)
 {
-  CSingleLock lock(m_runLock);
   if(!m_initialized) return 0;
 
-  HRESULT hr;
+  /* block until there is room for data */
   UINT32 waitFor;
-
-  m_pAudioClient->GetCurrentPadding(&waitFor);
-
-  while(m_uiBufferLen - waitFor < frames)
+  unsigned int use;
+  while(TRUE)
   {
-    Sleep(1);
     m_pAudioClient->GetCurrentPadding(&waitFor);
+    use = std::min(frames, m_uiBufferLen - waitFor);
+
+    if (use > 0) break;
+    WaitForSingleObject(m_needDataEvent, INFINITE);
   }
 
+  HRESULT hr;
   BYTE *buf;
-
-  if (SUCCEEDED(hr = m_pRenderClient->GetBuffer(frames, &buf)))
+  if (SUCCEEDED(hr = m_pRenderClient->GetBuffer(use, &buf)))
   {
-    memcpy(buf, data, frames*m_format.m_frameSize);
-    if (FAILED(hr = m_pRenderClient->ReleaseBuffer(frames, 0)))
+    memcpy(buf, data, use*m_format.m_frameSize);
+    if (FAILED(hr = m_pRenderClient->ReleaseBuffer(use, 0)))
       CLog::Log(LOGERROR, __FUNCTION__": ReleaseBuffer failed (%s)", WASAPIErrToStr(hr));
   }
   else
@@ -312,7 +310,7 @@ unsigned int CAESinkWASAPI::AddPackets(uint8_t *data, unsigned int frames)
     m_running = true;
   }
 
-  return frames;
+  return use;
 }
 
 void CAESinkWASAPI::EnumerateDevices(AEDeviceList &devices, bool passthrough)
@@ -536,9 +534,9 @@ bool CAESinkWASAPI::InitializeShared(AEAudioFormat &format)
   //For audio stability make sure we have at least an 8ms buffer.
   if(hnsPeriodicity < 80000) hnsPeriodicity = 80000;
 
-  hnsRequestedDuration = hnsPeriodicity*8;
+  hnsRequestedDuration = hnsPeriodicity;
 
-  if (FAILED(hr = m_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, hnsRequestedDuration, 0, &wfxex->Format, NULL)))
+  if (FAILED(hr = m_pAudioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, hnsRequestedDuration, hnsPeriodicity, &wfxex->Format, NULL)))
   {
     CLog::Log(LOGERROR, __FUNCTION__": Initialize failed (%s)", WASAPIErrToStr(hr));
     CoTaskMemFree(wfxex);
@@ -653,7 +651,7 @@ initialize:
   //For audio stability make sure we have at least an 8ms buffer.
   if(hnsPeriodicity < 80000) hnsPeriodicity = 80000;
 
-  hnsRequestedDuration = hnsPeriodicity * 8;
+  hnsRequestedDuration = hnsPeriodicity;
 
   CLog::Log(LOGDEBUG, __FUNCTION__": Initializing WASAPI exclusive mode with the following parameters:");
   CLog::Log(LOGDEBUG, "  Sample Rate   : %d", format.m_sampleRate);
@@ -661,7 +659,7 @@ initialize:
   CLog::Log(LOGDEBUG, "  Channel Count : %d", format.m_channelLayout.Count());
   CLog::Log(LOGDEBUG, "  Channel Layout: %s", ((CStdString)format.m_channelLayout).c_str());
 
-  hr = m_pAudioClient->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, 0, hnsRequestedDuration, hnsPeriodicity, &wfxex.Format, NULL);
+  hr = m_pAudioClient->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, hnsRequestedDuration, hnsPeriodicity, &wfxex.Format, NULL);
 
   if(FAILED(hr))
   {
