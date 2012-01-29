@@ -34,8 +34,8 @@
 #include "settings/GUISettings.h"
 
 #define ALSA_OPTIONS (SND_PCM_NONBLOCK | SND_PCM_NO_AUTO_FORMAT | SND_PCM_NO_AUTO_RESAMPLE)
-#define PERIOD_SIZE_MS 20
-#define ALSA_PERIODS   4
+#define PERIOD_SIZE_MS 4
+#define ALSA_PERIODS   32
 
 static enum AEChannel ALSAChannelMap[9] =
   {AE_CH_FL, AE_CH_FR, AE_CH_BL, AE_CH_BR, AE_CH_FC, AE_CH_LFE, AE_CH_SL, AE_CH_SR, AE_CH_NULL};
