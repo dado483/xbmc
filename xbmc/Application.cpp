@@ -291,6 +291,7 @@
 #ifdef _WIN32
 #include <shlobj.h>
 #include "win32util.h"
+#include "storage/DetectDVDType.h"
 #endif
 #endif
 #ifdef HAS_XRANDR
