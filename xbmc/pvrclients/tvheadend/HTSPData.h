@@ -22,10 +22,10 @@
  */
 
 #include "client.h"
-#include "thread.h"
+#include "../../../lib/platform/threads/threads.h"
 #include "HTSPConnection.h"
 
-class CHTSPData : public cThread
+class CHTSPData : public PLATFORM::CThread
 {
 public:
   CHTSPData();
@@ -64,14 +64,13 @@ public:
   PVR_ERROR    GetChannelGroupMembers(PVR_HANDLE handle, const PVR_CHANNEL_GROUP &group);
 
 protected:
-  virtual void Action(void);
+  virtual void *Process(void);
 
 private:
   struct SMessage
   {
-    cCondVar* event;
-    cMutex  * mutex;
-    htsmsg_t* msg;
+    PLATFORM::CEvent* event;
+    htsmsg_t*         msg;
   };
   typedef std::map<int, SMessage> SMessages;
 
@@ -83,15 +82,24 @@ private:
   bool SendEnableAsync();
   SRecordings GetDVREntries(bool recorded, bool scheduled);
 
-  CHTSPConnection *m_session;
-  cCondVar         m_started;
-  cMutex           m_Mutex;
-  SChannels        m_channels;
-  STags            m_tags;
-  SEvents          m_events;
-  SMessages        m_queue;
-  SRecordings      m_recordings;
-  int              m_iReconnectRetries;
-  bool             m_bDisconnectWarningDisplayed;
+  void ParseChannelRemove(htsmsg_t* msg);
+  void ParseChannelUpdate(htsmsg_t* msg);
+  void ParseDVREntryDelete(htsmsg_t* msg);
+  void ParseDVREntryUpdate(htsmsg_t* msg);
+  static bool ParseEvent(htsmsg_t* msg, uint32_t id, SEvent &event);
+  void ParseTagRemove(htsmsg_t* msg);
+  void ParseTagUpdate(htsmsg_t* msg);
+
+  CHTSPConnection *          m_session;
+  bool                       m_bIsStarted;
+  PLATFORM::CCondition<bool> m_started;
+  PLATFORM::CMutex           m_mutex;
+  SChannels                  m_channels;
+  STags                      m_tags;
+  SEvents                    m_events;
+  SMessages                  m_queue;
+  SRecordings                m_recordings;
+  int                        m_iReconnectRetries;
+  bool                       m_bDisconnectWarningDisplayed;
 };
 

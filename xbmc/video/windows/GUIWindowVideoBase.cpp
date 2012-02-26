@@ -282,7 +282,7 @@ void CGUIWindowVideoBase::OnInfo(CFileItem* pItem, const ADDON::ScraperPtr& scra
     if (item.m_bIsFolder && scraper && scraper->Content() != CONTENT_TVSHOWS)
     {
       CFileItemList items;
-      CDirectory::GetDirectory(item.GetPath(), items,"",true,false,DIR_CACHE_ONCE,true,true);
+      CDirectory::GetDirectory(item.GetPath(), items, g_settings.m_videoExtensions,true,false,DIR_CACHE_ONCE,true,true);
       items.Stack();
 
       // check for media files
@@ -1131,7 +1131,7 @@ void CGUIWindowVideoBase::GetContextButtons(int itemNumber, CContextButtons &but
       {
         buttons.Add(CONTEXT_BUTTON_RESUME_ITEM, GetResumeString(*(item.get())));     // Resume Video
       }
-      if (item->HasVideoInfoTag() && !item->m_bIsFolder && item->GetVideoInfoTag()->m_iEpisode > -1)
+      if (item->HasVideoInfoTag() && !item->m_bIsFolder && m_vecItems->Size() > 1 && itemNumber < m_vecItems->Size()-1)
       {
         buttons.Add(CONTEXT_BUTTON_PLAY_AND_QUEUE, 13412);
       }
@@ -1531,6 +1531,7 @@ void CGUIWindowVideoBase::OnDeleteItem(int iItem)
 
   OnDeleteItem(m_vecItems->Get(iItem));
 
+  m_vecItems->RemoveDiscCache(GetID());
   Update(m_vecItems->GetPath());
   m_viewControl.SetSelectedItem(iItem);
 }
@@ -1760,9 +1761,7 @@ bool CGUIWindowVideoBase::GetDirectory(const CStdString &strDirectory, CFileItem
     items.Add(newPlaylist);
   }
 
-  m_stackingAvailable = !(items.IsTuxBox() || items.IsPlugin() ||
-                          items.IsAddonsPath() || items.IsRSS() ||
-                          items.IsInternetStream() || items.IsVideoDb());
+  m_stackingAvailable = StackingAvailable(items);
   // we may also be in a tvshow files listing
   // (ideally this should be removed, and our stack regexps tidied up if necessary
   // No "normal" episodes should stack, and multi-parts should be supported)
@@ -1774,6 +1773,13 @@ bool CGUIWindowVideoBase::GetDirectory(const CStdString &strDirectory, CFileItem
     items.Stack();
 
   return bResult;
+}
+
+bool CGUIWindowVideoBase::StackingAvailable(const CFileItemList &items) const
+{
+  return !(items.IsTuxBox()         || items.IsPlugin()  ||
+           items.IsAddonsPath()     || items.IsRSS()     ||
+           items.IsInternetStream() || items.IsVideoDb());
 }
 
 void CGUIWindowVideoBase::OnPrepareFileItems(CFileItemList &items)

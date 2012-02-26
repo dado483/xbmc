@@ -878,9 +878,11 @@
   <string id="10019">Settings - Appearance</string>
   <string id="10020">Scripts</string>
   <string id="10021">Web Browser</string>
-
+  <string id="10025">Videos</string>
   <string id="10028">Videos/Playlist</string>
+  <string id="10029">Login screen</string>
   <string id="10034">Settings - Profiles</string>
+  <string id="10040">Addon browser</string>
 
   <string id="10100">Yes/No dialog</string>
   <string id="10101">Progress dialog</string>
@@ -1802,6 +1804,7 @@
   <string id="19246">Wakup before recording</string>
   <string id="19247">Daily wakeup</string>
   <string id="19248">Daily wakeup time (HH:MM:SS)</string>
+  <string id="19249">Filter channels</string>
   
   <string id="19499">Other/Unknown</string>
   <string id="19500">Movie/Drama</string>
@@ -2226,7 +2229,7 @@
   <string id="20326">This will reset the calibration values for %s</string>
   <string id="20327">to it's default values.</string>
   <string id="20328">Browse for destination</string>
-
+  <string id="20329">Movies are in separate folders that match the movie title</string>
   <string id="20330">Use folder names for lookups</string>
   <string id="20331">File</string>
   <string id="20332">Use file or folder names in lookups?</string>
@@ -2316,7 +2319,7 @@
   <string id="20416">First aired</string>
   <string id="20417">Writer</string>
   <string id="20418"></string>
-  <string id="20419">Show metadata in files view</string>
+  <string id="20419">Replace file names with library titles</string>
 
   <string id="20420">Never</string>
   <string id="20421">If only one season</string>
