@@ -5463,13 +5463,16 @@ CStdString CVideoDatabase::GetContentForPath(const CStdString& strPath)
   ScraperPtr scraper = GetScraperForPath(strPath, settings, foundDirectly);
   if (scraper)
   {
-    if (scraper->Content() == CONTENT_TVSHOWS && !foundDirectly)
-    { // check for episodes or seasons (ASSUMPTION: no episodes == seasons (i.e. assume show/season/episodes structure)
+    if (scraper->Content() == CONTENT_TVSHOWS)
+    { // check for episodes or seasons.  Assumptions are:
+      // 1. if episodes are in the path then we're in episodes.
+      // 2. if no episodes are found, and content was set directly on this path, then we're in shows.
+      // 3. if no episodes are found, and content was not set directly on this path, we're in seasons (assumes tvshows/seasons/episodes)
       CStdString sql = PrepareSQL("select count(1) from episodeview where strPath = '%s' limit 1", strPath.c_str());
       m_pDS->query( sql.c_str() );
       if (m_pDS->num_rows() && m_pDS->fv(0).get_asInt() > 0)
         return "episodes";
-      return "seasons";
+      return foundDirectly ? "tvshows" : "seasons";
     }
     return TranslateContent(scraper->Content());
   }
@@ -7549,7 +7552,7 @@ void CVideoDatabase::ImportFromXML(const CStdString &path)
         scanner.AddVideo(&item, CONTENT_MOVIES, useFolders);
         SetPlayCount(item, info.m_playCount, info.m_lastPlayed);
         CStdString strFileName(info.m_strTitle);
-        if (GetExportVersion() >= 1 && info.m_iYear > 0)
+        if (iVersion >= 1 && info.m_iYear > 0)
           strFileName.AppendFormat("_%i", info.m_iYear);
         CStdString file(GetSafeFile(moviesDir, strFileName));
         CFile::Cache(file + ".tbn", item.GetCachedVideoThumb());
@@ -7566,7 +7569,7 @@ void CVideoDatabase::ImportFromXML(const CStdString &path)
         scanner.AddVideo(&item, CONTENT_MUSICVIDEOS, useFolders);
         SetPlayCount(item, info.m_playCount, info.m_lastPlayed);
         CStdString strFileName(info.m_strArtist + "." + info.m_strTitle);
-        if (GetExportVersion() >= 1 && info.m_iYear > 0)
+        if (iVersion >= 1 && info.m_iYear > 0)
           strFileName.AppendFormat("_%i", info.m_iYear);
         CStdString file(GetSafeFile(musicvideosDir, strFileName));
         CFile::Cache(file + ".tbn", item.GetCachedVideoThumb());
