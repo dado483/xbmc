@@ -2991,7 +2991,7 @@ bool CDVDPlayer::OpenSubtitleStream(int iStream, int source)
     {
       CLog::Log(LOGNOTICE, "Opening Subtitle file: %s", st.filename.c_str());
       auto_ptr<CDVDDemuxVobsub> demux(new CDVDDemuxVobsub());
-      if(!demux->Open(st.filename))
+      if(!demux->Open(st.filename, st.filename2))
         return false;
       m_pSubtitleDemuxer = demux.release();
     }
@@ -3503,14 +3503,12 @@ bool CDVDPlayer::OnAction(const CAction &action)
       switch (action.GetID())
       {
       case ACTION_NEXT_ITEM:
-      case ACTION_PAGE_UP:
         THREAD_ACTION(action);
         CLog::Log(LOGDEBUG, " - pushed next in menu, stream will decide");
         pStream->OnNext();
         g_infoManager.SetDisplayAfterSeek();
         return true;
       case ACTION_PREV_ITEM:
-      case ACTION_PAGE_DOWN:
         THREAD_ACTION(action);
         CLog::Log(LOGDEBUG, " - pushed prev in menu, stream will decide");
         pStream->OnPrevious();
@@ -3614,7 +3612,6 @@ bool CDVDPlayer::OnAction(const CAction &action)
     {
       case ACTION_MOVE_UP:
       case ACTION_NEXT_ITEM:
-      case ACTION_PAGE_UP:
         m_messenger.Put(new CDVDMsg(CDVDMsg::PLAYER_CHANNEL_NEXT));
         g_infoManager.SetDisplayAfterSeek();
         ShowPVRChannelInfo();
@@ -3623,7 +3620,6 @@ bool CDVDPlayer::OnAction(const CAction &action)
 
       case ACTION_MOVE_DOWN:
       case ACTION_PREV_ITEM:
-      case ACTION_PAGE_DOWN:
         m_messenger.Put(new CDVDMsg(CDVDMsg::PLAYER_CHANNEL_PREV));
         g_infoManager.SetDisplayAfterSeek();
         ShowPVRChannelInfo();
@@ -3646,7 +3642,6 @@ bool CDVDPlayer::OnAction(const CAction &action)
   switch (action.GetID())
   {
     case ACTION_NEXT_ITEM:
-    case ACTION_PAGE_UP:
       if(GetChapterCount() > 0)
       {
         m_messenger.Put(new CDVDMsgPlayerSeekChapter(GetChapter()+1));
@@ -3656,7 +3651,6 @@ bool CDVDPlayer::OnAction(const CAction &action)
       else
         break;
     case ACTION_PREV_ITEM:
-    case ACTION_PAGE_DOWN:
       if(GetChapterCount() > 0)
       {
         m_messenger.Put(new CDVDMsgPlayerSeekChapter(GetChapter()-1));
@@ -3816,6 +3810,7 @@ int CDVDPlayer::AddSubtitleFile(const std::string& filename, const std::string& 
     m_SelectionStreams.Update(NULL, &v);
     int index = m_SelectionStreams.IndexOf(STREAM_SUBTITLE, m_SelectionStreams.Source(STREAM_SOURCE_DEMUX_SUB, filename), 0);
     m_SelectionStreams.Get(STREAM_SUBTITLE, index).flags = flags;
+    m_SelectionStreams.Get(STREAM_SUBTITLE, index).filename2 = vobsubfile;
     return index;
   }
   if(ext == ".sub")

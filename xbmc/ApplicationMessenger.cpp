@@ -339,6 +339,13 @@ void CApplicationMessenger::ProcessMessage(ThreadMessage *pMsg)
               g_application.PlayMedia(*((*list)[0]), playlist);
             else
             {
+              // Handle "shuffled" option if present
+              if (list->HasProperty("shuffled") && list->GetProperty("shuffled").isBoolean())
+                g_playlistPlayer.SetShuffle(playlist, list->GetProperty("shuffled").asBoolean(), false);
+              // Handle "repeat" option if present
+              if (list->HasProperty("repeat") && list->GetProperty("repeat").isInteger())
+                g_playlistPlayer.SetRepeat(playlist, (PLAYLIST::REPEAT_STATE)list->GetProperty("repeat").asInteger(), false);
+
               g_playlistPlayer.Add(playlist, (*list));
               g_playlistPlayer.Play(pMsg->dwParam1);
             }
@@ -720,6 +727,17 @@ void CApplicationMessenger::ProcessMessage(ThreadMessage *pMsg)
               CLog::Log(LOGWARNING, "Failed to get window with ID %i to send an action to", pMsg->dwParam1);
           }
           delete action;
+        }
+      }
+      break;
+
+    case TMSG_GUI_MESSAGE:
+      {
+        if (pMsg->lpVoid)
+        {
+          CGUIMessage *message = (CGUIMessage *)pMsg->lpVoid;
+          g_windowManager.SendMessage(*message, pMsg->dwParam1);
+          delete message;
         }
       }
       break;
@@ -1159,6 +1177,14 @@ void CApplicationMessenger::SendAction(const CAction &action, int windowID, bool
   ThreadMessage tMsg = {TMSG_GUI_ACTION};
   tMsg.dwParam1 = windowID;
   tMsg.lpVoid = new CAction(action);
+  SendMessage(tMsg, waitResult);
+}
+
+void CApplicationMessenger::SendGUIMessage(const CGUIMessage &message, int windowID, bool waitResult)
+{
+  ThreadMessage tMsg = {TMSG_GUI_MESSAGE};
+  tMsg.dwParam1 = windowID == WINDOW_INVALID ? 0 : windowID;
+  tMsg.lpVoid = new CGUIMessage(message);
   SendMessage(tMsg, waitResult);
 }
 
