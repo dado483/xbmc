@@ -395,7 +395,7 @@ void CAESinkOSS::EnumerateDevices(AEDeviceList &devices, bool passthrough)
     return;
   }	
 
-#ifdef OSS4
+#if defined(SNDCTL_SYSINFO) && defined(SNDCTL_CARDINFO)
   oss_sysinfo sysinfo;
   if (ioctl(mixerfd, SNDCTL_SYSINFO, &sysinfo) == -1)
   {
