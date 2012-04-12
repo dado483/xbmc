@@ -106,7 +106,7 @@ bool CAESinkOSS::Initialize(AEAudioFormat &format, std::string &device)
        if ((format.m_dataFormat == AE_FMT_FLOAT) && (format_mask & AFMT_FLOAT )) oss_fmt = AFMT_FLOAT;
   else
 #endif
-#ifdef OSS4
+#ifdef AFMT_S32_NE
        if ((format.m_dataFormat == AE_FMT_S32NE) && (format_mask & AFMT_S32_NE)) oss_fmt = AFMT_S32_NE;
   else if ((format.m_dataFormat == AE_FMT_S32BE) && (format_mask & AFMT_S32_BE)) oss_fmt = AFMT_S32_BE;
   else if ((format.m_dataFormat == AE_FMT_S32LE) && (format_mask & AFMT_S32_LE)) oss_fmt = AFMT_S32_LE;
@@ -133,7 +133,7 @@ bool CAESinkOSS::Initialize(AEAudioFormat &format, std::string &device)
          if (format_mask & AFMT_FLOAT ) {oss_fmt = AFMT_FLOAT ; format.m_dataFormat = AE_FMT_FLOAT; }
     else
 #endif
-#ifdef OSS4
+#ifdef AFMT_S32_NE
          if (format_mask & AFMT_S32_NE) {oss_fmt = AFMT_S32_NE; format.m_dataFormat = AE_FMT_S32NE; }
     else if (format_mask & AFMT_S32_BE) {oss_fmt = AFMT_S32_BE; format.m_dataFormat = AE_FMT_S32BE; }
     else if (format_mask & AFMT_S32_LE) {oss_fmt = AFMT_S32_LE; format.m_dataFormat = AE_FMT_S32LE; }
