@@ -27,6 +27,7 @@
 #include "utils/StdString.h"
 #include "utils/log.h"
 #include "threads/SingleLock.h"
+#include <sstream>
 
 #include <sys/ioctl.h>
 
@@ -383,7 +384,7 @@ void CAESinkOSS::EnumerateDevices(AEDeviceList &devices, bool passthrough)
 {
   int mixerfd;
   const char * mixerdev = "/dev/mixer";
-  std::string devicepath;
+  std::stringstream devicepath;
 
   devices.push_back(AEDevice("default", "/dev/dsp"));
 
@@ -407,11 +408,12 @@ void CAESinkOSS::EnumerateDevices(AEDeviceList &devices, bool passthrough)
   for (int i = 0; i < sysinfo.numcards; ++i)
   {
     oss_card_info cardinfo;
+    cardinfo.card = i;
 	if (ioctl(mixerfd, SNDCTL_CARDINFO, &cardinfo) == -1)
       break;
 
-    devicepath.Format("/dev/dsp%d", i);
-	devices.push_back(AEDevice(cardinfo.longname, devicepath));
+    devicepath << "/dev/dsp" << i;
+	devices.push_back(AEDevice(cardinfo.longname, devicepath.str()));
   }
 
   close(mixerfd);
