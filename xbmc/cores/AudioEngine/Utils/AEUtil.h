@@ -51,6 +51,14 @@ public:
   static const unsigned int      DataFormatToBits  (const enum AEDataFormat dataFormat);
   static const char*             DataFormatToStr   (const enum AEDataFormat dataFormat);
 
+  /* convert a linear value between 0.0 and 1.0 to a logrithmic value  */
+  static inline const float LinToLog(const float dbrange, const float value)
+  {
+    float b = log(pow(10.0f, dbrange * 0.05f));
+    float a = 1.0f / exp(b);
+    return a * exp(b * value);
+  }
+
   static inline float SoftClamp(float x)
   {
 #if 1

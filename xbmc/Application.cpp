@@ -32,6 +32,7 @@
 #include "guilib/TextureManager.h"
 #include "cores/dvdplayer/DVDFileInfo.h"
 #include "cores/AudioEngine/AEFactory.h"
+#include "cores/AudioEngine/Utils/AEUtil.h"
 #include "PlayListPlayer.h"
 #include "Autorun.h"
 #include "video/Bookmark.h"
@@ -1215,11 +1216,10 @@ bool CApplication::Initialize()
 
   /* window id's 3000 - 3100 are reserved for python */
 
+  /* load the audio engine and restore it's volume & mute values */
   CAEFactory::LoadEngine();
-  //  Restore volume
-  CAEFactory::AE->SetVolume(g_settings.m_fVolumeLevel);
-  CAEFactory::AE->SetMute  (g_settings.m_bMute);
-
+  SetHardwareVolume(g_settings.m_fVolumeLevel);
+  CAEFactory::AE->SetMute(g_settings.m_bMute);
 
   // Make sure we have at least the default skin
   if (!LoadSkin(g_guiSettings.GetString("lookandfeel.skin")) && !LoadSkin(DEFAULT_SKIN))
@@ -2622,18 +2622,14 @@ bool CApplication::OnAction(const CAction &action)
   {
     if (!m_pPlayer || !m_pPlayer->IsPassthrough())
     {
-      float volume = CAEFactory::AE->GetVolume();
-
-      // calculate speed so that a full press will equal 1 second from min to max
-      float speed = VOLUME_MAXIMUM - VOLUME_MINIMUM;
+      float volume = g_settings.m_fVolumeLevel;
+      float step   = (VOLUME_MAXIMUM - VOLUME_MINIMUM) / VOLUME_CONTROL_STEPS;
       if (action.GetRepeat())
-        speed *= action.GetRepeat();
-      else
-        speed /= 50; //50 fps
+        step *= action.GetRepeat();
 
       if (action.GetID() == ACTION_VOLUME_UP)
-           volume += (float)fabs(action.GetAmount()) * action.GetAmount() * speed;
-      else volume -= (float)fabs(action.GetAmount()) * action.GetAmount() * speed;
+           volume += (float)fabs(action.GetAmount()) * action.GetAmount() * step;
+      else volume -= (float)fabs(action.GetAmount()) * action.GetAmount() * step;
 
       SetHardwareVolume(volume);
     }
@@ -5147,13 +5143,18 @@ void CApplication::SetHardwareVolume(float hardwareVolume)
 {
   hardwareVolume = std::max(VOLUME_MINIMUM, std::min(VOLUME_MAXIMUM, hardwareVolume));
   g_settings.m_fVolumeLevel = hardwareVolume;
-  CAEFactory::AE->SetVolume(hardwareVolume);
+
+  float value = 0.0f;
+  if (hardwareVolume > VOLUME_MINIMUM)
+    value = CAEUtil::LinToLog(VOLUME_DYNAMIC_RANGE, hardwareVolume);
+
+  CAEFactory::AE->SetVolume(value);
 }
 
 int CApplication::GetVolume() const
 {
   // converts the hardware volume (in mB) to a percentage
-  return CAEFactory::AE->GetVolume() * 100.0f;
+  return g_settings.m_fVolumeLevel * 100.0f;
 }
 
 int CApplication::GetSubtitleDelay() const

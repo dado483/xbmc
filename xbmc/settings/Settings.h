@@ -60,10 +60,12 @@
 #define CACHE_VIDEO 1
 #define CACHE_VOB   2
 
-#define VOLUME_MINIMUM 0.0f     // -60dB
-#define VOLUME_MAXIMUM 1.0f     // 0dB
-#define VOLUME_DRC_MINIMUM 0    // 0dB
-#define VOLUME_DRC_MAXIMUM 6000 // 60dB
+#define VOLUME_MINIMUM 0.0f        // -60dB
+#define VOLUME_MAXIMUM 1.0f        // 0dB
+#define VOLUME_DYNAMIC_RANGE 90.0f // 60dB
+#define VOLUME_CONTROL_STEPS 90    // 90 steps
+#define VOLUME_DRC_MINIMUM 0       // 0dB
+#define VOLUME_DRC_MAXIMUM 6000    // 60dB
 
 #define VIEW_MODE_NORMAL        0
 #define VIEW_MODE_ZOOM          1
