@@ -26,6 +26,7 @@ SRCS = \
 	Utils/AEPackIEC61937.cpp \
 	Utils/AEBitstreamPacker.cpp \
 	Utils/AEWAVLoader.cpp \
+	Utils/AEELDParser.cpp \
 	\
 	PostProc/AEPPAnimationFade.cpp \
 	\

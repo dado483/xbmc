@@ -18,16 +18,16 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
 #include "system.h"
 #ifdef HAS_ALSA
 
-#include "AESinkALSA.h"
 #include <stdint.h>
 #include <limits.h>
 #include <sstream>
 
+#include "AESinkALSA.h"
 #include "Utils/AEUtil.h"
+#include "Utils/AEELDParser.h"
 #include "utils/StdString.h"
 #include "utils/log.h"
 #include "utils/MathUtils.h"
@@ -45,8 +45,28 @@
 #define RAW_PERIOD_SIZE_HD 256
 #define RAW_PERIODS_HD     16
 
-static enum AEChannel ALSAChannelMap[9] =
+#define ALSA_MAX_CHANNELS 8
+static enum AEChannel ALSAChannelMap[ALSA_MAX_CHANNELS + 1] =
   {AE_CH_FL, AE_CH_FR, AE_CH_BL, AE_CH_BR, AE_CH_FC, AE_CH_LFE, AE_CH_SL, AE_CH_SR, AE_CH_NULL};
+
+static unsigned int ALSASampleRateList[] =
+{
+  5512,
+  8000,
+  11025,
+  16000,
+  22050,
+  32000,
+  44100,
+  48000,
+  64000,
+  88200,
+  96000,
+  176400,
+  192000,
+  384000,
+  0
+};
 
 CAESinkALSA::CAESinkALSA() :
   m_pcm(NULL)
@@ -606,5 +626,175 @@ void CAESinkALSA::GenSoundLabel(AEDeviceList& devices, std::string sink, std::st
   if (sink == "default" || SoundDeviceExists(deviceString.c_str()))
     devices.push_back(AEDevice(readableCard + " " + sink, "alsa:" + deviceString));
 }
-#endif
 
+void CAESinkALSA::EnumerateDevicesEx()
+{
+  AEDeviceInfoList list;
+
+  snd_ctl_t *ctlhandle;
+  snd_pcm_t *pcmhandle;
+
+  snd_ctl_card_info_t *ctlinfo;
+  snd_ctl_card_info_alloca(&ctlinfo);
+
+  snd_pcm_hw_params_t *hwparams;
+  snd_pcm_hw_params_alloca(&hwparams);
+
+  snd_pcm_info_t *pcminfo;
+  snd_pcm_info_alloca(&pcminfo);
+
+  /* get the sound config */
+  snd_config_t *config;
+  snd_config_copy(&config, snd_config);
+
+  std::string strHwName;
+  int n_cards = -1;
+  while(snd_card_next(&n_cards) == 0 && n_cards != -1)
+  {
+    std::stringstream sstr;
+    sstr << "hw:" << n_cards;
+    std::string strHwName = sstr.str();
+
+    if (snd_ctl_open_lconf(&ctlhandle, strHwName.c_str(), 0, config) != 0)
+      continue;
+
+    if (snd_ctl_card_info(ctlhandle, ctlinfo) != 0)
+    {
+      snd_ctl_close(ctlhandle);
+      continue;
+    }
+
+    snd_hctl_t *hctl;
+    if (snd_hctl_open_ctl(&hctl, ctlhandle) != 0)
+      hctl = NULL;
+    snd_hctl_load(hctl);
+
+    int dev = -1;
+    while(snd_ctl_pcm_next_device(ctlhandle, &dev) == 0 && dev != -1)
+    {
+      snd_pcm_info_set_device   (pcminfo, dev);
+      snd_pcm_info_set_subdevice(pcminfo, 0  );
+      snd_pcm_info_set_stream   (pcminfo, SND_PCM_STREAM_PLAYBACK);
+
+      if (snd_ctl_pcm_info(ctlhandle, pcminfo) < 0)
+        continue;
+
+      AEDeviceInfo info;
+      sstr.str(std::string());
+      sstr << "hw:CARD=" << snd_ctl_card_info_get_id(ctlinfo) << ",DEV=" << dev;
+      info.m_deviceName = sstr.str();
+
+      sstr.str(std::string());
+      sstr << snd_ctl_card_info_get_name(ctlinfo) << " (dev: " << dev << ")";
+      info.m_displayName = sstr.str();
+
+      /* see if we can get ELD for this device */
+      bool badHDMI = false;
+      if (hctl && !GetELD(hctl, dev, info, badHDMI))
+          CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Unable to obtain ELD information for device %s, make sure you have ALSA >= 1.0.25", info.m_deviceName.c_str());
+
+      if (badHDMI)
+      {
+        CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Skipping HDMI device %s as it has no ELD data", info.m_deviceName.c_str());
+        continue;
+      }
+
+      /* if GetELD didnt flag as HDMI and the device has HDMI in the name, make it HDMI */
+      if (info.m_deviceType == AE_DEVTYPE_PCM)
+        if (strncmp(snd_pcm_info_get_id(pcminfo), "HDMI", 4) == 0)
+          info.m_deviceType = AE_DEVTYPE_HDMI;
+
+      /* open the device for testing */
+      if (snd_pcm_open_lconf(&pcmhandle, info.m_deviceName.c_str(), SND_PCM_STREAM_PLAYBACK, ALSA_OPTIONS, config) < 0)
+      {
+        CLog::Log(LOGINFO, "CAESinkALSA::EnumerateDevicesEx - Unable to open %s for capability detection", info.m_deviceName.c_str());
+        continue;
+      }
+
+      /* ensure we can get a playback configuration for the device */
+      if (snd_pcm_hw_params_any(pcmhandle, hwparams) < 0)
+      {
+        CLog::Log(LOGINFO, "CAESinkALSA::EnumerateDevicesEx - No playback configurations available for device %s", info.m_deviceName.c_str());
+        snd_pcm_close(pcmhandle);
+        continue;
+      }
+
+      /* detect the available sample rates */
+      for(unsigned int *rate = ALSASampleRateList; *rate != 0; ++rate)
+        if (snd_pcm_hw_params_test_rate(pcmhandle, hwparams, *rate, 0) >= 0)
+          info.m_sampleRates.push_back(*rate);
+
+      /* detect the channels available */
+      for(unsigned int channels = 2; channels < ALSA_MAX_CHANNELS; ++channels)
+        if (snd_pcm_hw_params_test_channels(pcmhandle, hwparams, channels) >= 0)
+          info.m_channels += ALSAChannelMap[channels - 1];
+
+      /* detect the PCM sample formats that are available */
+      for(enum AEDataFormat i = AE_FMT_MAX; i > AE_FMT_INVALID; i = (enum AEDataFormat)((int)i - 1))
+      {
+        if (AE_IS_RAW(i) || i == AE_FMT_MAX) continue;
+        snd_pcm_format_t fmt = AEFormatToALSAFormat(i);
+        if (fmt == SND_PCM_FORMAT_UNKNOWN)
+          continue;
+
+        if (snd_pcm_hw_params_test_format(pcmhandle, hwparams, fmt) >= 0)
+          info.m_dataFormats.push_back(i);
+      }
+
+      snd_pcm_close(pcmhandle);
+      list.push_back(info);
+    }
+
+    /* snd_hctl_close also closes ctlhandle */
+    if (hctl) snd_hctl_close(hctl);
+    else      snd_ctl_close (ctlhandle);
+  }
+}
+
+bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, AEDeviceInfo& info, bool& badHDMI)
+{
+  badHDMI = false;
+
+  snd_ctl_elem_id_t    *id;
+  snd_ctl_elem_info_t  *einfo;
+  snd_ctl_elem_value_t *control;
+  snd_hctl_elem_t      *elem;
+
+  snd_ctl_elem_id_alloca(&id);
+  snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_PCM);
+  snd_ctl_elem_id_set_name     (id, "ELD" );
+  snd_ctl_elem_id_set_device   (id, device);
+  elem = snd_hctl_find_elem(hctl, id);
+  if (!elem)
+    return false;
+
+  snd_ctl_elem_info_alloca(&einfo);
+  if (snd_hctl_elem_info(elem, einfo) < 0)
+    return false;
+
+  if (!snd_ctl_elem_info_is_readable(einfo))
+    return false;
+
+  if (snd_ctl_elem_info_get_type(einfo) != SND_CTL_ELEM_TYPE_BYTES)
+    return false;
+
+  snd_ctl_elem_value_alloca(&control);
+  if (snd_hctl_elem_read(elem, control) < 0)
+    return false;
+
+  int dataLength = snd_ctl_elem_info_get_count(einfo);
+  /* if there is no ELD data, then its a bad HDMI device, either nothing attached OR an invalid nVidia HDMI device */
+  if (!dataLength)
+    badHDMI = true;
+  else
+  {
+    CAEELDParser eld(
+      (const uint8_t*)snd_ctl_elem_value_get_bytes(control),
+      dataLength
+    );
+  }
+
+  info.m_deviceType = AE_DEVTYPE_HDMI;
+  return true;
+}
+#endif

@@ -24,6 +24,7 @@
 #ifdef HAS_ALSA
 
 #include "Interfaces/AESink.h"
+#include "AEDeviceInfo.h"
 #include <stdint.h>
 
 #define ALSA_PCM_NEW_HW_PARAMS_API
@@ -48,6 +49,8 @@ public:
   virtual unsigned int AddPackets      (uint8_t *data, unsigned int frames);
   virtual void         Drain           ();
   static void          EnumerateDevices(AEDeviceList &devices, bool passthrough);
+
+  static void EnumerateDevicesEx();
 private:
   CAEChannelInfo GetChannelLayout(AEAudioFormat format);
   std::string     GetDeviceUse    (const AEAudioFormat format, std::string device, bool passthrough);
@@ -61,13 +64,14 @@ private:
   snd_pcm_t        *m_pcm;
   int               m_timeout;
 
-  snd_pcm_format_t AEFormatToALSAFormat(const enum AEDataFormat format);
+  static snd_pcm_format_t AEFormatToALSAFormat(const enum AEDataFormat format);
 
   bool InitializeHW(AEAudioFormat &format);
   bool InitializeSW(AEAudioFormat &format);
 
   static bool SoundDeviceExists(const std::string& device);
   static void GenSoundLabel(AEDeviceList& devices, std::string sink, std::string card, std::string readableCard);
+  static bool GetELD(snd_hctl_t *hctl, int device, AEDeviceInfo& info, bool& badHDMI);
 };
 #endif
 
