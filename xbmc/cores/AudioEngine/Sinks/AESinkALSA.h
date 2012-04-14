@@ -24,7 +24,7 @@
 #ifdef HAS_ALSA
 
 #include "Interfaces/AESink.h"
-#include "AEDeviceInfo.h"
+#include "Utils/AEDeviceInfo.h"
 #include <stdint.h>
 
 #define ALSA_PCM_NEW_HW_PARAMS_API
@@ -71,7 +71,7 @@ private:
 
   static bool SoundDeviceExists(const std::string& device);
   static void GenSoundLabel(AEDeviceList& devices, std::string sink, std::string card, std::string readableCard);
-  static bool GetELD(snd_hctl_t *hctl, int device, AEDeviceInfo& info, bool& badHDMI);
+  static bool GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool& badHDMI);
 };
 #endif
 

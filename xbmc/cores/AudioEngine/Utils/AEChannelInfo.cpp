@@ -227,9 +227,9 @@ const char* CAEChannelInfo::GetChName(const enum AEChannel ch)
   static const char* channels[AE_CH_MAX] =
   {
     "RAW" ,
-    "FL"  , "FR" , "FC" , "LFE", "BL" , "BR" , "FLOC",
-    "FROC", "BC" , "SL" , "SR" , "TFL", "TFR", "TFC" ,
-    "TC"  , "TBL", "TBR", "TBC"
+    "FL"  , "FR" , "FC" , "LFE", "BL"  , "BR"  , "FLOC",
+    "FROC", "BC" , "SL" , "SR" , "TFL" , "TFR" , "TFC" ,
+    "TC"  , "TBL", "TBR", "TBC", "BLOC", "BROC"
   };
 
   return channels[ch];

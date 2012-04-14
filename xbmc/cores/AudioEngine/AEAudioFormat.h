@@ -54,6 +54,7 @@ enum AEDataFormat
   AE_FMT_FLOAT,
 
   /* Bitstream formats */
+  AE_FMT_AAC,
   AE_FMT_AC3,
   AE_FMT_DTS,
   AE_FMT_EAC3,
@@ -64,7 +65,7 @@ enum AEDataFormat
   AE_FMT_MAX
 };
 
-#define AE_IS_RAW(x) ((x) >= AE_FMT_AC3 && (x) < AE_FMT_MAX)
+#define AE_IS_RAW(x) ((x) >= AE_FMT_AAC && (x) < AE_FMT_MAX)
 #define AE_IS_RAW_HD(x) ((x) >= AE_FMT_EAC3 && (x) < AE_FMT_MAX)
 
 /**

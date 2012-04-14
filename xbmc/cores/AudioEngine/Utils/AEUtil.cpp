@@ -100,6 +100,7 @@ const unsigned int CAEUtil::DataFormatToBits(const enum AEDataFormat dataFormat)
     sizeof(double) << 3, /* DOUBLE */
     sizeof(float ) << 3, /* FLOAT  */
 
+    8,                   /* AAC    */
     8,                   /* AC3    */
     8,                   /* DTS    */
     8,                   /* EAC3   */
@@ -141,6 +142,7 @@ const char* CAEUtil::DataFormatToStr(const enum AEDataFormat dataFormat)
     "AE_FMT_FLOAT",
 
     /* for passthrough streams and the like */
+    "AE_FMT_AAC",
     "AE_FMT_AC3",
     "AE_FMT_DTS",
     "AE_FMT_EAC3",

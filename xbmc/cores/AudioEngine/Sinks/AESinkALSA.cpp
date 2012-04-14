@@ -679,7 +679,7 @@ void CAESinkALSA::EnumerateDevicesEx()
       if (snd_ctl_pcm_info(ctlhandle, pcminfo) < 0)
         continue;
 
-      AEDeviceInfo info;
+      CAEDeviceInfo info;
       sstr.str(std::string());
       sstr << "hw:CARD=" << snd_ctl_card_info_get_id(ctlinfo) << ",DEV=" << dev;
       info.m_deviceName = sstr.str();
@@ -751,7 +751,7 @@ void CAESinkALSA::EnumerateDevicesEx()
   }
 }
 
-bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, AEDeviceInfo& info, bool& badHDMI)
+bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool& badHDMI)
 {
   badHDMI = false;
 
@@ -787,12 +787,11 @@ bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, AEDeviceInfo& info, bool&
   if (!dataLength)
     badHDMI = true;
   else
-  {
-    CAEELDParser eld(
+    CAEELDParser::Parse(
       (const uint8_t*)snd_ctl_elem_value_get_bytes(control),
-      dataLength
+      dataLength,
+      info
     );
-  }
 
   info.m_deviceType = AE_DEVTYPE_HDMI;
   return true;

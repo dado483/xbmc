@@ -128,6 +128,8 @@ bool CAERemap::Initialize(CAEChannelInfo input, CAEChannelInfo output, bool fina
   RM(AE_CH_LFE , AE_CH_FL, AE_CH_FR);
   RM(AE_CH_FL  , AE_CH_FC);
   RM(AE_CH_FR  , AE_CH_FC);
+  RM(AE_CH_BROC, AE_CH_BR, AE_CH_BC);
+  RM(AE_CH_BLOC, AE_CH_BL, AE_CH_BC);
 
   /* since everything eventually mixes down to FC we need special handling for it */
   if (m_mixInfo[AE_CH_FC].in_src)

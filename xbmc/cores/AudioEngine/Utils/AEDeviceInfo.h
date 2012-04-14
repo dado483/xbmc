@@ -22,7 +22,9 @@
 
 #include <string>
 #include <vector>
+#include "AEAudioFormat.h"
 #include "Utils/AEChannelInfo.h"
+#include "Utils/AEUtil.h"
 
 typedef std::vector<unsigned int     > AESampleRateList;
 typedef std::vector<enum AEDataFormat> AEDataFormatList;
@@ -30,19 +32,26 @@ typedef std::vector<enum AEDataFormat> AEDataFormatList;
 enum AEDeviceType {
   AE_DEVTYPE_PCM,
   AE_DEVTYPE_IEC958,
-  AE_DEVTYPE_HDMI
+  AE_DEVTYPE_HDMI,
+  AE_DEVTYPE_DP
 };
 
 /**
- * This struct provides the details of what the audio output hardware is capable of
+ * This classt provides the details of what the audio output hardware is capable of
  */
-typedef struct {
-  std::string       m_deviceName;
-  std::string       m_displayName;
-  enum AEDeviceType m_deviceType;
-  CAEChannelInfo    m_channels;
-  AESampleRateList  m_sampleRates;
-  AEDataFormatList  m_dataFormats;
-} AEDeviceInfo;
+class CAEDeviceInfo
+{
+public:
+  std::string       m_deviceName;	/* the driver device name */
+  std::string       m_displayName;	/* the friendly display name */
+  std::string       m_displayNameExtra;	/* additional display name info, ie, monitor name from ELD */
+  enum AEDeviceType m_deviceType;	/* the device type, PCM, IEC958 or HDMI */
+  CAEChannelInfo    m_channels;		/* the channels the device is capable of rendering */
+  AESampleRateList  m_sampleRates;	/* the samplerates the device is capable of rendering */
+  AEDataFormatList  m_dataFormats;	/* the dataformats the device is capable of rendering */
 
-typedef std::vector<AEDeviceInfo> AEDeviceInfoList;
+  operator std::string();
+  static std::string DeviceTypeToString(enum AEDeviceType deviceType);
+};
+
+typedef std::vector<CAEDeviceInfo> AEDeviceInfoList;

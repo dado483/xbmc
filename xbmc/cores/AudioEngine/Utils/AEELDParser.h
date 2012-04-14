@@ -21,11 +21,11 @@
  */
 
 #include <stdint.h>
-#include "utils/StdString.h"
+#include <cstring>
+#include "AEDeviceInfo.h"
 
 class CAEELDParser {
 public:
-  CAEELDParser(const uint8_t *data, size_t length);
-private:
+  static void Parse(const uint8_t *data, size_t length, CAEDeviceInfo& info);
 };
 
