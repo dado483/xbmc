@@ -259,6 +259,27 @@
     <Filter Include="network\httprequesthandler">
       <UniqueIdentifier>{9029e610-aa5a-4414-9e96-1d69f03b3bd8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cores\AudioEngine">
+      <UniqueIdentifier>{19314641-c5c4-49ff-ae42-6ebcc1a6a038}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cores\AudioEngine\Encoders">
+      <UniqueIdentifier>{0aad3f05-0330-4d6f-9407-388b56c9aa24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cores\AudioEngine\Engines">
+      <UniqueIdentifier>{1354dfbc-8fa8-4621-8fd1-f4a01fdc1c51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cores\AudioEngine\Interfaces">
+      <UniqueIdentifier>{7382f639-6a03-4343-87cd-5745a838b687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cores\AudioEngine\PostProc">
+      <UniqueIdentifier>{96532068-4749-4764-b26f-a5d07723dd98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cores\AudioEngine\Sinks">
+      <UniqueIdentifier>{b71a9c57-2640-4506-b99e-58a9a73dd0e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cores\AudioEngine\Utils">
+      <UniqueIdentifier>{775154f3-9284-488f-8f2f-26597f264d0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\xbmc\win32\pch.cpp">
@@ -365,9 +386,6 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPcm.cpp">
       <Filter>cores\dvdplayer\DVDCodecs\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\Encoders\DVDAudioEncoderFFmpeg.cpp">
-      <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Video\DVDVideoCodecCrystalHD.cpp">
       <Filter>cores\dvdplayer\DVDCodecs\Video</Filter>
@@ -597,16 +615,10 @@
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\BaseRenderer.cpp">
       <Filter>cores\VideoRenderers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\VideoRenderers\LinuxRendererGL.cpp">
-      <Filter>cores\VideoRenderers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRenderer.cpp">
       <Filter>cores\VideoRenderers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererDX.cpp">
-      <Filter>cores\VideoRenderers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererGL.cpp">
       <Filter>cores\VideoRenderers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererUtil.cpp">
@@ -621,29 +633,8 @@
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\ConvolutionKernels.cpp">
       <Filter>cores\VideoRenderers\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\VideoFilterShader.cpp">
-      <Filter>cores\VideoRenderers\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\YUV2RGBShader.cpp">
       <Filter>cores\VideoRenderers\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\AudioRenderers\AudioRendererFactory.cpp">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\AudioRenderers\NullDirectSound.cpp">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\utils\PCMRemap.cpp">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\AudioRenderers\PulseAudioDirectSound.cpp">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\AudioRenderers\Win32DirectSound.cpp">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\AudioRenderers\Win32WASAPI.cpp">
-      <Filter>cores\AudioRenderers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\ExternalPlayer\ExternalPlayer.cpp">
       <Filter>cores\ExternalPlayer</Filter>
@@ -1007,9 +998,6 @@
     <ClCompile Include="..\..\xbmc\guilib\AnimatedGif.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\AudioContext.cpp">
-      <Filter>guilib</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\D3DResource.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
@@ -1017,9 +1005,6 @@
       <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\DirectXGraphics.cpp">
-      <Filter>guilib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\FrameBufferObject.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\GUIAudioManager.cpp">
@@ -1145,9 +1130,6 @@
     <ClCompile Include="..\..\xbmc\guilib\GUISliderControl.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\GUISound.cpp">
-      <Filter>guilib</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\GUISpinControl.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
@@ -1194,9 +1176,6 @@
       <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\MatrixGLES.cpp">
-      <Filter>guilib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\Shader.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\TextureBundle.cpp">
@@ -1535,12 +1514,6 @@
     <ClCompile Include="..\..\xbmc\rendering\dx\RenderSystemDX.cpp">
       <Filter>rendering\dx</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\rendering\gl\GUIWindowTestPatternGL.cpp">
-      <Filter>rendering\gl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\rendering\gl\RenderSystemGL.cpp">
-      <Filter>rendering\gl</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\settings\AdvancedSettings.cpp">
       <Filter>settings</Filter>
     </ClCompile>
@@ -1688,9 +1661,6 @@
     <ClCompile Include="..\..\xbmc\utils\md5.cpp">
       <Filter>utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\utils\PCMAmplifier.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\utils\PerformanceSample.cpp">
       <Filter>utils</Filter>
     </ClCompile>
@@ -1830,9 +1800,6 @@
       <Filter>windowing\windows</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\windowing\windows\WinSystemWin32DX.cpp">
-      <Filter>windowing\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\windowing\windows\WinSystemWin32GL.cpp">
       <Filter>windowing\windows</Filter>
     </ClCompile>
     <ClCompile Include="..\..\lib\tinyXML\tinystr.cpp">
@@ -2153,26 +2120,11 @@
     <ClCompile Include="..\..\xbmc\guilib\TextureDX.cpp">
       <Filter>guilib\Rendering\DX</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\GUIFontTTFGL.cpp">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\GUITextureGL.cpp">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\GUITextureGLES.cpp">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\TextureGL.cpp">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\GraphicContext.cpp">
       <Filter>guilib\Rendering\Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\addons\AddonInstaller.cpp">
       <Filter>addons</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\utils\GLUtils.cpp">
-      <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\win32\stdio_utf8.cpp">
       <Filter>win32</Filter>
@@ -2312,7 +2264,7 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\paplayer\PCMCodec.cpp">
       <Filter>cores\paplayer</Filter>
-	</ClCompile>
+    </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\AFPDirectory.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
@@ -2363,7 +2315,7 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\network\httprequesthandler\IHTTPRequestHandler.cpp">
       <Filter>network\httprequesthandler</Filter>
-	</ClCompile>
+    </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\AFPFile.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
@@ -2640,6 +2592,72 @@
     <ClCompile Include="..\..\xbmc\filesystem\MemBufferCache.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Encoders\AEEncoderFFmpeg.cpp">
+      <Filter>cores\AudioEngine\Encoders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\AEFactory.cpp">
+      <Filter>cores\AudioEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\AESinkFactory.cpp">
+      <Filter>cores\AudioEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAE.cpp">
+      <Filter>cores\AudioEngine\Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAESound.cpp">
+      <Filter>cores\AudioEngine\Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAEStream.cpp">
+      <Filter>cores\AudioEngine\Engines</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\PostProc\AEPPAnimationFade.cpp">
+      <Filter>cores\AudioEngine\PostProc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkALSA.cpp">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkDirectSound.cpp">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkNULL.cpp">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkProfiler.cpp">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkWASAPI.cpp">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEBitstreamPacker.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEBuffer.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEChannelInfo.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEConvert.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEPackIEC61937.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AERemap.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEStreamInfo.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEUtil.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEWAVLoader.cpp">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPassthrough.cpp">
+      <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\xbmc\win32\pch.h">
@@ -2655,12 +2673,6 @@
       <Filter>win32</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\win32\WindowHelper.h">
-      <Filter>win32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\win32\WINFileSMB.h">
-      <Filter>win32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\win32\WINSMBDirectory.h">
       <Filter>win32</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\DummyVideoPlayer.h">
@@ -2767,12 +2779,6 @@
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPcm.h">
       <Filter>cores\dvdplayer\DVDCodecs\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\Encoders\DVDAudioEncoderFFmpeg.h">
-      <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\Encoders\IDVDAudioEncoder.h">
-      <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Video\DllLibMpeg2.h">
       <Filter>cores\dvdplayer\DVDCodecs\Video</Filter>
@@ -3113,16 +3119,10 @@
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\BaseRenderer.h">
       <Filter>cores\VideoRenderers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\VideoRenderers\LinuxRendererGL.h">
-      <Filter>cores\VideoRenderers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRenderer.h">
       <Filter>cores\VideoRenderers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererDX.h">
-      <Filter>cores\VideoRenderers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererGL.h">
       <Filter>cores\VideoRenderers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererUtil.h">
@@ -3137,29 +3137,8 @@
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\ConvolutionKernels.h">
       <Filter>cores\VideoRenderers\Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\VideoFilterShader.h">
-      <Filter>cores\VideoRenderers\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\YUV2RGBShader.h">
       <Filter>cores\VideoRenderers\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\AudioRenderers\AudioRendererFactory.h">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\AudioRenderers\NullDirectSound.h">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\utils\PCMRemap.h">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\AudioRenderers\PulseAudioDirectSound.h">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\AudioRenderers\Win32DirectSound.h">
-      <Filter>cores\AudioRenderers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\AudioRenderers\Win32WASAPI.h">
-      <Filter>cores\AudioRenderers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\ExternalPlayer\ExternalPlayer.h">
       <Filter>cores\ExternalPlayer</Filter>
@@ -3550,9 +3529,6 @@
     <ClInclude Include="..\..\xbmc\guilib\AnimatedGif.h">
       <Filter>guilib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\AudioContext.h">
-      <Filter>guilib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\D3DResource.h">
       <Filter>guilib</Filter>
     </ClInclude>
@@ -3560,9 +3536,6 @@
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\DirectXGraphics.h">
-      <Filter>guilib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\FrameBufferObject.h">
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\Geometry.h">
@@ -3697,9 +3670,6 @@
     <ClInclude Include="..\..\xbmc\guilib\GUISliderControl.h">
       <Filter>guilib</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\GUISound.h">
-      <Filter>guilib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\GUISpinControl.h">
       <Filter>guilib</Filter>
     </ClInclude>
@@ -3755,9 +3725,6 @@
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\Resolution.h">
-      <Filter>guilib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\Shader.h">
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\TextureBundle.h">
@@ -4153,12 +4120,6 @@
     <ClInclude Include="..\..\xbmc\rendering\dx\RenderSystemDX.h">
       <Filter>rendering\dx</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\rendering\gl\GUIWindowTestPatternGL.h">
-      <Filter>rendering\gl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\rendering\gl\RenderSystemGL.h">
-      <Filter>rendering\gl</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\settings\AdvancedSettings.h">
       <Filter>settings</Filter>
     </ClInclude>
@@ -4330,9 +4291,6 @@
     <ClInclude Include="..\..\xbmc\utils\md5.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\utils\PCMAmplifier.h">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\utils\PerformanceSample.h">
       <Filter>utils</Filter>
     </ClInclude>
@@ -4490,9 +4448,6 @@
       <Filter>windowing\windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\windowing\windows\WinSystemWin32DX.h">
-      <Filter>windowing\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\windowing\windows\WinSystemWin32GL.h">
       <Filter>windowing\windows</Filter>
     </ClInclude>
     <ClInclude Include="..\..\lib\tinyXML\tinystr.h">
@@ -4765,18 +4720,6 @@
     <ClInclude Include="..\..\xbmc\guilib\TextureDX.h">
       <Filter>guilib\Rendering\DX</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\GUIFontTTFGL.h">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\GUITextureGL.h">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\GUITextureGLES.h">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\TextureGL.h">
-      <Filter>guilib\Rendering\GL</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\GraphicContext.h">
       <Filter>guilib\Rendering\Base</Filter>
     </ClInclude>
@@ -4788,9 +4731,6 @@
     </ClInclude>
     <ClInclude Include="..\..\lib\ffmpeg\include-xbmc-win32\libavutil\avconfig.h">
       <Filter>cores\dvdplayer\DVDHeaders</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\utils\GLUtils.h">
-      <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\win32\stdio_utf8.h">
       <Filter>win32</Filter>
@@ -5001,12 +4941,6 @@
       <Filter>filesystem</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\DirectoryHistory.h">
-      <Filter>filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\DllHDHomeRunDirectory.h">
-      <Filter>filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\DllHDHomeRunFile.h">
       <Filter>filesystem</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\DllLibAfp.h">
@@ -5246,13 +5180,12 @@
     <ClInclude Include="..\..\xbmc\filesystem\ZipFile.h">
       <Filter>filesystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\AudioRenderers\IAudioRenderer.h" />
     <ClInclude Include="..\..\xbmc\interfaces\python\xbmcmodule\pythreadstate.h">
       <Filter>interfaces\python\xbmcmodule</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\paplayer\PCMCodec.h">
       <Filter>cores\paplayer</Filter>
-	</ClInclude>
+    </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\MemBufferCache.h">
       <Filter>filesystem</Filter>
     </ClInclude>
@@ -5318,6 +5251,97 @@
     </ClInclude>
     <ClInclude Include="..\..\xbmc\network\httprequesthandler\HTTPJsonRpcHandler.h">
       <Filter>network\httprequesthandler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\interfaces\python\xbmcmodule\pythreadstate.h" />
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Encoders\AEEncoderFFmpeg.h">
+      <Filter>cores\AudioEngine\Encoders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\AEAudioFormat.h">
+      <Filter>cores\AudioEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\AEFactory.h">
+      <Filter>cores\AudioEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\AESinkFactory.h">
+      <Filter>cores\AudioEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAE.h">
+      <Filter>cores\AudioEngine\Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAESound.h">
+      <Filter>cores\AudioEngine\Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAEStream.h">
+      <Filter>cores\AudioEngine\Engines</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\AE.h">
+      <Filter>cores\AudioEngine\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\AEEncoder.h">
+      <Filter>cores\AudioEngine\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\AEPostProc.h">
+      <Filter>cores\AudioEngine\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\AESink.h">
+      <Filter>cores\AudioEngine\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\AESound.h">
+      <Filter>cores\AudioEngine\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\AEStream.h">
+      <Filter>cores\AudioEngine\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\ThreadedAE.h">
+      <Filter>cores\AudioEngine\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\PostProc\AEPPAnimationFade.h">
+      <Filter>cores\AudioEngine\PostProc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkALSA.h">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkDirectSound.h">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkNULL.h">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkProfiler.h">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkWASAPI.h">
+      <Filter>cores\AudioEngine\Sinks</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEBitstreamPacker.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEBuffer.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEChannelInfo.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEConvert.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEPackIEC61937.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AERemap.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEStreamInfo.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEUtil.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEWAVLoader.h">
+      <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPassthrough.h">
+      <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
