@@ -33,7 +33,7 @@ public:
   void DeInitialize();
 
   bool IsValid() { return m_valid; }
-  bool Remap(CAEChannelInfo to);
+  bool Remap(CAEChannelInfo to, enum AEStdChLayout stdChLayout = AE_CH_LAYOUT_INVALID);
   unsigned int GetChannelCount();
   unsigned int GetSampleRate();
   unsigned int GetSampleCount();

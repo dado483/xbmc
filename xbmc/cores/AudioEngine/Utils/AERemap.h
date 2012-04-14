@@ -32,8 +32,8 @@ public:
 
 private:
   typedef struct {
-    int   index;
-    float level;
+    int       index;
+    float     level;
   } AEMixLevel;
 
   typedef struct {
@@ -42,6 +42,7 @@ private:
     int               outIndex;
     int               srcCount;
     AEMixLevel        srcIndex[AE_CH_MAX];
+    int               cpyCount; /* the number of times the channel has been cloned */
   } AEMixInfo;
 
   AEMixInfo      m_mixInfo[AE_CH_MAX+1];
@@ -50,5 +51,6 @@ private:
   int            m_outChannels;
 
   void ResolveMix(const AEChannel from, CAEChannelInfo to);
+  void BuildUpmixMatrix(const CAEChannelInfo& input, const CAEChannelInfo& output);
 };
 

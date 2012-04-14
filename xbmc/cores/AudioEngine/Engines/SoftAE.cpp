@@ -199,11 +199,7 @@ bool CSoftAE::OpenSink()
     else
     {      
       if (!m_transcode)
-      {
-        /* only resolve the channels if we are not going to upmix */
-        if (!m_stereoUpmix)
-          newFormat.m_channelLayout.ResolveChannels(m_stdChLayout);
-      }
+        newFormat.m_channelLayout.ResolveChannels(m_stdChLayout);
       else
       {
         if (masterStream->m_initChannelLayout == AE_CH_LAYOUT_2_0)
@@ -366,7 +362,7 @@ bool CSoftAE::OpenSink()
   if (m_buffer.Size() < neededBufferSize)
     m_buffer.Alloc(neededBufferSize);
 
-  m_remap.Initialize(m_chLayout, m_sinkFormat.m_channelLayout, true);
+  m_remap.Initialize(m_chLayout, m_sinkFormat.m_channelLayout, true, false, m_stdChLayout);
   
   if (reInit)
   {

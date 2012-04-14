@@ -236,7 +236,7 @@ const char* CAEChannelInfo::GetChName(const enum AEChannel ch)
   return channels[ch];
 }
 
-bool CAEChannelInfo::HasChannel(const enum AEChannel ch)
+bool CAEChannelInfo::HasChannel(const enum AEChannel ch) const
 {
   for(unsigned int i = 0; i < m_channelCount; ++i)
     if (m_channels[i] == ch)
@@ -244,7 +244,7 @@ bool CAEChannelInfo::HasChannel(const enum AEChannel ch)
   return false;
 }
 
-bool CAEChannelInfo::ContainsChannels(CAEChannelInfo& rhs)
+bool CAEChannelInfo::ContainsChannels(CAEChannelInfo& rhs) const
 {
   for(unsigned int i = 0; i < rhs.m_channelCount; ++i)
   {
