@@ -57,7 +57,7 @@ protected:
 
 public:
   virtual void  Shutdown();
-  virtual bool  Initialize      ();
+  virtual bool  Initialize();
   virtual void  OnSettingsChange(std::string setting);
 
   virtual void  Run();
@@ -114,7 +114,9 @@ private:
   CSoftAEStream *GetMasterStream();
 
   void LoadSettings();
-  bool OpenSink();
+  void OpenSink();
+
+  void InternalOpenSink();
   void ResetEncoder();
   bool SetupEncoder(AEAudioFormat &format);
   void Deinitialize();
@@ -130,6 +132,8 @@ private:
 
   /* internal vars */
   bool             m_running, m_reOpen, m_reOpened;
+  CEvent           m_reOpenEvent;
+
   float            m_delay;           /* current delay time */
   CCriticalSection m_runningLock;     /* released when the thread exits */
   CCriticalSection m_streamLock;      /* m_streams lock */
@@ -163,7 +167,7 @@ private:
   /* the streams, sounds, output buffer and output buffer fill size */
   bool           m_transcode;
   bool           m_rawPassthrough;
-  StreamList     m_streams, m_playingStreams;
+  StreamList     m_newStreams, m_streams, m_playingStreams;
   SoundList      m_sounds;
   SoundStateList m_playing_sounds;
 

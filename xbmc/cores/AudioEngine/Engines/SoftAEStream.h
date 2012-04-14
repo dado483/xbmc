@@ -39,7 +39,6 @@ protected:
   CSoftAEStream(enum AEDataFormat format, unsigned int sampleRate, CAEChannelInfo channelLayout, unsigned int options);
   virtual ~CSoftAEStream();
 
-public:
   void Initialize();
   void InitializeRemap();
   void Destroy();
@@ -50,6 +49,7 @@ public:
   bool IsValid    () { return m_valid;  }
   const bool IsRaw() const { return AE_IS_RAW(m_initDataFormat); }  
 
+public:
   virtual unsigned int      GetSpace        ();
   virtual unsigned int      AddData         (void *data, unsigned int size);
   virtual float             GetDelay        ();
