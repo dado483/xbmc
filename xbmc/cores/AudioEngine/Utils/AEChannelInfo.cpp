@@ -189,6 +189,8 @@ bool CAEChannelInfo::operator!=(const CAEChannelInfo& rhs)
 void CAEChannelInfo::operator+=(const enum AEChannel rhs)
 {
   ASSERT(m_channelCount < AE_CH_MAX);
+  ASSERT(rhs > AE_CH_NULL && rhs < AE_CH_MAX);
+
   m_channels[m_channelCount++] = rhs;
 }
 
