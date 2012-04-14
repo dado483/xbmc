@@ -376,7 +376,7 @@ inline void CAERemap::BuildUpmixMatrix(const CAEChannelInfo& input, const CAECha
       {
         AEChannel srcChannel = input[outputInfo->srcIndex[src].index];
         AEMixInfo *inputInfo = &m_mixInfo[srcChannel];
-        outputInfo->srcIndex[src].level /= sqrt(inputInfo->cpyCount + 1);
+        outputInfo->srcIndex[src].level /= sqrt((float)(inputInfo->cpyCount + 1));
       }
   }
 
@@ -385,6 +385,6 @@ inline void CAERemap::BuildUpmixMatrix(const CAEChannelInfo& input, const CAECha
   {
     AEMixInfo *inputInfo = &m_mixInfo[input[i]];
     if (!inputInfo->in_dst || inputInfo->cpyCount == 0) continue;
-    inputInfo->srcIndex[0].level /= sqrt(inputInfo->cpyCount + 1);
+    inputInfo->srcIndex[0].level /= sqrt((float)(inputInfo->cpyCount + 1));
   }
 }
