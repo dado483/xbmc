@@ -126,6 +126,7 @@ private:
   std::string m_device;
   std::string m_passthroughDevice;
   bool m_audiophile;
+  bool m_stereoUpmix;
 
   /* internal vars */
   bool             m_running, m_reOpen, m_reOpened;

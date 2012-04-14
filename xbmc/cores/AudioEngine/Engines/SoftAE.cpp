@@ -179,7 +179,7 @@ bool CSoftAE::OpenSink()
   AEAudioFormat newFormat;
   newFormat.m_dataFormat    = AE_FMT_FLOAT;
   newFormat.m_sampleRate    = 44100;
-  newFormat.m_channelLayout = AE_CH_LAYOUT_2_0;
+  newFormat.m_channelLayout = m_stereoUpmix ? m_stdChLayout : AE_CH_LAYOUT_2_0;
 
   CSingleLock streamLock(m_streamLock);
   CSoftAEStream *masterStream = GetMasterStream();
@@ -199,7 +199,11 @@ bool CSoftAE::OpenSink()
     else
     {      
       if (!m_transcode)
-        newFormat.m_channelLayout.ResolveChannels(m_stdChLayout);
+      {
+        /* only resolve the channels if we are not going to upmix */
+        if (!m_stereoUpmix)
+          newFormat.m_channelLayout.ResolveChannels(m_stdChLayout);
+      }
       else
       {
         if (masterStream->m_initChannelLayout == AE_CH_LAYOUT_2_0)
@@ -446,7 +450,8 @@ void CSoftAE::OnSettingsChange(std::string setting)
       setting == "audiooutput.dtspassthrough"    ||
       setting == "audiooutput.channellayout"     ||
       setting == "audiooutput.useexclusivemode"  ||
-      setting == "audiooutput.multichannellpcm")
+      setting == "audiooutput.multichannellpcm"  ||
+      setting == "audiooutput.stereoupmix")
   {
     m_reOpen = true;
   }
@@ -457,6 +462,10 @@ void CSoftAE::LoadSettings()
   m_audiophile = g_advancedSettings.m_audioAudiophile;
   if (m_audiophile)
     CLog::Log(LOGINFO, "CSoftAE::LoadSettings - Audiophile switch enabled");
+
+  m_stereoUpmix = g_guiSettings.GetBool("audiooutput.stereoupmix");
+  if (m_stereoUpmix)
+    CLog::Log(LOGINFO, "CSoftAE::LoadSettings - Stereo upmix is enabled");
 
   /* load the configuration */
   m_stdChLayout = AE_CH_LAYOUT_2_0;

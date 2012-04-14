@@ -132,22 +132,21 @@ CAEChannelInfo& CAEChannelInfo::operator=(const enum AEChannel* rhs)
   if(rhs == NULL)
     return *this;
 
-  /* count the channels */
-  m_channelCount = 0;
   while(m_channelCount < AE_CH_MAX && rhs[m_channelCount] != AE_CH_NULL)
   {
     m_channels[m_channelCount] = rhs[m_channelCount];
     ++m_channelCount;
   }
 
-  ASSERT(m_channelCount < AE_CH_MAX);
+  /* the last entry should be NULL, if not we were passed a non null terminated list */
+  ASSERT(rhs[m_channelCount] == AE_CH_NULL);
 
   return *this;
 }
 
 CAEChannelInfo& CAEChannelInfo::operator=(const enum AEStdChLayout rhs)
 {
-  ASSERT(rhs >= 0 && rhs < AE_CH_LAYOUT_MAX);
+  ASSERT(rhs > AE_CH_LAYOUT_INVALID && rhs < AE_CH_LAYOUT_MAX);
 
   static enum AEChannel layouts[AE_CH_LAYOUT_MAX][9] = {
     {AE_CH_FC, AE_CH_NULL},

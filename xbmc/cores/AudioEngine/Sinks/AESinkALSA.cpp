@@ -627,10 +627,8 @@ void CAESinkALSA::GenSoundLabel(AEDeviceList& devices, std::string sink, std::st
     devices.push_back(AEDevice(readableCard + " " + sink, "alsa:" + deviceString));
 }
 
-void CAESinkALSA::EnumerateDevicesEx()
+void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
 {
-  AEDeviceInfoList list;
-
   snd_ctl_t *ctlhandle;
   snd_pcm_t *pcmhandle;
 
