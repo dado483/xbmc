@@ -175,8 +175,9 @@ void CSoftAE::InternalOpenSink()
   if (m_masterStream)
   {
     /* choose the sample rate & channel layout based on the master stream */
-    newFormat.m_sampleRate    = m_masterStream->GetSampleRate();
-    newFormat.m_channelLayout = m_masterStream->m_initChannelLayout;    
+    newFormat.m_sampleRate = m_masterStream->GetSampleRate();
+    if (!m_stereoUpmix)
+      newFormat.m_channelLayout = m_masterStream->m_initChannelLayout;    
 
     if (m_masterStream->IsRaw())
     {
