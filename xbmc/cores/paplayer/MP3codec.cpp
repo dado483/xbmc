@@ -56,6 +56,7 @@ MP3Codec::MP3Codec()
   m_InputBufferPos = 0;
 
   memset(&m_Formatdata,0,sizeof(m_Formatdata));
+  m_DataFormat = AE_FMT_S32NE;
 
   // create our output buffer
   m_OutputBufferSize = OUTPUTFRAMESIZE * 4;        // enough for 4 frames
@@ -277,15 +278,6 @@ int MP3Codec::Read(int size, bool init)
           m_Channels              = m_Formatdata[2];
           m_SampleRate            = m_Formatdata[1];
           m_BitsPerSample         = m_Formatdata[3];
-
-          switch(m_BitsPerSample)
-          {
-            case  8: m_DataFormat = AE_FMT_S8;    break;
-            case 16: m_DataFormat = AE_FMT_S16NE; break;
-            case 32: m_DataFormat = AE_FMT_FLOAT; break;
-            default:
-              m_DataFormat = AE_FMT_INVALID;
-          }
         }
 
         // let's check if we need to ignore the decoded data.
@@ -521,18 +513,20 @@ madx_sig MP3Codec::madx_read(madx_house *mxhouse, madx_stat *mxstat, int maxwrit
   mxstat->framepcmsize = mxhouse->synth.pcm.length * mxhouse->synth.pcm.channels * (int)(BITSPERSAMPLE >> 3);
   mxhouse->frame_cnt++;
   m_dll.mad_timer_add( &mxhouse->timer, mxhouse->frame.header.duration );
-  float *data_f = (float *)mxhouse->output_ptr;
-  for( int i=0; i < mxhouse->synth.pcm.length; i++ )
+
+  int32_t *dest = (int32_t*)mxhouse->output_ptr;
+  for(int i=0; i < mxhouse->synth.pcm.length; i++)
   {
     // Left channel
-    *data_f++ = mad_f_todouble(mxhouse->synth.pcm.samples[0][i]);
+    *dest++ = (int32_t)mxhouse->synth.pcm.samples[0][i];
+
     // Right channel
     if(MAD_NCHANNELS(&mxhouse->frame.header) == 2)
-      *data_f++ = mad_f_todouble(mxhouse->synth.pcm.samples[1][i]);
+      *dest++ = (int32_t)mxhouse->synth.pcm.samples[1][i];
   }
 
   // Tell calling code buffer size
-  mxhouse->output_ptr = (unsigned char*)data_f;
+  mxhouse->output_ptr = (unsigned char*)dest;
   mxstat->write_size  = mxhouse->output_ptr - (m_OutputBuffer + m_OutputBufferPos);
 
   return(FLUSH_BUFFER);
