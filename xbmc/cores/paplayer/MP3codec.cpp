@@ -518,11 +518,11 @@ madx_sig MP3Codec::madx_read(madx_house *mxhouse, madx_stat *mxstat, int maxwrit
   for(int i=0; i < mxhouse->synth.pcm.length; i++)
   {
     // Left channel
-    *dest++ = (int32_t)mxhouse->synth.pcm.samples[0][i];
+    *dest++ = (int32_t)(mxhouse->synth.pcm.samples[0][i] << 2);
 
     // Right channel
     if(MAD_NCHANNELS(&mxhouse->frame.header) == 2)
-      *dest++ = (int32_t)mxhouse->synth.pcm.samples[1][i];
+      *dest++ = (int32_t)(mxhouse->synth.pcm.samples[1][i] << 2);
   }
 
   // Tell calling code buffer size
