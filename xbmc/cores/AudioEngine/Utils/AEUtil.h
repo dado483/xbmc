@@ -45,6 +45,8 @@ private:
     static __m128i m_sseSeed;
   #endif
 
+  static float SoftClamp(const float x);
+
 public:
   static CAEChannelInfo          GuessChLayout     (const unsigned int channels);
   static const char*             GetStdChLayoutName(const enum AEStdChLayout layout);
@@ -59,40 +61,11 @@ public:
     return a * exp(b * value);
   }
 
-  static inline float SoftClamp(float x)
-  {
-#if 1
-    /*
-       This is a rational function to approximate a tanh-like soft clipper.
-       It is based on the pade-approximation of the tanh function with tweaked coefficients.
-       See: http://www.musicdsp.org/showone.php?id=238
-    */
-         if (x < -3.0f) return -1.0f;
-    else if (x >  3.0f) return  1.0f;
-    float y = x * x;
-    return x * (27.0f + y) / (27.0f + 9.0f * y);
-#else
-    /* slower method using tanh, but more accurate */
-
-    static const double k = 0.9f;
-    /* perform a soft clamp */
-         if (x >  k) x = (float) (tanh((x - k) / (1 - k)) * (1 - k) + k);
-    else if (x < -k) x = (float) (tanh((x + k) / (1 - k)) * (1 - k) - k);
-
-    /* hard clamp anything still outside the bounds */
-    if (x >  1.0f) return  1.0f;
-    if (x < -1.0f) return -1.0f;
-
-    /* return the final sample */
-    return x;
-#endif
-  }
-
   #ifdef __SSE__
-  static void SSEMulAddArray  (float *data, float *add, const float mul, uint32_t count);
-  static void SSEMulClampArray(float *data, const float mul, uint32_t count);
   static void SSEMulArray     (float *data, const float mul, uint32_t count);
+  static void SSEMulAddArray  (float *data, float *add, const float mul, uint32_t count);
   #endif
+  static void ClampArray(float *data, uint32_t count);
 
   /*
     Rand implementations based on:

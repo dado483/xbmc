@@ -155,6 +155,52 @@ const char* CAEUtil::DataFormatToStr(const enum AEDataFormat dataFormat)
 }
 
 #ifdef __SSE__
+void CAEUtil::SSEMulArray(float *data, const float mul, uint32_t count)
+{
+  const __m128 m = _mm_set_ps1(mul);
+
+  /* work around invalid alignment */
+  while(((uintptr_t)data & 0xF) && count > 0)
+  {
+    data[0] *= mul;
+    ++data;
+    --count;
+  }
+
+  uint32_t even = count & ~0x3;
+  for(uint32_t i = 0; i < even; i+=4, data+=4)
+  {
+    __m128 to      = _mm_load_ps(data);
+    *(__m128*)data = _mm_mul_ps (to, m);
+  }
+
+  if (even != count)
+  {
+    uint32_t odd = count - even;
+    if (odd == 1)
+      data[0] *= mul;
+    else
+    {     
+      __m128 to;
+      if (odd == 2)
+      {
+        to = _mm_setr_ps(data[0], data[1], 0, 0);
+        __m128 ou = _mm_mul_ps(to, m);
+        data[0] = ((float*)&ou)[0];
+        data[1] = ((float*)&ou)[1];
+      }
+      else
+      {
+        to = _mm_setr_ps(data[0], data[1], data[2], 0);
+        __m128 ou = _mm_mul_ps(to, m);
+        data[0] = ((float*)&ou)[0];
+        data[1] = ((float*)&ou)[1];
+        data[2] = ((float*)&ou)[2];
+      }
+    }
+  }
+}
+
 void CAEUtil::SSEMulAddArray(float *data, float *add, const float mul, uint32_t count)
 {
   const __m128 m = _mm_set_ps1(mul);
@@ -205,17 +251,51 @@ void CAEUtil::SSEMulAddArray(float *data, float *add, const float mul, uint32_t 
     }
   }
 }
+#endif
 
-void CAEUtil::SSEMulClampArray(float *data, const float mul, uint32_t count)
+inline float CAEUtil::SoftClamp(const float x)
 {
-  const __m128 m  = _mm_set_ps1(mul);
+#if 1
+    /*
+       This is a rational function to approximate a tanh-like soft clipper.
+       It is based on the pade-approximation of the tanh function with tweaked coefficients.
+       See: http://www.musicdsp.org/showone.php?id=238
+    */
+         if (x < -3.0f) return -1.0f;
+    else if (x >  3.0f) return  1.0f;
+    float y = x * x;
+    return x * (27.0f + y) / (27.0f + 9.0f * y);
+#else
+    /* slower method using tanh, but more accurate */
+
+    static const double k = 0.9f;
+    /* perform a soft clamp */
+         if (x >  k) x = (float) (tanh((x - k) / (1 - k)) * (1 - k) + k);
+    else if (x < -k) x = (float) (tanh((x + k) / (1 - k)) * (1 - k) - k);
+
+    /* hard clamp anything still outside the bounds */
+    if (x >  1.0f) return  1.0f;
+    if (x < -1.0f) return -1.0f;
+
+    /* return the final sample */
+    return x;
+#endif
+}
+
+void CAEUtil::ClampArray(float *data, uint32_t count)
+{
+#ifndef __SSE__
+  for(uint32_t i = 0; i < count; ++i)
+    data[i] = SoftClamp(data[i]);
+
+#else
   const __m128 c1 = _mm_set_ps1(27.0f);
   const __m128 c2 = _mm_set_ps1(27.0f + 9.0f);
 
   /* work around invalid alignment */
   while(((uintptr_t)data & 0xF) && count > 0)
   {
-    data[0] = SoftClamp(data[0] * mul);
+    data[0] = SoftClamp(data[0]);
     ++data;
     --count;
   }
@@ -223,11 +303,8 @@ void CAEUtil::SSEMulClampArray(float *data, const float mul, uint32_t count)
   uint32_t even = count & ~0x3;
   for(uint32_t i = 0; i < even; i+=4, data+=4)
   {
-    /* mul */
-    __m128 to = _mm_load_ps(data);
-    __m128 dt = _mm_mul_ps(to, m);
-
     /* tanh approx clamp */
+    __m128 dt = _mm_load_ps(data);
     __m128 tmp     = _mm_mul_ps(dt, dt);
     *(__m128*)data = _mm_div_ps(
       _mm_mul_ps(
@@ -242,20 +319,16 @@ void CAEUtil::SSEMulClampArray(float *data, const float mul, uint32_t count)
   {
     uint32_t odd = count - even;
     if (odd == 1)
-      data[0] = SoftClamp(data[0] * mul);
+      data[0] = SoftClamp(data[0]);
     else
     {
-      __m128 to;
       __m128 dt;
       __m128 tmp;
       __m128 out;
       if (odd == 2)
       {
-        /* mul */
-        to = _mm_setr_ps(data[0], data[1], 0, 0);
-        dt = _mm_mul_ps(to, m);
-        
         /* tanh approx clamp */
+        dt  = _mm_setr_ps(data[0], data[1], 0, 0);
         tmp = _mm_mul_ps(dt, dt);
         out = _mm_div_ps(
           _mm_mul_ps(
@@ -270,10 +343,8 @@ void CAEUtil::SSEMulClampArray(float *data, const float mul, uint32_t count)
       }
       else
       {
-        to = _mm_setr_ps(data[0], data[1], data[2], 0);
-        dt = _mm_mul_ps(to, m);
-
         /* tanh approx clamp */
+        dt  = _mm_setr_ps(data[0], data[1], data[2], 0);
         tmp = _mm_mul_ps(dt, dt);
         out = _mm_div_ps(
           _mm_mul_ps(
@@ -289,51 +360,5 @@ void CAEUtil::SSEMulClampArray(float *data, const float mul, uint32_t count)
       }
     }
   }
-}
-
-void CAEUtil::SSEMulArray(float *data, const float mul, uint32_t count)
-{
-  const __m128 m = _mm_set_ps1(mul);
-
-  /* work around invalid alignment */
-  while(((uintptr_t)data & 0xF) && count > 0)
-  {
-    data[0] *= mul;
-    ++data;
-    --count;
-  }
-
-  uint32_t even = count & ~0x3;
-  for(uint32_t i = 0; i < even; i+=4, data+=4)
-  {
-    __m128 to      = _mm_load_ps(data);
-    *(__m128*)data = _mm_mul_ps (to, m);
-  }
-
-  if (even != count)
-  {
-    uint32_t odd = count - even;
-    if (odd == 1)
-      data[0] *= mul;
-    else
-    {     
-      __m128 to;
-      if (odd == 2)
-      {
-        to = _mm_setr_ps(data[0], data[1], 0, 0);
-        __m128 ou = _mm_mul_ps(to, m);
-        data[0] = ((float*)&ou)[0];
-        data[1] = ((float*)&ou)[1];
-      }
-      else
-      {
-        to = _mm_setr_ps(data[0], data[1], data[2], 0);
-        __m128 ou = _mm_mul_ps(to, m);
-        data[0] = ((float*)&ou)[0];
-        data[1] = ((float*)&ou)[1];
-        data[2] = ((float*)&ou)[2];
-      }
-    }
-  }
-}
 #endif
+}

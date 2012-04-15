@@ -103,11 +103,6 @@ public:
   void PauseStream (CSoftAEStream *stream);
   void ResumeStream(CSoftAEStream *stream);
 
-#ifdef __SSE__
-  inline static void SSEMulAddArray(float *data, float *add, const float mul, uint32_t count);
-  inline static void SSEMulArray   (float *data, const float mul, uint32_t count);
-#endif
-
 private:
   CThread *m_thread;
 

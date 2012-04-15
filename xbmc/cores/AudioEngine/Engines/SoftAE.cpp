@@ -833,20 +833,43 @@ void CSoftAE::FinalizeSamples(float *buffer, unsigned int samples)
     return;
   }
 
-  /* check the buffer for samples that need clamping, otherwise we never clamp */
-  return;
-  for(unsigned int i = 0; i < samples; ++i)
-    if (buffer[i] < -1.0 || buffer[i] > 1.0)
-    {
-      CLog::Log(LOGDEBUG, "CSoftAE::FinalizeSamples - Clamping buffer of %d samples", samples);
-      #ifdef __SSE__
-        CAEUtil::SSEMulClampArray(buffer, m_volume, samples);
-      #else
-        for(unsigned int i = 0; i < samples; ++i)
-          buffer[i] = CAEUtil::SoftClamp(buffer[i] * m_volume);
-      #endif
-      break;
-    }
+  /* deamplify */
+  bool clamp = false;
+  if (m_volume < 1.0)
+  {
+    #ifdef __SSE__
+      CAEUtil::SSEMulArray(buffer, m_volume, samples);
+      for(unsigned int i = 0; i < samples; ++i)
+        if (buffer[i] < -1.0f || buffer[i] > 1.0f)
+        {
+          clamp = true;
+          break;
+        }
+    #else
+      for(unsigned int i = 0; i < samples; ++i)
+      {
+        buffer[i] *= m_volume;
+        if (!clamp && buffer[i] < -1.0f || buffer[i] > 1.0f)
+          clamp = true;
+      }
+    #endif
+  } 
+  else
+  {
+    for(unsigned int i = 0; i < samples; ++i)
+      if (buffer[i] < -1.0 || buffer[i] > 1.0)
+      {
+        clamp = true;
+        break;
+      }
+  }
+
+  /* if there were no samples outside of the range, dont clamp the buffer */
+  if (!clamp)
+    return;
+
+  CLog::Log(LOGDEBUG, "CSoftAE::FinalizeSamples - Clamping buffer of %d samples", samples);
+  CAEUtil::ClampArray(buffer, samples);
 }
 
 void CSoftAE::RunOutputStage()
