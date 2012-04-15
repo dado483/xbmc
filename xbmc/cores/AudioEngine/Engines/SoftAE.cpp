@@ -46,8 +46,6 @@ CSoftAE::CSoftAE():
   m_running            (false),
   m_reOpen             (false),
   m_reOpened           (false),
-  m_updateDelay        (false),
-  m_delay              (0    ),
   m_sink               (NULL ),
   m_transcode          (false),
   m_rawPassthrough     (false),
@@ -251,11 +249,14 @@ void CSoftAE::InternalOpenSink()
   if (!m_sink || sinkName != driver || !m_sink->IsCompatible(newFormat, device))
   {
     CLog::Log(LOGINFO, "CSoftAE::InternalOpenSink - sink incompatible, re-starting");
+   
+    /* take the sink lock */
+    m_sinkLock.lock();
 
     /* let the thread know we have re-opened the sink */
     m_reOpened = true;
-    reInit = true;
-    
+    reInit     = true;
+
     /* we are going to open, so close the old sink if it was open */
     if (m_sink)
     {
@@ -389,6 +390,9 @@ void CSoftAE::InternalOpenSink()
   /* notify any event listeners that we are done */
   m_reOpen = false;
   m_reOpenEvent.Set();
+
+  if (reInit)
+    m_sinkLock.unlock();
 }
 
 void CSoftAE::ResetEncoder()
@@ -695,10 +699,15 @@ IAEStream *CSoftAE::FreeStream(IAEStream *stream)
 
 float CSoftAE::GetDelay()
 {
-  m_delayEvent.Reset();
-  m_updateDelay = true;
-  m_delayEvent.Wait();
-  return m_delay;
+  m_sinkLock.lock_shared();
+
+  float delay = m_sink->GetDelay();
+  if (m_transcode && m_encoder && !m_rawPassthrough)
+    delay += m_encoder->GetDelay((float)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
+  float buffered = (float)m_buffer.Used() * m_sinkFormatFrameSizeMul;
+
+  m_sinkLock.unlock_shared();
+  return delay + buffered * m_sinkFormatSampleRateMul;
 }
 
 float CSoftAE::GetVolume()
@@ -772,20 +781,6 @@ void CSoftAE::Run()
 
       /* buffer the samples into the output buffer */
       RunBufferStage(out);
-    }
-
-    /* update the current delay */
-    if (m_updateDelay)
-    {
-      m_delay = m_sink->GetDelay();
-      if (m_transcode && m_encoder && !m_rawPassthrough)
-        m_delay += m_encoder->GetDelay((float)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
-      float buffered = (float)m_buffer.Used() * m_sinkFormatFrameSizeMul;
-      m_delay += buffered * m_sinkFormatSampleRateMul;
-
-      /* notify liteners that the delay has updated */
-      m_updateDelay = false;
-      m_delayEvent.Set();
     }
   }
 

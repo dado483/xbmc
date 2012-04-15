@@ -134,14 +134,11 @@ private:
   bool             m_running, m_reOpen, m_reOpened;
   CEvent           m_reOpenEvent;
 
-  bool             m_updateDelay;     /* set to true to update the delay time */
-  CEvent           m_delayEvent;      /* delay event fires when delay updated */
-  float            m_delay;           /* current delay time */
-
   CCriticalSection m_runningLock;     /* released when the thread exits */
   CCriticalSection m_streamLock;      /* m_streams lock */
   CCriticalSection m_soundLock;       /* m_sounds lock */
   CCriticalSection m_soundSampleLock; /* m_playing_sounds lock */
+  CSharedSection   m_sinkLock;        /* lock for m_sink on re-open */
 
   /* the current configuration */
   float               m_volume;
