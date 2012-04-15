@@ -149,7 +149,10 @@ private:
   /* the sink, its format information, and conversion function */
   IAESink                  *m_sink;
   AEAudioFormat             m_sinkFormat;
+  float                     m_sinkFormatSampleRateMul;
+  float                     m_sinkFormatFrameSizeMul;
   AEAudioFormat             m_encoderFormat;
+  float                     m_encoderFrameSizeMul;
   unsigned int              m_bytesPerSample;
   CAEConvert::AEConvertFrFn m_convertFn;
 
@@ -200,7 +203,7 @@ private:
   unsigned int RunRawStreamStage (unsigned int channelCount, void *out, bool &restart);
   unsigned int RunStreamStage    (unsigned int channelCount, void *out, bool &restart);
 
-  void         ResumeSlaveStreams(StreamList &streams);
+  void         ResumeSlaveStreams(const StreamList &streams);
   void         RunNormalizeStage (unsigned int channelCount, void *out, unsigned int mixed);
   void         RunBufferStage    (void *out);
 

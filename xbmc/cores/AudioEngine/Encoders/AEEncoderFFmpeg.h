@@ -63,6 +63,7 @@ private:
   int               m_BufferSize;
   int               m_OutputSize;
   float             m_OutputRatio;
+  float             m_SampleRateMul;
 
   unsigned int      m_NeededFrames;
 

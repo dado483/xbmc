@@ -281,7 +281,9 @@ void CSoftAE::InternalOpenSink()
     CLog::Log(LOGINFO, "  Frame Samples : %d", newFormat.m_frameSamples);
     CLog::Log(LOGINFO, "  Frame Size    : %d", newFormat.m_frameSize);
 
-    m_sinkFormat = newFormat;
+    m_sinkFormat              = newFormat;
+    m_sinkFormatSampleRateMul = 1.0f / (float)newFormat.m_sampleRate;
+    m_sinkFormatFrameSizeMul  = 1.0f / (float)newFormat.m_frameSize;
 
     /* invalidate the buffer */
     m_buffer.Empty();
@@ -327,7 +329,8 @@ void CSoftAE::InternalOpenSink()
       {
         m_buffer.Empty();
         SetupEncoder(encoderFormat);
-        m_encoderFormat = encoderFormat;
+        m_encoderFormat       = encoderFormat;
+        m_encoderFrameSizeMul = 1.0f / (float)encoderFormat.m_frameSize;
       }
       
       /* remap directly to the format we need for encode */
@@ -773,9 +776,9 @@ void CSoftAE::Run()
     /* update the current delay */
     m_delay = m_sink->GetDelay();
     if (m_transcode && m_encoder && !m_rawPassthrough)
-      m_delay += m_encoder->GetDelay(m_encodedBuffer.Used() / m_encoderFormat.m_frameSize);
-    unsigned int buffered = m_buffer.Used() / m_sinkFormat.m_frameSize;
-    m_delay += (float)buffered / (float)m_sinkFormat.m_sampleRate;
+      m_delay += m_encoder->GetDelay((float)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
+    float buffered = (float)m_buffer.Used() * m_sinkFormatFrameSizeMul;
+    m_delay += buffered * m_sinkFormatSampleRateMul;
   }
 
   /* free the frame storage */
@@ -827,12 +830,20 @@ void CSoftAE::FinalizeSamples(float *buffer, unsigned int samples)
     return;
   }
 
-  #ifdef __SSE__
-    CAEUtil::SSEMulClampArray(buffer, m_volume, samples);
-  #else
-    for(unsigned int i = 0; i < samples; ++i)
-      buffer[i] = CAEUtil::SoftClamp(buffer[i] * m_volume);
-  #endif
+  /* check the buffer for samples that need clamping, otherwise we never clamp */
+  return;
+  for(unsigned int i = 0; i < samples; ++i)
+    if (buffer[i] < -1.0 || buffer[i] > 1.0)
+    {
+      CLog::Log(LOGDEBUG, "CSoftAE::FinalizeSamples - Clamping buffer of %d samples", samples);
+      #ifdef __SSE__
+        CAEUtil::SSEMulClampArray(buffer, m_volume, samples);
+      #else
+        for(unsigned int i = 0; i < samples; ++i)
+          buffer[i] = CAEUtil::SoftClamp(buffer[i] * m_volume);
+      #endif
+      break;
+    }
 }
 
 void CSoftAE::RunOutputStage()
@@ -1024,10 +1035,13 @@ unsigned int CSoftAE::RunStreamStage(unsigned int channelCount, void *out, bool 
   return mixed;
 }
 
-inline void CSoftAE::ResumeSlaveStreams(StreamList &streams)
+inline void CSoftAE::ResumeSlaveStreams(const StreamList &streams)
 {
+  if (streams.empty())
+    return;
+
   /* resume any streams that need to be */
-  for(StreamList::iterator itt = streams.begin(); itt != streams.end(); ++itt)
+  for(StreamList::const_iterator itt = streams.begin(); itt != streams.end(); ++itt)
   {
     CSoftAEStream *stream = *itt;
     m_playingStreams.push_back(stream->m_slave);
