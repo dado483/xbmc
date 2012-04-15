@@ -282,6 +282,7 @@ void CAERemap::ResolveMix(const AEChannel from, CAEChannelInfo to)
   fromInfo->in_src   = false;
 }
 
+/* This method has unrolled loop for higher performance */
 void CAERemap::Remap(float * const in, float * const out, const unsigned int frames) const
 {
   const unsigned int frameBlocks = frames & ~0x3;
@@ -291,8 +292,21 @@ void CAERemap::Remap(float * const in, float * const out, const unsigned int fra
     const AEMixInfo *info = &m_mixInfo[m_output[o]];
     if (!info->in_dst)
     {
-      for(unsigned int f = 0; f < frames; ++f)      
-        out[(f * m_outChannels) + o] = 0.0f;
+      unsigned int f = 0;
+      for(; f < frameBlocks; f += 4)
+      {
+        out[((f + 0) * m_outChannels) + o] = 0.0f;
+        out[((f + 1) * m_outChannels) + o] = 0.0f;
+        out[((f + 2) * m_outChannels) + o] = 0.0f;
+        out[((f + 3) * m_outChannels) + o] = 0.0f;
+      }
+
+      switch(frames & 0x3)
+      {
+        case 3: out[(f * m_outChannels) + o] = 0.0f; ++f;
+        case 2: out[(f * m_outChannels) + o] = 0.0f; ++f;
+        case 1: out[(f * m_outChannels) + o] = 0.0f;
+      }
       continue;
     }
 
@@ -309,8 +323,12 @@ void CAERemap::Remap(float * const in, float * const out, const unsigned int fra
         out[((f + 3) * m_outChannels) + o] = in[((f + 3) * m_inChannels) + info->srcIndex[0].index];
       }
 
-      for(; f < frames; ++f)
-        out[(f * m_outChannels) + o] = in[(f * m_inChannels) + info->srcIndex[0].index];
+      switch(frames & 0x3)
+      {
+        case 3: out[(f * m_outChannels) + o] = in[(f * m_inChannels) + info->srcIndex[0].index]; ++f;
+        case 2: out[(f * m_outChannels) + o] = in[(f * m_inChannels) + info->srcIndex[0].index]; ++f;
+        case 1: out[(f * m_outChannels) + o] = in[(f * m_inChannels) + info->srcIndex[0].index];
+      }
     }
     else
     {
@@ -320,9 +338,10 @@ void CAERemap::Remap(float * const in, float * const out, const unsigned int fra
         float *inOffset  = in  + (f * m_inChannels);
         *outOffset = 0.0f;
 
-        int i = 0;
-        /* the compiler has a better chance of optimizing this if it is done in parallel */
         int blocks = info->srcCount & ~0x3;
+
+        /* the compiler has a better chance of optimizing this if it is done in parallel */
+        int i = 0;
         for(; i < blocks; i += 4)
         {
           *outOffset += inOffset[info->srcIndex[i + 0].index] * info->srcIndex[i + 0].level;
@@ -331,8 +350,13 @@ void CAERemap::Remap(float * const in, float * const out, const unsigned int fra
           *outOffset += inOffset[info->srcIndex[i + 3].index] * info->srcIndex[i + 3].level;
         }
 
-        for(; i < info->srcCount; ++i)
-          *outOffset += inOffset[info->srcIndex[i].index] * info->srcIndex[i].level;
+        /* unrolled loop for higher performance */
+        switch(info->srcCount & 0x3)
+        {
+          case 3: *outOffset += inOffset[info->srcIndex[i].index] * info->srcIndex[i].level; ++i;
+          case 2: *outOffset += inOffset[info->srcIndex[i].index] * info->srcIndex[i].level; ++i;
+          case 1: *outOffset += inOffset[info->srcIndex[i].index] * info->srcIndex[i].level;
+        }
       }
     }
   }
