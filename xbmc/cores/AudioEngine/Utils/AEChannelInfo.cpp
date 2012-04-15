@@ -215,11 +215,6 @@ CAEChannelInfo::operator std::string()
   return s;
 }
 
-unsigned int CAEChannelInfo::Count() const
-{
-  return m_channelCount;
-}
-
 const char* CAEChannelInfo::GetChName(const enum AEChannel ch)
 {
   if (ch < 0 || ch >= AE_CH_MAX)

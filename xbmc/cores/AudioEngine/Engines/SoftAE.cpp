@@ -46,6 +46,7 @@ CSoftAE::CSoftAE():
   m_running            (false),
   m_reOpen             (false),
   m_reOpened           (false),
+  m_updateDelay        (false),
   m_delay              (0    ),
   m_sink               (NULL ),
   m_transcode          (false),
@@ -694,9 +695,9 @@ IAEStream *CSoftAE::FreeStream(IAEStream *stream)
 
 float CSoftAE::GetDelay()
 {
-  if (!m_running)
-    return 0.0f;
-
+  m_delayEvent.Reset();
+  m_updateDelay = true;
+  m_delayEvent.Wait();
   return m_delay;
 }
 
@@ -774,11 +775,18 @@ void CSoftAE::Run()
     }
 
     /* update the current delay */
-    m_delay = m_sink->GetDelay();
-    if (m_transcode && m_encoder && !m_rawPassthrough)
-      m_delay += m_encoder->GetDelay((float)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
-    float buffered = (float)m_buffer.Used() * m_sinkFormatFrameSizeMul;
-    m_delay += buffered * m_sinkFormatSampleRateMul;
+    if (m_updateDelay)
+    {
+      m_delay = m_sink->GetDelay();
+      if (m_transcode && m_encoder && !m_rawPassthrough)
+        m_delay += m_encoder->GetDelay((float)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
+      float buffered = (float)m_buffer.Used() * m_sinkFormatFrameSizeMul;
+      m_delay += buffered * m_sinkFormatSampleRateMul;
+
+      /* notify liteners that the delay has updated */
+      m_updateDelay = false;
+      m_delayEvent.Set();
+    }
   }
 
   /* free the frame storage */
@@ -1024,8 +1032,23 @@ unsigned int CSoftAE::RunStreamStage(unsigned int channelCount, void *out, bool 
     else
     #endif
     {
-      for(unsigned int i = 0; i < channelCount; ++i)
-        dst[i] += frame[i] * volume;
+      /* unrolled loop for performance */
+      unsigned int blocks = channelCount & ~0x3;
+      unsigned int i      = 0;
+      for(i = 0; i < blocks; i += 4)
+      {
+        dst[i+0] += frame[i+0] * volume;
+        dst[i+1] += frame[i+1] * volume;
+        dst[i+2] += frame[i+2] * volume;
+        dst[i+3] += frame[i+3] * volume;
+      }
+
+      switch(channelCount & 0x3)
+      {
+        case 3: dst[i] += frame[i] * volume; ++i;
+        case 2: dst[i] += frame[i] * volume; ++i;
+        case 1: dst[i] += frame[i] * volume;
+      }
     }
 
     ++mixed;

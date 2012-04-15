@@ -53,14 +53,15 @@ public:
   static void EnumerateDevicesEx(AEDeviceInfoList &list);
 private:
   CAEChannelInfo GetChannelLayout(AEAudioFormat format);
-  std::string     GetDeviceUse    (const AEAudioFormat format, std::string device, bool passthrough);
+  std::string    GetDeviceUse    (const AEAudioFormat format, std::string device, bool passthrough);
 
-  std::string        m_initDevice;
+  std::string       m_initDevice;
   AEAudioFormat     m_initFormat;
   AEAudioFormat     m_format;
+  float             m_formatSampleRateMul;
   bool              m_passthrough;
   CAEChannelInfo    m_channelLayout;
-  std::string        m_device;
+  std::string       m_device;
   snd_pcm_t        *m_pcm;
   int               m_timeout;
 

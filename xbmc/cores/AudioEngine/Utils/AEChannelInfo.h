@@ -78,7 +78,7 @@ public:
   /* remove any channels that dont exist in the provided info */
   void ResolveChannels(const CAEChannelInfo& rhs);
   void Reset();
-  unsigned int Count() const;
+  inline unsigned int Count() const { return m_channelCount; }
   static const char* GetChName(const enum AEChannel ch);
   bool HasChannel(const enum AEChannel ch) const;
   bool ContainsChannels(CAEChannelInfo& rhs) const;

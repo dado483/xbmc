@@ -217,7 +217,9 @@ bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
   snd_pcm_nonblock(m_pcm, 1);
   snd_pcm_prepare (m_pcm);
 
-  m_format = format;
+  m_format              = format;
+  m_formatSampleRateMul = 1.0f / (float)m_format.m_sampleRate;
+
   return true;
 }
 
@@ -471,7 +473,7 @@ float CAESinkALSA::GetDelay()
     frames = 0;
   }
 
-  return (double)frames / m_format.m_sampleRate;
+  return (float)frames * m_formatSampleRateMul;
 }
 
 unsigned int CAESinkALSA::AddPackets(uint8_t *data, unsigned int frames)
