@@ -705,7 +705,6 @@
 		DF98D98D1434F47D00A6EBE1 /* SkinVariable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DF98D98A1434F47D00A6EBE1 /* SkinVariable.cpp */; };
 		DFAB049813F8376700B70BFB /* InertialScrollingHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFAB049613F8376700B70BFB /* InertialScrollingHandler.cpp */; };
 		DFAB049913F8376700B70BFB /* InertialScrollingHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFAB049613F8376700B70BFB /* InertialScrollingHandler.cpp */; };
-<<<<<<< HEAD
 		DFDC3A72150FC9EA0097AAC9 /* AEFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3A23150FC9EA0097AAC9 /* AEFactory.cpp */; };
 		DFDC3A73150FC9EA0097AAC9 /* AESinkFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3A25150FC9EA0097AAC9 /* AESinkFactory.cpp */; };
 		DFDC3A74150FC9EA0097AAC9 /* AEEncoderFFmpeg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3A28150FC9EA0097AAC9 /* AEEncoderFFmpeg.cpp */; };
@@ -754,7 +753,6 @@
 		DFDC3AE0150FCD410097AAC9 /* DVDAudioCodecPassthrough.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3ADD150FCD410097AAC9 /* DVDAudioCodecPassthrough.cpp */; };
 		DFDC3AE1150FCD410097AAC9 /* DVDAudioCodecFFmpegLpcm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3ADB150FCD410097AAC9 /* DVDAudioCodecFFmpegLpcm.cpp */; };
 		DFDC3AE2150FCD410097AAC9 /* DVDAudioCodecPassthrough.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3ADD150FCD410097AAC9 /* DVDAudioCodecPassthrough.cpp */; };
-=======
 		DFC1B8F01464840E00B1BE79 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DFC1B8EF1464840E00B1BE79 /* SystemConfiguration.framework */; };
 		DFC1BA3414648D6500B1BE79 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DFC1B8EF1464840E00B1BE79 /* SystemConfiguration.framework */; };
 		DFCA6AC6152245CD000BFAAE /* HTTPApiHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFCA6AB9152245CD000BFAAE /* HTTPApiHandler.cpp */; };
@@ -769,7 +767,6 @@
 		DFCA6AD0152245CD000BFAAE /* HTTPWebinterfaceAddonsHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFCA6ABF152245CD000BFAAE /* HTTPWebinterfaceAddonsHandler.cpp */; };
 		DFCA6AD1152245CD000BFAAE /* HTTPWebinterfaceHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFCA6AC1152245CD000BFAAE /* HTTPWebinterfaceHandler.cpp */; };
 		DFCA6AD2152245CD000BFAAE /* IHTTPRequestHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFCA6AC3152245CD000BFAAE /* IHTTPRequestHandler.cpp */; };
->>>>>>> upstream/master
 		E306D12E0DDF7B590052C2AD /* XBMCHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E306D12C0DDF7B590052C2AD /* XBMCHelper.cpp */; };
 		E33206380D5070AA00435CE3 /* DVDDemuxVobsub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E33206370D5070AA00435CE3 /* DVDDemuxVobsub.cpp */; };
 		E33466A60D2E5103005A65EC /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E33466A50D2E5103005A65EC /* IOKit.framework */; };
@@ -2754,7 +2751,6 @@
 		DF98D98B1434F47D00A6EBE1 /* SkinVariable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SkinVariable.h; sourceTree = "<group>"; };
 		DFAB049613F8376700B70BFB /* InertialScrollingHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = InertialScrollingHandler.cpp; sourceTree = "<group>"; };
 		DFAB049713F8376700B70BFB /* InertialScrollingHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InertialScrollingHandler.h; sourceTree = "<group>"; };
-<<<<<<< HEAD
 		DFDC3A22150FC9EA0097AAC9 /* AEAudioFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AEAudioFormat.h; sourceTree = "<group>"; };
 		DFDC3A23150FC9EA0097AAC9 /* AEFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AEFactory.cpp; sourceTree = "<group>"; };
 		DFDC3A24150FC9EA0097AAC9 /* AEFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AEFactory.h; sourceTree = "<group>"; };
@@ -2814,7 +2810,6 @@
 		DFDC3ADC150FCD410097AAC9 /* DVDAudioCodecFFmpegLpcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDAudioCodecFFmpegLpcm.h; sourceTree = "<group>"; };
 		DFDC3ADD150FCD410097AAC9 /* DVDAudioCodecPassthrough.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DVDAudioCodecPassthrough.cpp; sourceTree = "<group>"; };
 		DFDC3ADE150FCD410097AAC9 /* DVDAudioCodecPassthrough.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDAudioCodecPassthrough.h; sourceTree = "<group>"; };
-=======
 		DFC1B8EF1464840E00B1BE79 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		DFCA6AB9152245CD000BFAAE /* HTTPApiHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HTTPApiHandler.cpp; sourceTree = "<group>"; };
 		DFCA6ABA152245CD000BFAAE /* HTTPApiHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTTPApiHandler.h; sourceTree = "<group>"; };
@@ -2828,7 +2823,6 @@
 		DFCA6AC2152245CD000BFAAE /* HTTPWebinterfaceHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTTPWebinterfaceHandler.h; sourceTree = "<group>"; };
 		DFCA6AC3152245CD000BFAAE /* IHTTPRequestHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IHTTPRequestHandler.cpp; sourceTree = "<group>"; };
 		DFCA6AC4152245CD000BFAAE /* IHTTPRequestHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IHTTPRequestHandler.h; sourceTree = "<group>"; };
->>>>>>> upstream/master
 		E306D12C0DDF7B590052C2AD /* XBMCHelper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XBMCHelper.cpp; sourceTree = "<group>"; };
 		E306D12D0DDF7B590052C2AD /* XBMCHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XBMCHelper.h; sourceTree = "<group>"; };
 		E33206370D5070AA00435CE3 /* DVDDemuxVobsub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DVDDemuxVobsub.cpp; sourceTree = "<group>"; };
@@ -5211,7 +5205,6 @@
 			name = Documentation;
 			sourceTree = "<group>";
 		};
-<<<<<<< HEAD
 		DFDC3A21150FC9EA0097AAC9 /* AudioEngine */ = {
 			isa = PBXGroup;
 			children = (
@@ -5312,7 +5305,6 @@
 				DFDC3A71150FC9EA0097AAC9 /* AEWAVLoader.h */,
 			);
 			path = Utils;
-=======
 		DF527729151BAF4C00B5B63B /* websocket */ = {
 			isa = PBXGroup;
 			children = (
@@ -5345,7 +5337,6 @@
 				DFCA6AC4152245CD000BFAAE /* IHTTPRequestHandler.h */,
 			);
 			path = httprequesthandler;
->>>>>>> upstream/master
 			sourceTree = "<group>";
 		};
 		E37D5CB40D3023BB0081D327 /* osx */ = {
@@ -8306,7 +8297,6 @@
 				F54BCC5F1439345300F86B0F /* HotKeyController.m in Sources */,
 				DF673AA51443819600A5A509 /* AddonManager.cpp in Sources */,
 				F5BD02F6148D3A7E001B5583 /* CryptThreading.cpp in Sources */,
-<<<<<<< HEAD
 				DFDC3A72150FC9EA0097AAC9 /* AEFactory.cpp in Sources */,
 				DFDC3A73150FC9EA0097AAC9 /* AESinkFactory.cpp in Sources */,
 				DFDC3A74150FC9EA0097AAC9 /* AEEncoderFFmpeg.cpp in Sources */,
@@ -8331,7 +8321,6 @@
 				DFDC3A90150FC9EA0097AAC9 /* AEWAVLoader.cpp in Sources */,
 				DFDC3ADF150FCD410097AAC9 /* DVDAudioCodecFFmpegLpcm.cpp in Sources */,
 				DFDC3AE0150FCD410097AAC9 /* DVDAudioCodecPassthrough.cpp in Sources */,
-=======
 				7CCFD98D151494E100211D82 /* PCMCodec.cpp in Sources */,
 				DF5276E1151BAEDA00B5B63B /* Base64.cpp in Sources */,
 				DF5276E2151BAEDA00B5B63B /* HttpResponse.cpp in Sources */,
@@ -8380,7 +8369,6 @@
 				7C1A85661520522500C63311 /* TextureCacheJob.cpp in Sources */,
 				C8936052152C86CF00812418 /* monitor.cpp in Sources */,
 				C8936056152C86D800812418 /* PythonMonitor.cpp in Sources */,
->>>>>>> upstream/master
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -9265,7 +9253,6 @@
 				F5E1138114357F3900175026 /* PeripheralCecAdapter.cpp in Sources */,
 				F54BCC601439345300F86B0F /* HotKeyController.m in Sources */,
 				F5BD02F7148D3A7E001B5583 /* CryptThreading.cpp in Sources */,
-<<<<<<< HEAD
 				DFDC3A91150FC9EA0097AAC9 /* AEFactory.cpp in Sources */,
 				DFDC3A92150FC9EA0097AAC9 /* AESinkFactory.cpp in Sources */,
 				DFDC3A93150FC9EA0097AAC9 /* AEEncoderFFmpeg.cpp in Sources */,
@@ -9290,7 +9277,6 @@
 				DFDC3AAF150FC9EA0097AAC9 /* AEWAVLoader.cpp in Sources */,
 				DFDC3AE1150FCD410097AAC9 /* DVDAudioCodecFFmpegLpcm.cpp in Sources */,
 				DFDC3AE2150FCD410097AAC9 /* DVDAudioCodecPassthrough.cpp in Sources */,
-=======
 				7CCFD98C151494E100211D82 /* PCMCodec.cpp in Sources */,
 				DF527726151BAEDA00B5B63B /* Base64.cpp in Sources */,
 				DF527727151BAEDA00B5B63B /* HttpResponse.cpp in Sources */,
@@ -9339,7 +9325,6 @@
 				7C1A85651520522500C63311 /* TextureCacheJob.cpp in Sources */,
 				C8936053152C86CF00812418 /* monitor.cpp in Sources */,
 				C8936057152C86D800812418 /* PythonMonitor.cpp in Sources */,
->>>>>>> upstream/master
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -86,7 +86,6 @@
 		DFD4D22013D7286E00A47C47 /* Implementation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFD4D21413D7286E00A47C47 /* Implementation.cpp */; };
 		DFD4D22113D7286E00A47C47 /* README.platform in Resources */ = {isa = PBXBuildFile; fileRef = DFD4D21613D7286E00A47C47 /* README.platform */; };
 		DFD4D22213D7286E00A47C47 /* SystemClock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFD4D21C13D7286E00A47C47 /* SystemClock.cpp */; };
-<<<<<<< HEAD
 		DFDC3B45150FD5150097AAC9 /* AEFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3AF6150FD5150097AAC9 /* AEFactory.cpp */; };
 		DFDC3B46150FD5150097AAC9 /* AESinkFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3AF8150FD5150097AAC9 /* AESinkFactory.cpp */; };
 		DFDC3B47150FD5150097AAC9 /* AEEncoderFFmpeg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3AFB150FD5150097AAC9 /* AEEncoderFFmpeg.cpp */; };
@@ -111,7 +110,6 @@
 		DFDC3B64150FD5150097AAC9 /* AEWAVLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3B43150FD5150097AAC9 /* AEWAVLoader.cpp */; };
 		DFDC3C05150FD96F0097AAC9 /* DVDAudioCodecFFmpegLpcm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3C01150FD96F0097AAC9 /* DVDAudioCodecFFmpegLpcm.cpp */; };
 		DFDC3C06150FD96F0097AAC9 /* DVDAudioCodecPassthrough.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDC3C03150FD96F0097AAC9 /* DVDAudioCodecPassthrough.cpp */; };
-=======
 		DFDB00491516408F005079A4 /* CircularCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDB00411516408F005079A4 /* CircularCache.cpp */; };
 		DFDB004A1516408F005079A4 /* DirectoryCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDB00431516408F005079A4 /* DirectoryCache.cpp */; };
 		DFDB004B1516408F005079A4 /* FileCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DFDB00451516408F005079A4 /* FileCache.cpp */; };
@@ -119,7 +117,6 @@
 		DFFD594F1506B6300088DE4B /* IOSEAGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = DFFD594C1506B6300088DE4B /* IOSEAGLView.mm */; };
 		DFFEFBDB151606CB001294DC /* IOSScreenManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DFFEFBDA151606CB001294DC /* IOSScreenManager.mm */; };
 		DFFEFC2215160927001294DC /* IOSExternalTouchController.mm in Sources */ = {isa = PBXBuildFile; fileRef = DFFEFC2115160927001294DC /* IOSExternalTouchController.mm */; };
->>>>>>> upstream/master
 		F54D9E8E12B71457006870F9 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F54D9E8D12B71457006870F9 /* CoreAudio.framework */; };
 		F56B15FB12CD6922009B4C96 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F56B15FA12CD6922009B4C96 /* CoreVideo.framework */; };
 		F56B15FD12CD6930009B4C96 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F56B15FC12CD6930009B4C96 /* AudioToolbox.framework */; };
@@ -1152,7 +1149,6 @@
 		DFD4D21713D7286E00A47C47 /* ThreadLocal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadLocal.h; sourceTree = "<group>"; };
 		DFD4D21C13D7286E00A47C47 /* SystemClock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SystemClock.cpp; sourceTree = "<group>"; };
 		DFD4D21D13D7286E00A47C47 /* SystemClock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SystemClock.h; sourceTree = "<group>"; };
-<<<<<<< HEAD
 		DFDC3AF5150FD5150097AAC9 /* AEAudioFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AEAudioFormat.h; sourceTree = "<group>"; };
 		DFDC3AF6150FD5150097AAC9 /* AEFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AEFactory.cpp; sourceTree = "<group>"; };
 		DFDC3AF7150FD5150097AAC9 /* AEFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AEFactory.h; sourceTree = "<group>"; };
@@ -1212,7 +1208,6 @@
 		DFDC3C02150FD96F0097AAC9 /* DVDAudioCodecFFmpegLpcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDAudioCodecFFmpegLpcm.h; sourceTree = "<group>"; };
 		DFDC3C03150FD96F0097AAC9 /* DVDAudioCodecPassthrough.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DVDAudioCodecPassthrough.cpp; sourceTree = "<group>"; };
 		DFDC3C04150FD96F0097AAC9 /* DVDAudioCodecPassthrough.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DVDAudioCodecPassthrough.h; sourceTree = "<group>"; };
-=======
 		DFDB00411516408F005079A4 /* CircularCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CircularCache.cpp; sourceTree = "<group>"; };
 		DFDB00421516408F005079A4 /* CircularCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CircularCache.h; sourceTree = "<group>"; };
 		DFDB00431516408F005079A4 /* DirectoryCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DirectoryCache.cpp; sourceTree = "<group>"; };
@@ -1227,7 +1222,6 @@
 		DFFEFBDA151606CB001294DC /* IOSScreenManager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = IOSScreenManager.mm; sourceTree = "<group>"; };
 		DFFEFC2015160927001294DC /* IOSExternalTouchController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOSExternalTouchController.h; sourceTree = "<group>"; };
 		DFFEFC2115160927001294DC /* IOSExternalTouchController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = IOSExternalTouchController.mm; sourceTree = "<group>"; };
->>>>>>> upstream/master
 		F54D9E8D12B71457006870F9 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		F558F66813AFE7F300631E12 /* Condition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Condition.h; sourceTree = "<group>"; };
 		F558F66E13AFE81500631E12 /* ThreadLocal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadLocal.h; sourceTree = "<group>"; };
@@ -3899,6 +3893,8 @@
 		F56C7255131EC151000AD0F6 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				F56C7262131EC151000AD0F6 /* Encoders */,
+				F56C7266131EC151000AD0F6 /* libmad */,
 				F56C7256131EC151000AD0F6 /* DllLibMad.h */,
 				F56C7257131EC151000AD0F6 /* DVDAudioCodec.h */,
 				F56C7258131EC151000AD0F6 /* DVDAudioCodecFFmpeg.cpp */,
@@ -5179,8 +5175,6 @@
 				F5B13DFF13344F2A0045076D /* DarwinUtils.h */,
 				F5B13E0013344F310045076D /* DarwinUtils.mm */,
 				F56C7682131EC153000AD0F6 /* eprintf.cpp */,
-<<<<<<< HEAD
-=======
 				F56C7BD2131EC332000AD0F6 /* IOSCoreAudio.cpp */,
 				F56C7BD3131EC332000AD0F6 /* IOSCoreAudio.h */,
 				DFFD594B1506B6300088DE4B /* IOSEAGLView.h */,
@@ -5189,7 +5183,6 @@
 				DFFEFC2115160927001294DC /* IOSExternalTouchController.mm */,
 				DFFEFBD9151606CB001294DC /* IOSScreenManager.h */,
 				DFFEFBDA151606CB001294DC /* IOSScreenManager.mm */,
->>>>>>> upstream/master
 				F56C767E131EC153000AD0F6 /* OSXGNUReplacements.c */,
 				F56C767F131EC153000AD0F6 /* OSXGNUReplacements.h */,
 			);
@@ -7013,11 +7006,7 @@
 				F56C7B9B131EC1B4000AD0F6 /* AutoPool.mm in Sources */,
 				F56C7BC9131EC2DB000AD0F6 /* XBMCAppliance.m in Sources */,
 				F56C7BCA131EC2DB000AD0F6 /* XBMCController.mm in Sources */,
-<<<<<<< HEAD
-				F56C7BCB131EC2DB000AD0F6 /* XBMCEAGLView.mm in Sources */,
-=======
 				F56C7BD6131EC332000AD0F6 /* IOSCoreAudio.cpp in Sources */,
->>>>>>> upstream/master
 				F56C7BDC131EC390000AD0F6 /* WinEventsIOS.mm in Sources */,
 				F56C7BDD131EC390000AD0F6 /* WinSystemIOS.mm in Sources */,
 				F56C7BE3131EC3F3000AD0F6 /* RenderSystemGLES.cpp in Sources */,
@@ -7173,7 +7162,6 @@
 				F5E1132914357B6500175026 /* Peripherals.cpp in Sources */,
 				F5E113AD1435882400175026 /* pyrendercapture.cpp in Sources */,
 				F5BD033A148D4923001B5583 /* CryptThreading.cpp in Sources */,
-<<<<<<< HEAD
 				DFDC3B45150FD5150097AAC9 /* AEFactory.cpp in Sources */,
 				DFDC3B46150FD5150097AAC9 /* AESinkFactory.cpp in Sources */,
 				DFDC3B47150FD5150097AAC9 /* AEEncoderFFmpeg.cpp in Sources */,
@@ -7198,7 +7186,6 @@
 				DFDC3B64150FD5150097AAC9 /* AEWAVLoader.cpp in Sources */,
 				DFDC3C05150FD96F0097AAC9 /* DVDAudioCodecFFmpegLpcm.cpp in Sources */,
 				DFDC3C06150FD96F0097AAC9 /* DVDAudioCodecPassthrough.cpp in Sources */,
-=======
 				7CCFD9AA1514952700211D82 /* PCMCodec.cpp in Sources */,
 				DF527780151BAFD600B5B63B /* WebSocket.cpp in Sources */,
 				DF527781151BAFD600B5B63B /* WebSocketManager.cpp in Sources */,
@@ -7252,7 +7239,6 @@
 				DFFD594F1506B6300088DE4B /* IOSEAGLView.mm in Sources */,
 				DFFEFBDB151606CB001294DC /* IOSScreenManager.mm in Sources */,
 				DFFEFC2215160927001294DC /* IOSExternalTouchController.mm in Sources */,
->>>>>>> upstream/master
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

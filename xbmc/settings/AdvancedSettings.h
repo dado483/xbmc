@@ -46,6 +46,7 @@ struct TVShowRegexp
   {
     byDate = d;
     regexp = r;
+    defaultSeason = s;
   }
 };
 

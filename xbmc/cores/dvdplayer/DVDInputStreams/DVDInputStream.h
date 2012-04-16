@@ -23,6 +23,7 @@
 
 #include <string>
 #include "utils/BitstreamStats.h"
+#include "filesystem/IFile.h"
 
 #include "FileItem.h"
 
@@ -78,7 +79,7 @@ public:
 
   class IChapter
   {
-    public:    
+    public:
     virtual ~IChapter() {};
     virtual int  GetChapter() = 0;
     virtual int  GetChapterCount() = 0;
@@ -106,6 +107,7 @@ public:
     virtual bool OnMouseClick(const CPoint &point) = 0;
     virtual bool IsInMenu() = 0;
     virtual double GetTimeStampCorrection() = 0;
+    virtual void UpdateState() = 0; /**< Called by player before requesting packet from demuser, to process events */
   };
 
   enum ENextStream
@@ -129,22 +131,16 @@ public:
   virtual void Abort() {}
   virtual int GetBlockSize() { return 0; }
 
-  /*! \brief Get the number of bytes currently cached/buffered ahead from
-   the current position in the input stream if applicable.
-   \return number of cached ahead data bytes (-1 if not available)
-   */
-  virtual __int64 GetCachedBytes() { return -1; }
-
   /*! \brief Indicate expected read rate in bytes per second.
    *  This could be used to throttle caching rate. Should
    *  be seen as only a hint
    */
   virtual void SetReadRate(unsigned rate) {}
 
-  /*! \briaf Current read speed from source
-   *  used to calculate caching time for startup
+  /*! \brief Get the cache status
+   \return true when cache status was succesfully obtained
    */
-  virtual unsigned GetReadRate() { return 0; }
+  virtual bool GetCacheStatus(XFILE::SCacheStatus *status) { return false; }
 
   bool IsStreamType(DVDStreamType type) const { return m_streamType == type; }
   virtual bool IsEOF() = 0;

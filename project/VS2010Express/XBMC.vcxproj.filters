@@ -615,10 +615,16 @@
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\BaseRenderer.cpp">
       <Filter>cores\VideoRenderers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\VideoRenderers\LinuxRendererGL.cpp">
+      <Filter>cores\VideoRenderers</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRenderer.cpp">
       <Filter>cores\VideoRenderers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererDX.cpp">
+      <Filter>cores\VideoRenderers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererGL.cpp">
       <Filter>cores\VideoRenderers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererUtil.cpp">
@@ -631,6 +637,9 @@
       <Filter>cores\VideoRenderers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\ConvolutionKernels.cpp">
+      <Filter>cores\VideoRenderers\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\VideoFilterShader.cpp">
       <Filter>cores\VideoRenderers\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\YUV2RGBShader.cpp">
@@ -825,7 +834,6 @@
     <ClCompile Include="..\..\xbmc\addons\Service.cpp">
       <Filter>addons</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\MediaSource.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\GUIDialog.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
@@ -1007,6 +1015,9 @@
     <ClCompile Include="..\..\xbmc\guilib\DirectXGraphics.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\xbmc\guilib\FrameBufferObject.cpp">
+      <Filter>guilib</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\GUIAudioManager.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
@@ -1176,6 +1187,9 @@
       <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\MatrixGLES.cpp">
+      <Filter>guilib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\guilib\Shader.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\TextureBundle.cpp">
@@ -1513,6 +1527,12 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\rendering\dx\RenderSystemDX.cpp">
       <Filter>rendering\dx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\rendering\gl\GUIWindowTestPatternGL.cpp">
+      <Filter>rendering\gl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\rendering\gl\RenderSystemGL.cpp">
+      <Filter>rendering\gl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\settings\AdvancedSettings.cpp">
       <Filter>settings</Filter>
@@ -2120,11 +2140,26 @@
     <ClCompile Include="..\..\xbmc\guilib\TextureDX.cpp">
       <Filter>guilib\Rendering\DX</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\xbmc\guilib\GUIFontTTFGL.cpp">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\guilib\GUITextureGL.cpp">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\guilib\GUITextureGLES.cpp">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\guilib\TextureGL.cpp">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\GraphicContext.cpp">
       <Filter>guilib\Rendering\Base</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\addons\AddonInstaller.cpp">
       <Filter>addons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\utils\GLUtils.cpp">
+      <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\win32\stdio_utf8.cpp">
       <Filter>win32</Filter>
@@ -2591,6 +2626,9 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\MemBufferCache.cpp">
       <Filter>filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\xbmc\MediaSource.cpp">
+      <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Encoders\AEEncoderFFmpeg.cpp">
       <Filter>cores\AudioEngine\Encoders</Filter>
@@ -3122,10 +3160,16 @@
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\BaseRenderer.h">
       <Filter>cores\VideoRenderers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\VideoRenderers\LinuxRendererGL.h">
+      <Filter>cores\VideoRenderers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRenderer.h">
       <Filter>cores\VideoRenderers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererDX.h">
+      <Filter>cores\VideoRenderers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererGL.h">
       <Filter>cores\VideoRenderers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\OverlayRendererUtil.h">
@@ -3138,6 +3182,9 @@
       <Filter>cores\VideoRenderers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\ConvolutionKernels.h">
+      <Filter>cores\VideoRenderers\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\VideoFilterShader.h">
       <Filter>cores\VideoRenderers\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoRenderers\VideoShaders\YUV2RGBShader.h">
@@ -3541,6 +3588,9 @@
     <ClInclude Include="..\..\xbmc\guilib\DirectXGraphics.h">
       <Filter>guilib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\xbmc\guilib\FrameBufferObject.h">
+      <Filter>guilib</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\Geometry.h">
       <Filter>guilib</Filter>
     </ClInclude>
@@ -3728,6 +3778,9 @@
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\Resolution.h">
+      <Filter>guilib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\guilib\Shader.h">
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\TextureBundle.h">
@@ -4123,6 +4176,12 @@
     <ClInclude Include="..\..\xbmc\rendering\dx\RenderSystemDX.h">
       <Filter>rendering\dx</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\xbmc\rendering\gl\GUIWindowTestPatternGL.h">
+      <Filter>rendering\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\rendering\gl\RenderSystemGL.h">
+      <Filter>rendering\gl</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\xbmc\settings\AdvancedSettings.h">
       <Filter>settings</Filter>
     </ClInclude>
@@ -4453,6 +4512,9 @@
     <ClInclude Include="..\..\xbmc\windowing\windows\WinSystemWin32DX.h">
       <Filter>windowing\windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\xbmc\windowing\windows\WinSystemWin32GL.h">
+      <Filter>windowing\windows</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\lib\tinyXML\tinystr.h">
       <Filter>libs\tinyxml</Filter>
     </ClInclude>
@@ -4723,6 +4785,18 @@
     <ClInclude Include="..\..\xbmc\guilib\TextureDX.h">
       <Filter>guilib\Rendering\DX</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\xbmc\guilib\GUIFontTTFGL.h">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\guilib\GUITextureGL.h">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\guilib\GUITextureGLES.h">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\guilib\TextureGL.h">
+      <Filter>guilib\Rendering\GL</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\GraphicContext.h">
       <Filter>guilib\Rendering\Base</Filter>
     </ClInclude>
@@ -4734,6 +4808,9 @@
     </ClInclude>
     <ClInclude Include="..\..\lib\ffmpeg\include-xbmc-win32\libavutil\avconfig.h">
       <Filter>cores\dvdplayer\DVDHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\utils\GLUtils.h">
+      <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\win32\stdio_utf8.h">
       <Filter>win32</Filter>
@@ -4944,6 +5021,12 @@
       <Filter>filesystem</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\DirectoryHistory.h">
+      <Filter>filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\filesystem\DllHDHomeRunDirectory.h">
+      <Filter>filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\filesystem\DllHDHomeRunFile.h">
       <Filter>filesystem</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\DllLibAfp.h">
@@ -5183,9 +5266,6 @@
     <ClInclude Include="..\..\xbmc\filesystem\ZipFile.h">
       <Filter>filesystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\interfaces\python\xbmcmodule\pythreadstate.h">
-      <Filter>interfaces\python\xbmcmodule</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\paplayer\PCMCodec.h">
       <Filter>cores\paplayer</Filter>
     </ClInclude>
@@ -5255,7 +5335,9 @@
     <ClInclude Include="..\..\xbmc\network\httprequesthandler\HTTPJsonRpcHandler.h">
       <Filter>network\httprequesthandler</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\interfaces\python\xbmcmodule\pythreadstate.h" />
+    <ClInclude Include="..\..\xbmc\interfaces\python\xbmcmodule\pythreadstate.h">
+      <Filter>interfaces\python\xbmcmodule</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Encoders\AEEncoderFFmpeg.h">
       <Filter>cores\AudioEngine\Encoders</Filter>
     </ClInclude>
@@ -5346,7 +5428,6 @@
     <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPassthrough.h">
       <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\interfaces\python\xbmcmodule\pythreadstate.h" />
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEDeviceInfo.h">
       <Filter>cores\AudioEngine\Utils</Filter>
     </ClInclude>

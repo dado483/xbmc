@@ -272,7 +272,8 @@
 #define MEASURE_FUNCTION
 #endif
 
-#ifdef _WIN32
+#ifdef TARGET_WINDOWS
+#include <shlobj.h>
 #include "win32util.h"
 #endif
 #ifdef HAS_XRANDR
