@@ -50,7 +50,8 @@ static const unsigned int WASAPISampleRateCount = 10;
 static const unsigned int WASAPISampleRates[] = {384000, 192000, 176400, 96000, 88200, 48000, 44100, 32000, 22050, 11025};
 
 #define SPEAKER_COUNT AE_CH_MAX
-static const unsigned int WASAPIChannelOrder[] = {SPEAKER_FRONT_LEFT,           SPEAKER_FRONT_RIGHT,           SPEAKER_FRONT_CENTER,
+static const unsigned int WASAPIChannelOrder[] = {AE_CH_RAW,
+                                                  SPEAKER_FRONT_LEFT,           SPEAKER_FRONT_RIGHT,           SPEAKER_FRONT_CENTER,
                                                   SPEAKER_LOW_FREQUENCY,        SPEAKER_BACK_LEFT,             SPEAKER_BACK_RIGHT,
                                                   SPEAKER_FRONT_LEFT_OF_CENTER, SPEAKER_FRONT_RIGHT_OF_CENTER,
                                                   SPEAKER_BACK_CENTER,          SPEAKER_SIDE_LEFT,             SPEAKER_SIDE_RIGHT,
@@ -58,7 +59,8 @@ static const unsigned int WASAPIChannelOrder[] = {SPEAKER_FRONT_LEFT,           
                                                   SPEAKER_TOP_CENTER,           SPEAKER_TOP_BACK_LEFT,         SPEAKER_TOP_BACK_RIGHT,
                                                   SPEAKER_TOP_BACK_CENTER,      SPEAKER_RESERVED,              SPEAKER_RESERVED};
 
-static const enum AEChannel AEChannelNames[]   = {AE_CH_FL,                     AE_CH_FR,                      AE_CH_FC,
+static const enum AEChannel AEChannelNames[]   = {AE_CH_RAW,
+                                                  AE_CH_FL,                     AE_CH_FR,                      AE_CH_FC,
                                                   AE_CH_LFE,                    AE_CH_BL,                      AE_CH_BR,
                                                   AE_CH_FLOC,                   AE_CH_FROC,
                                                   AE_CH_BC,                     AE_CH_SL,                      AE_CH_SR,
@@ -371,9 +373,11 @@ unsigned int CAESinkWASAPI::AddPackets(uint8_t *data, unsigned int frames)
   BYTE *buf;
   DWORD flags = 0;
   UINT32 currentPaddingFrames = 0;
+#ifndef _DEBUG
   LARGE_INTEGER timerStart;
   LARGE_INTEGER timerStop;
   LARGE_INTEGER timerFreq;
+#endif
 
   unsigned int NumFramesRequested = frames;
 
@@ -408,9 +412,11 @@ unsigned int CAESinkWASAPI::AddPackets(uint8_t *data, unsigned int frames)
     return NumFramesRequested;
   }
 
+#ifndef _DEBUG
   /* Get clock time for latency checks */
   QueryPerformanceFrequency(&timerFreq);
   QueryPerformanceCounter(&timerStart);
+#endif
 
   /* Wait for Audio Driver to tell us it's got a buffer available */
   DWORD eventAudioCallback = WaitForSingleObject(m_needDataEvent, 1100);
@@ -424,6 +430,7 @@ unsigned int CAESinkWASAPI::AddPackets(uint8_t *data, unsigned int frames)
     return 0; //need better handling here
   }
 
+#ifndef _DEBUG
   QueryPerformanceCounter(&timerStop);
   LONGLONG timerDiff = timerStop.QuadPart - timerStart.QuadPart;
   double timerElapsed = (double) timerDiff * 1000.0 / (double) timerFreq.QuadPart;
@@ -433,6 +440,7 @@ unsigned int CAESinkWASAPI::AddPackets(uint8_t *data, unsigned int frames)
   {
     CLog::Log(LOGDEBUG, __FUNCTION__": Possible AQ Loss: Avg. Time Waiting for Audio Driver callback : %dmsec", (int)avgTimeWaiting);
   }
+#endif
 
   if (!m_isExclusive)
   {
@@ -463,6 +471,12 @@ unsigned int CAESinkWASAPI::AddPackets(uint8_t *data, unsigned int frames)
 
 void CAESinkWASAPI::EnumerateDevices(AEDeviceList &devices, bool passthrough)
 {
+  AEDeviceInfoList deviceInfoList;
+
+  /* Go immediately to new function */
+  EnumerateDevicesEx(devices, deviceInfoList);
+  return;
+
   IMMDeviceEnumerator* pEnumerator = NULL;
   IMMDeviceCollection* pEnumDevices = NULL;
 
@@ -524,7 +538,7 @@ void CAESinkWASAPI::EnumerateDevices(AEDeviceList &devices, bool passthrough)
     std::wstring strRawDevName(varName.pwszVal);
     std::string strDevName = std::string(strRawDevName.begin(), strRawDevName.end());
 
-    CLog::Log(LOGDEBUG, __FUNCTION__": found endpoint device: %s", strDevName.c_str());
+    //CLog::Log(LOGDEBUG, __FUNCTION__": found endpoint device: %s", strDevName.c_str());
 
     PropVariantClear(&varName);
 
@@ -555,10 +569,9 @@ void CAESinkWASAPI::EnumerateDevices(AEDeviceList &devices, bool passthrough)
 
     PropVariantClear(&varName);
     SAFE_RELEASE(pProperty);
-
-    AEDeviceInfoList deviceInfoList;
-    EnumerateDevicesEx(deviceInfoList);
   }
+
+  return;
 
 failed:
 
@@ -569,7 +582,7 @@ failed:
   SAFE_RELEASE(pEnumerator);
 }
 
-void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
+void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceList &devices, AEDeviceInfoList &deviceInfoList)
 {
   IMMDeviceEnumerator* pEnumerator = NULL;
   IMMDeviceCollection* pEnumDevices = NULL;
@@ -577,8 +590,9 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
   CAEChannelInfo       deviceChannels;
 
   WAVEFORMATEXTENSIBLE wfxex = {0};
+  HRESULT              hr;
 
-  HRESULT hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pEnumerator);
+  hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pEnumerator);
   EXIT_ON_FAILURE(hr, __FUNCTION__": Could not allocate WASAPI device enumerator. CoCreateInstance error code: %li", hr)
 
   UINT uiCount = 0;
@@ -817,6 +831,7 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
         deviceInfo.m_channels              = (AEStdChLayout) wfxex.Format.nChannels;
         deviceInfo.m_dataFormats.push_back   (AEDataFormat(AE_FMT_AAC));
         deviceInfo.m_sampleRates.push_back   (wfxex.Format.nSamplesPerSec);
+        devices.push_back                    (AEDevice(std::string("WASAPI: "), strDevName));
       }
       else
       {
@@ -834,7 +849,11 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
     deviceInfo.m_deviceType       = aeDeviceType;
     deviceInfo.m_channels         = deviceChannels;
 
-    deviceInfoList.push_back(deviceInfo);
+    //printf("%s", ((std::string)deviceInfo).c_str());
+    CLog::Log(LOGDEBUG,"Audio Device %d:    %s", i, ((std::string)deviceInfo).c_str());
+
+    deviceInfoList.push_back        (deviceInfo);
+    devices.push_back               (AEDevice(strDevName, std::string("WASAPI:").append(strDevName)));
   }
   return;
 

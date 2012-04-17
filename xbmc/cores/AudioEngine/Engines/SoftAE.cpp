@@ -147,7 +147,7 @@ inline CSoftAEStream *CSoftAE::GetMasterStream()
     ++itt;
   }
 
-  if (internal && !m_newStreams.empty())
+  if (!m_newStreams.empty())
     return m_newStreams.back();
 
   if (!m_streams.empty())
@@ -197,10 +197,11 @@ void CSoftAE::InternalOpenSink()
 
     if (m_masterStream->IsRaw())
     {
-      newFormat.m_dataFormat = m_masterStream->GetDataFormat();
-      m_rawPassthrough       = true;
-      m_streamStageFn        = &CSoftAE::RunRawStreamStage;
-      m_outputStageFn        = &CSoftAE::RunRawOutputStage;
+      newFormat.m_dataFormat    = m_masterStream->GetDataFormat();
+      newFormat.m_channelLayout = m_masterStream->m_initChannelLayout;
+      m_rawPassthrough = true;
+      m_streamStageFn  = &CSoftAE::RunRawStreamStage;
+      m_outputStageFn  = &CSoftAE::RunRawOutputStage;
     }
     else
     {      
