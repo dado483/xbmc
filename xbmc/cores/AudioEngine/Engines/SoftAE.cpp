@@ -68,7 +68,7 @@ CSoftAE::CSoftAE():
     for(AEDeviceInfoList::iterator itt2 = itt->m_deviceInfoList.begin(); itt2 != itt->m_deviceInfoList.end(); ++itt2)
     {
       CLog::Log(LOGINFO, "    Device %d", ++count);
-      CAEDeviceInfo info = *itt2;
+      CAEDeviceInfo& info = *itt2;
       std::stringstream ss((std::string)info);
       std::string line;
       while(std::getline(ss, line, '\n'))
@@ -531,7 +531,7 @@ void CSoftAE::VerifySoundDevice(std::string& device, bool passthrough)
     AESinkInfo sinkInfo = *itt;
     for(AEDeviceInfoList::iterator itt2 = sinkInfo.m_deviceInfoList.begin(); itt2 != sinkInfo.m_deviceInfoList.end(); ++itt2)
     {
-      CAEDeviceInfo devInfo = *itt2;
+      CAEDeviceInfo& devInfo = *itt2;
       if (passthrough && devInfo.m_deviceType == AE_DEVTYPE_PCM) continue;
       std::string deviceName = sinkInfo.m_sinkName + ":" + devInfo.m_deviceName;
 
