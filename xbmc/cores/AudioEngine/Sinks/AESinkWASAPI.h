@@ -20,11 +20,11 @@
 *
 */
 
-#include "Interfaces/AESink.h"
+#include "../Interfaces/AESink.h"
 #include <stdint.h>
 #include <mmdeviceapi.h>
 #include <Audioclient.h>
-#include <AEDeviceInfo.h>
+#include "AEDeviceInfo.h"
 
 #include "threads/CriticalSection.h"
 
@@ -43,7 +43,7 @@ public:
     virtual float        GetDelay                    ();
     virtual unsigned int AddPackets                  (uint8_t *data, unsigned int frames);
     static  void         EnumerateDevices            (AEDeviceList &devices, bool passthrough);
-    static  void         EnumerateDevicesEx          (AEDeviceInfoList &deviceInfoList);
+    static  void         EnumerateDevicesEx          (AEDeviceList &devices, AEDeviceInfoList &deviceInfoList);
 private:
     bool         InitializeShared(AEAudioFormat &format);
     bool         InitializeExclusive(AEAudioFormat &format);
