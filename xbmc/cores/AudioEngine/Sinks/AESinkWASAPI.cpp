@@ -50,7 +50,8 @@ static const unsigned int WASAPISampleRateCount = 10;
 static const unsigned int WASAPISampleRates[] = {384000, 192000, 176400, 96000, 88200, 48000, 44100, 32000, 22050, 11025};
 
 #define SPEAKER_COUNT AE_CH_MAX
-static const unsigned int WASAPIChannelOrder[] = {SPEAKER_FRONT_LEFT,           SPEAKER_FRONT_RIGHT,           SPEAKER_FRONT_CENTER,
+static const unsigned int WASAPIChannelOrder[] = {AE_CH_RAW,
+                                                  SPEAKER_FRONT_LEFT,           SPEAKER_FRONT_RIGHT,           SPEAKER_FRONT_CENTER,
                                                   SPEAKER_LOW_FREQUENCY,        SPEAKER_BACK_LEFT,             SPEAKER_BACK_RIGHT,
                                                   SPEAKER_FRONT_LEFT_OF_CENTER, SPEAKER_FRONT_RIGHT_OF_CENTER,
                                                   SPEAKER_BACK_CENTER,          SPEAKER_SIDE_LEFT,             SPEAKER_SIDE_RIGHT,
@@ -58,7 +59,8 @@ static const unsigned int WASAPIChannelOrder[] = {SPEAKER_FRONT_LEFT,           
                                                   SPEAKER_TOP_CENTER,           SPEAKER_TOP_BACK_LEFT,         SPEAKER_TOP_BACK_RIGHT,
                                                   SPEAKER_TOP_BACK_CENTER,      SPEAKER_RESERVED,              SPEAKER_RESERVED};
 
-static const enum AEChannel AEChannelNames[]   = {AE_CH_FL,                     AE_CH_FR,                      AE_CH_FC,
+static const enum AEChannel AEChannelNames[]   = {AE_CH_RAW,
+                                                  AE_CH_FL,                     AE_CH_FR,                      AE_CH_FC,
                                                   AE_CH_LFE,                    AE_CH_BL,                      AE_CH_BR,
                                                   AE_CH_FLOC,                   AE_CH_FROC,
                                                   AE_CH_BC,                     AE_CH_SL,                      AE_CH_SR,
