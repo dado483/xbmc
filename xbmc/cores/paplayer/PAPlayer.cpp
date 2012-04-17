@@ -288,12 +288,12 @@ bool PAPlayer::QueueNextFileEx(const CFileItem &file, bool fadeIn/* = true */)
   
   if (si->m_decoder.TotalTime() < TIME_TO_CACHE_NEXT_FILE + m_crossFadeTime)
        si->m_prepareNextAtFrame = 0;
-  else si->m_prepareNextAtFrame = (si->m_decoder.TotalTime() - TIME_TO_CACHE_NEXT_FILE - m_crossFadeTime) * (si->m_sampleRate * si->m_channelInfo.Count()) / 1000.0f;
+  else si->m_prepareNextAtFrame = (int)((si->m_decoder.TotalTime() - TIME_TO_CACHE_NEXT_FILE - m_crossFadeTime) * (si->m_sampleRate * si->m_channelInfo.Count()) / 1000.0f);
   si->m_prepareTriggered = false;
   
   if (si->m_decoder.TotalTime() < m_crossFadeTime)
-       si->m_playNextAtFrame = (si->m_decoder.TotalTime() / 2) * (si->m_sampleRate * si->m_channelInfo.Count()) / 1000.0f;
-  else si->m_playNextAtFrame = (si->m_decoder.TotalTime() - m_crossFadeTime) * (si->m_sampleRate * si->m_channelInfo.Count()) / 1000.0f;
+       si->m_playNextAtFrame = (int)((si->m_decoder.TotalTime() / 2) * (si->m_sampleRate * si->m_channelInfo.Count()) / 1000.0f);
+  else si->m_playNextAtFrame = (int)((si->m_decoder.TotalTime() - m_crossFadeTime) * (si->m_sampleRate * si->m_channelInfo.Count()) / 1000.0f);
   si->m_playNextTriggered = false;
    
   /* add the stream to the list */
@@ -519,7 +519,7 @@ inline bool PAPlayer::ProcessStream(StreamInfo *si, float &delay, float &buffer)
       si->m_seekNextAtFrame  = si->m_framesSent + (si->m_framesPerSecond / 2);
     }
 
-    __int64 time = si->m_startOffset + ((float)si->m_framesSent / (float)si->m_framesPerSecond * 1000.0f);
+    __int64 time = (__int64)(si->m_startOffset + ((float)si->m_framesSent / (float)si->m_framesPerSecond * 1000.0f));
 
     /* if we are seeking back before the start of the track start normal playback */
     if (time < si->m_startOffset || si->m_framesSent < 0) {
@@ -654,7 +654,7 @@ __int64 PAPlayer::GetTime()
   float time = (float)m_currentStream->m_framesSent / (float)(m_currentStream->m_framesPerSecond) * 1000.0f;
   if (m_currentStream->m_stream)
     time -= m_currentStream->m_stream->GetDelay();
-  return time;
+  return (__int64)time;
 }
 
 __int64 PAPlayer::GetTotalTime64()
@@ -672,7 +672,7 @@ __int64 PAPlayer::GetTotalTime64()
 
 int PAPlayer::GetTotalTime()
 {
-  return GetTotalTime64() / 1000;
+  return (int)(GetTotalTime64() / 1000);
 }
 
 int PAPlayer::GetCacheLevel() const
@@ -759,15 +759,15 @@ void PAPlayer::SeekTime(__int64 iTime /*=0*/)
   if (!m_currentStream)
     return;
 
-  int seekOffset = iTime - GetTime();
+  int seekOffset = (int)(iTime - GetTime());
   if (m_currentStream->m_startOffset)
     iTime += m_currentStream->m_startOffset;
 
   if (m_playbackSpeed != 1)
 	ToFFRW(1);
 
-  m_currentStream->m_seekFrame = m_currentStream->m_framesPerSecond * (iTime / 1000);
-  m_callback.OnPlayBackSeek(iTime, seekOffset);
+  m_currentStream->m_seekFrame = (int)(m_currentStream->m_framesPerSecond * (iTime / 1000));
+  m_callback.OnPlayBackSeek((int)iTime, seekOffset);
 }
 
 void PAPlayer::SeekPercentage(float fPercent /*=0*/)

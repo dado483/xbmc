@@ -135,6 +135,7 @@ IAESink *CAESinkFactory::Create(std::string &device, AEAudioFormat &desiredForma
 
   /* should never get here */
   ASSERT(false);
+  return NULL;
 }
 
 void CAESinkFactory::Enumerate(AEDeviceList &devices, bool passthrough)
