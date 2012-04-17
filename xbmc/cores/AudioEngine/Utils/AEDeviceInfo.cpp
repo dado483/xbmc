@@ -59,6 +59,5 @@ std::string CAEDeviceInfo::DeviceTypeToString(enum AEDeviceType deviceType)
     case AE_DEVTYPE_HDMI  : return "AE_DEVTYPE_HDMI"  ; break;
     case AE_DEVTYPE_DP    : return "AE_DEVTYPE_DP"    ; break;
   }
-  printf("%d\n", deviceType);
   return "INVALID";
 }
