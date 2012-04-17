@@ -112,6 +112,20 @@ inline CAEChannelInfo CAESinkALSA::GetChannelLayout(AEAudioFormat format)
 
 std::string CAESinkALSA::GetDeviceUse(AEAudioFormat format, std::string device, bool passthrough)
 {
+  if (passthrough) {
+    device += ",AES0=0x06,AES1=0x82,AES2=0x00";
+         if (format.m_sampleRate == 192000) device += ",AES3=0x0e";
+    else if (format.m_sampleRate == 176400) device += ",AES3=0x0c";
+    else if (format.m_sampleRate ==  96000) device += ",AES3=0x0a";
+    else if (format.m_sampleRate ==  88200) device += ",AES3=0x08";
+    else if (format.m_sampleRate ==  48000) device += ",AES3=0x02";
+    else if (format.m_sampleRate ==  44100) device += ",AES3=0x00";
+    else if (format.m_sampleRate ==  32000) device += ",AES3=0x03";
+    else device += ",AES3=0x01";
+    return device;
+  }
+  return device;
+
   int pos;
   std::string cardName;
   
@@ -271,16 +285,18 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
   snd_pcm_hw_params_set_rate_near    (m_pcm, hw_params, &sampleRate, NULL);
   snd_pcm_hw_params_set_channels_near(m_pcm, hw_params, &channelCount);
 
-  if (format.m_channelLayout.Count() != channelCount)
+  /* ensure we opened X channels or more */
+  if (format.m_channelLayout.Count() > channelCount)
   {
-    format.m_channelLayout.Reset();
-    for(unsigned int i = 0; i < channelCount; ++i)
-      format.m_channelLayout += ALSAChannelMap[i];
-      
     CLog::Log(LOGERROR, "CAESinkALSA::InitializeHW - Unable to open the required number of channels");
     snd_pcm_hw_params_free(hw_params);
     return false;
   }
+
+  /* update the channelLayout to what we managed to open */
+  format.m_channelLayout.Reset();
+  for(unsigned int i = 0; i < channelCount; ++i)
+    format.m_channelLayout += ALSAChannelMap[i];
 
   snd_pcm_format_t fmt = AEFormatToALSAFormat(format.m_dataFormat);
   if (fmt == SND_PCM_FORMAT_UNKNOWN)
@@ -631,6 +647,10 @@ void CAESinkALSA::GenSoundLabel(AEDeviceList& devices, std::string sink, std::st
 
 void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
 {
+  /* ensure that ALSA has been initialized */
+  if(!snd_config)
+    snd_config_update();  
+
   snd_ctl_t *ctlhandle;
   snd_pcm_t *pcmhandle;
 
@@ -656,10 +676,14 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
     std::string strHwName = sstr.str();
 
     if (snd_ctl_open_lconf(&ctlhandle, strHwName.c_str(), 0, config) != 0)
+    {
+      CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Unable to open control for device %s", strHwName.c_str());
       continue;
+    }
 
     if (snd_ctl_card_info(ctlhandle, ctlinfo) != 0)
     {
+      CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Unable to get card control info for device %s", strHwName.c_str());
       snd_ctl_close(ctlhandle);
       continue;
     }
@@ -669,6 +693,10 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
       hctl = NULL;
     snd_hctl_load(hctl);
 
+    int pcm_index    = 0;
+    int iec958_index = 0;
+    int hdmi_index   = 0;
+
     int dev = -1;
     while(snd_ctl_pcm_next_device(ctlhandle, &dev) == 0 && dev != -1)
     {
@@ -677,32 +705,42 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
       snd_pcm_info_set_stream   (pcminfo, SND_PCM_STREAM_PLAYBACK);
 
       if (snd_ctl_pcm_info(ctlhandle, pcminfo) < 0)
-        continue;
-
-      CAEDeviceInfo info;
-      sstr.str(std::string());
-      sstr << "hw:CARD=" << snd_ctl_card_info_get_id(ctlinfo) << ",DEV=" << dev;
-      info.m_deviceName = sstr.str();
-
-      sstr.str(std::string());
-      sstr << snd_ctl_card_info_get_name(ctlinfo) << " (dev: " << dev << ")";
-      info.m_displayName = sstr.str();
-
-      /* see if we can get ELD for this device */
-      bool badHDMI = false;
-      if (hctl && !GetELD(hctl, dev, info, badHDMI))
-          CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Unable to obtain ELD information for device %s, make sure you have ALSA >= 1.0.25", info.m_deviceName.c_str());
-
-      if (badHDMI)
       {
-        CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Skipping HDMI device %s as it has no ELD data", info.m_deviceName.c_str());
+        CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Skipping device %s,%d as it does not have PCM playback ability", strHwName.c_str(), dev);
         continue;
       }
 
-      /* if GetELD didnt flag as HDMI and the device has HDMI in the name, make it HDMI */
-      if (info.m_deviceType == AE_DEVTYPE_PCM)
-        if (strncmp(snd_pcm_info_get_id(pcminfo), "HDMI", 4) == 0)
-          info.m_deviceType = AE_DEVTYPE_HDMI;
+      int dev_index;
+      sstr.str(std::string());
+      CAEDeviceInfo info;
+      std::string devname = snd_pcm_info_get_name(pcminfo);
+
+           if (devname.find("HDMI"   ) != std::string::npos) { info.m_deviceType = AE_DEVTYPE_HDMI  ; dev_index = hdmi_index++  ; sstr << "hdmi";   }
+      else if (devname.find("Digital") != std::string::npos) { info.m_deviceType = AE_DEVTYPE_IEC958; dev_index = iec958_index++; sstr << "iec958"; }
+      else if (devname.find("IEC958" ) != std::string::npos) { info.m_deviceType = AE_DEVTYPE_IEC958; dev_index = iec958_index++; sstr << "iec958"; }
+      else { info.m_deviceType = AE_DEVTYPE_PCM; dev_index = pcm_index++; sstr << "hw"; }
+
+      /* build the driver string to pass to ALSA */
+      sstr << ":CARD=" << snd_ctl_card_info_get_id(ctlinfo) << ",DEV=" << dev_index;
+      info.m_deviceName = sstr.str();
+
+      /* get the friendly display name*/
+      info.m_displayName      = snd_ctl_card_info_get_name(ctlinfo);
+      info.m_displayNameExtra = devname;
+
+      /* see if we can get ELD for this device */
+      if (info.m_deviceType == AE_DEVTYPE_HDMI)
+      {
+        bool badHDMI = false;
+        if (hctl && !GetELD(hctl, dev, info, badHDMI))
+            CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Unable to obtain ELD information for device %s, make sure you have ALSA >= 1.0.25", info.m_deviceName.c_str());
+
+        if (badHDMI)
+        {
+          CLog::Log(LOGDEBUG, "CAESinkALSA::EnumerateDevicesEx - Skipping HDMI device %s as it has no ELD data", info.m_deviceName.c_str());
+          continue;
+        }
+      }
 
       /* open the device for testing */
       if (snd_pcm_open_lconf(&pcmhandle, info.m_deviceName.c_str(), SND_PCM_STREAM_PLAYBACK, ALSA_OPTIONS, config) < 0)
@@ -725,9 +763,13 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
           info.m_sampleRates.push_back(*rate);
 
       /* detect the channels available */
-      for(unsigned int channels = 2; channels < ALSA_MAX_CHANNELS; ++channels)
-        if (snd_pcm_hw_params_test_channels(pcmhandle, hwparams, channels) >= 0)
-          info.m_channels += ALSAChannelMap[channels - 1];
+      int channels = 0;
+      for(int i = 1; i <= ALSA_MAX_CHANNELS; ++i)
+        if (snd_pcm_hw_params_test_channels(pcmhandle, hwparams, i) >= 0)
+          channels = i;
+
+      for(int i = 0; i < channels; ++i)
+        info.m_channels += ALSAChannelMap[i];
 
       /* detect the PCM sample formats that are available */
       for(enum AEDataFormat i = AE_FMT_MAX; i > AE_FMT_INVALID; i = (enum AEDataFormat)((int)i - 1))

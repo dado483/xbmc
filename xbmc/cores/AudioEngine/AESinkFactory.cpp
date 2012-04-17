@@ -156,3 +156,28 @@ void CAESinkFactory::Enumerate(AEDeviceList &devices, bool passthrough)
 #endif
 }
 
+/* no support for apple yet  */
+#ifndef __APPLE__
+
+#define ENUMERATE_SINK(SINK) { \
+  AESinkInfo info; \
+  info.m_sinkName = #SINK; \
+  CAESink ##SINK::EnumerateDevicesEx(info.m_deviceInfoList); \
+  if(!info.m_deviceInfoList.empty()) \
+    list.push_back(info); \
+}
+
+void CAESinkFactory::EnumerateEx(AESinkInfoList &list)
+{
+
+#ifdef HAS_ALSA
+  ENUMERATE_SINK(ALSA);
+#endif
+
+#ifdef _WIN32
+  if(g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound)
+       ENUMERATE_SINK(WASAPI)
+  else ENUMERATE_SINK(DirectSound);
+#endif
+}
+#endif

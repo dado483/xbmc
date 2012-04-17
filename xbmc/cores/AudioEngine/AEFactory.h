@@ -42,6 +42,7 @@ class CAEFactory
 public:
   static IAE *AE;
   static bool LoadEngine();
+  static bool StartEngine();
 private:
   static bool LoadEngine(enum AEEngine engine);
 };

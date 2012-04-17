@@ -21,7 +21,21 @@
  */
 
 #include <stdint.h>
+#include <string>
+#include <vector>
+
 #include "Interfaces/AESink.h"
+
+#ifndef __APPLE__
+#include "Utils/AEDeviceInfo.h"
+typedef struct
+{
+  std::string      m_sinkName;
+  AEDeviceInfoList m_deviceInfoList;
+} AESinkInfo;
+
+typedef std::vector<AESinkInfo> AESinkInfoList;
+#endif
 
 class CAESinkFactory
 {
@@ -29,5 +43,8 @@ public:
   static void     ParseDevice(std::string &device, std::string &driver);
   static IAESink *Create(std::string &device, AEAudioFormat &desiredFormat, bool rawPassthrough);
   static void     Enumerate(AEDeviceList &devices, bool passthrough);
+#ifndef __APPLE__
+  static void     EnumerateEx(AESinkInfoList &list);
+#endif
 };
 

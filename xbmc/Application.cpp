@@ -695,6 +695,13 @@ bool CApplication::Create()
 
   g_powerManager.Initialize();
 
+  // Load the AudioEngine before settings as they need to query the engine
+  if (!CAEFactory::LoadEngine())
+  {
+    CLog::Log(LOGFATAL, "CApplication::Create: Failed to load an AudioEngine");
+    FatalErrorHandler(true, true, true);
+  }
+
   CLog::Log(LOGNOTICE, "load settings...");
 
   g_guiSettings.Initialize();  // Initialize default Settings - don't move
@@ -706,7 +713,7 @@ bool CApplication::Create()
   CLog::Log(LOGINFO, "userdata folder: %s", g_settings.GetProfileUserDataFolder().c_str());
   CLog::Log(LOGINFO, "recording folder: %s", g_guiSettings.GetString("audiocds.recordingpath",false).c_str());
   CLog::Log(LOGINFO, "screenshots folder: %s", g_guiSettings.GetString("debug.screenshotpath",false).c_str());
-  CDirectory::Create(g_settings.GetUserDataFolder());
+  CDirectory::Create(g_settings.GetUserDataFolder       ());
   CDirectory::Create(g_settings.GetProfileUserDataFolder());
   g_settings.CreateProfileFolders();
 
@@ -731,6 +738,17 @@ bool CApplication::Create()
   CLog::Log(LOGINFO, "load language file: %s", strLanguagePath.c_str());
   if (!g_localizeStrings.Load(strLanguagePath))
     FatalErrorHandler(false, false, true);
+
+  // start the AudioEngine
+  if (!CAEFactory::StartEngine())
+  {
+    CLog::Log(LOGFATAL, "CApplciation::Create: Failed to start the AudioEngine");
+    FatalErrorHandler(true, true, true);
+  }
+
+  // restore AE's previous volume state
+  SetHardwareVolume(g_settings.m_fVolumeLevel);
+  CAEFactory::AE->SetMute(g_settings.m_bMute);
 
   // start-up Addons Framework
   // currently bails out if either cpluff Dll is unavailable or system dir can not be scanned
@@ -1216,11 +1234,6 @@ bool CApplication::Initialize()
   g_windowManager.Add(new CGUIWindowStartup);            // startup window (id 2999)
 
   /* window id's 3000 - 3100 are reserved for python */
-
-  /* load the audio engine and restore it's volume & mute values */
-  CAEFactory::LoadEngine();
-  SetHardwareVolume(g_settings.m_fVolumeLevel);
-  CAEFactory::AE->SetMute(g_settings.m_bMute);
 
   // Make sure we have at least the default skin
   if (!LoadSkin(g_guiSettings.GetString("lookandfeel.skin")) && !LoadSkin(DEFAULT_SKIN))

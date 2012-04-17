@@ -701,7 +701,12 @@ void CGUIWindowSettingsCategory::UpdateSettings()
     {
       CGUIControl *pControl = (CGUIControl *)GetControl(pSettingControl->GetID());
       if (pControl)
-          pControl->SetEnabled(g_guiSettings.GetInt("audiooutput.mode") == AUDIO_HDMI);
+      {
+          if (strSetting.Equals("audiooutput.dtshdpassthrough") && !g_guiSettings.GetBool("audiooutput.dtspassthrough"))
+            pControl->SetEnabled(false);
+          else
+            pControl->SetEnabled(g_guiSettings.GetInt("audiooutput.mode") == AUDIO_HDMI);
+      }
     }
 #ifdef _WIN32
     else if (strSetting.Equals("audiooutput.channellayout"))
@@ -947,25 +952,6 @@ void CGUIWindowSettingsCategory::UpdateSettings()
       if (pControl)
         pControl->SetEnabled(g_peripherals.GetNumberOfPeripherals() > 0);
     }
-#if defined(_LINUX) && !defined(__APPLE__)
-    else if (strSetting.Equals("audiooutput.custompassthrough"))
-    {
-      CGUIControl *pControl = (CGUIControl *)GetControl(pSettingControl->GetID());
-      if (AUDIO_IS_BITSTREAM(g_guiSettings.GetInt("audiooutput.mode")))
-      {
-        if (pControl) pControl->SetEnabled(g_guiSettings.GetString("audiooutput.passthroughdevice").Equals("custom"));
-      }
-      else
-      {
-        if (pControl) pControl->SetEnabled(false);
-      }
-    }
-    else if (strSetting.Equals("audiooutput.customdevice"))
-    {
-      CGUIControl *pControl = (CGUIControl *)GetControl(pSettingControl->GetID());
-      if (pControl) pControl->SetEnabled(g_guiSettings.GetString("audiooutput.audiodevice").Equals("custom"));
-    }
-#endif
   }
 }
 
@@ -2664,13 +2650,11 @@ void CGUIWindowSettingsCategory::FillInAudioDevices(CSetting* pSetting, bool Pas
   {
     m_DigitalAudioSinkMap.clear();
     m_DigitalAudioSinkMap["Error - no devices found"] = "null:";
-    m_DigitalAudioSinkMap[g_localizeStrings.Get(636)] = "custom";
   }
   else
   {
     m_AnalogAudioSinkMap.clear();
     m_AnalogAudioSinkMap["Error - no devices found"] = "null:";
-    m_AnalogAudioSinkMap[g_localizeStrings.Get(636)] = "custom";
   }
 
   int numberSinks = 0;
@@ -2709,13 +2693,6 @@ void CGUIWindowSettingsCategory::FillInAudioDevices(CSetting* pSetting, bool Pas
     numberSinks = sinkList.size();
 #if !defined(__APPLE__)
   }
-#endif
-
-#ifdef _LINUX
-  if (currentDevice.Equals("custom"))
-    selectedValue = numberSinks;
-
-  pControl->AddLabel(g_localizeStrings.Get(636), numberSinks++);
 #endif
 
   if (selectedValue < 0)

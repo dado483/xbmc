@@ -60,7 +60,7 @@ bool CDVDAudioCodecPassthrough::Open(CDVDStreamInfo &hints, CDVDCodecOptions &op
   if (audioMode == AUDIO_HDMI)
   {
     bSupportsTrueHDOut = g_guiSettings.GetBool("audiooutput.truehdpassthrough");
-    bSupportsDTSHDOut  = g_guiSettings.GetBool("audiooutput.dtshdpassthrough" );
+    bSupportsDTSHDOut  = g_guiSettings.GetBool("audiooutput.dtshdpassthrough" ) && bSupportsDTSOut;
   }
 
   /* only get the dts core from the parser if we don't support dtsHD */

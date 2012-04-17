@@ -88,6 +88,11 @@ bool CAEFactory::LoadEngine(enum AEEngine engine)
 #endif
   }
 
+  return AE != NULL;
+}
+
+bool CAEFactory::StartEngine()
+{
   if (!AE)
     return false;
 
@@ -98,4 +103,3 @@ bool CAEFactory::LoadEngine(enum AEEngine engine)
   AE = NULL;
   return false;
 }
-

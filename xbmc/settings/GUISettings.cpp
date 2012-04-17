@@ -38,6 +38,7 @@
 #include "windowing/WindowingFactory.h"
 #include "powermanagement/PowerManager.h"
 #include "cores/dvdplayer/DVDCodecs/Video/CrystalHD.h"
+#include "cores/AudioEngine/AEFactory.h"
 #include "cores/AudioEngine/AEAudioFormat.h"
 #include "guilib/GUIFont.h" // for FONT_STYLE_* definitions
 #if defined __APPLE__ && !defined __arm__
@@ -478,12 +479,9 @@ void CGUISettings::Initialize()
   AddString(NULL, "audiooutput.passthroughdevice", 546, defaultDeviceName.c_str(), SPIN_CONTROL_TEXT);
 #elif defined(_LINUX)
   AddSeparator(ao, "audiooutput.sep1");
-  AddString(ao, "audiooutput.audiodevice", 545, "default", SPIN_CONTROL_TEXT);
-  AddString(ao, "audiooutput.customdevice", 1300, "", EDIT_CONTROL_INPUT);
+  AddString   (ao, "audiooutput.audiodevice"      , 545, CStdString(CAEFactory::AE->GetDefaultDevice(false)), SPIN_CONTROL_TEXT);
+  AddString   (ao, "audiooutput.passthroughdevice", 546, CStdString(CAEFactory::AE->GetDefaultDevice(true )), SPIN_CONTROL_TEXT);
   AddSeparator(ao, "audiooutput.sep2");
-  AddString(ao, "audiooutput.passthroughdevice", 546, "default", SPIN_CONTROL_TEXT);
-  AddString(ao, "audiooutput.custompassthrough", 1301, "", EDIT_CONTROL_INPUT);
-  AddSeparator(ao, "audiooutput.sep3");
 #elif defined(_WIN32)
   AddSeparator(ao, "audiooutput.sep1");
   if(g_sysinfo.IsVistaOrHigher())

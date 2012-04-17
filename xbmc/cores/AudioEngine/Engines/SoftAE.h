@@ -36,6 +36,7 @@
 #include "Utils/AERemap.h"
 #include "Utils/AEBuffer.h"
 #include "AEAudioFormat.h"
+#include "AESinkFactory.h"
 
 #include "SoftAEStream.h"
 #include "SoftAESound.h"
@@ -97,6 +98,7 @@ public:
   unsigned int          GetSinkFrameSize  () {return m_sinkFormat.m_frameSize    ;}
 
   virtual void EnumerateOutputDevices(AEDeviceList &devices, bool passthrough);
+  virtual std::string GetDefaultDevice(bool passthrough);
   virtual bool SupportsRaw();
 
   /* internal stream methods */
@@ -109,6 +111,7 @@ private:
   CSoftAEStream *GetMasterStream();
 
   void LoadSettings();
+  void VerifySoundDevice(std::string &device, bool passthrough);
   void OpenSink();
 
   void InternalOpenSink();
@@ -142,6 +145,7 @@ private:
   unsigned int        m_frameSize;
 
   /* the sink, its format information, and conversion function */
+  AESinkInfoList            m_sinkInfoList;
   IAESink                  *m_sink;
   AEAudioFormat             m_sinkFormat;
   float                     m_sinkFormatSampleRateMul;
