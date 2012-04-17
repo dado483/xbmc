@@ -742,7 +742,7 @@ bool CApplication::Create()
   // start the AudioEngine
   if (!CAEFactory::StartEngine())
   {
-    CLog::Log(LOGFATAL, "CApplciation::Create: Failed to start the AudioEngine");
+    CLog::Log(LOGFATAL, "CApplication::Create: Failed to start the AudioEngine");
     FatalErrorHandler(true, true, true);
   }
 
