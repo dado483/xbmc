@@ -51,6 +51,8 @@ bool CAESinkNULL::Initialize(AEAudioFormat &format, std::string &device)
   format.m_frameSamples  = format.m_channelLayout.Count();
   format.m_frameSize     = format.m_frameSamples * (CAEUtil::DataFormatToBits(format.m_dataFormat) >> 3);
 
+#if 0
+  /* FIXME, CAUSES A DEADLOCK */
   /* display failure notification */
   CGUIDialogKaiToast::QueueNotification(
     CGUIDialogKaiToast::Error,
@@ -59,6 +61,7 @@ bool CAESinkNULL::Initialize(AEAudioFormat &format, std::string &device)
     TOAST_DISPLAY_TIME,
     false
   );
+#endif
 
   return true;
 }
