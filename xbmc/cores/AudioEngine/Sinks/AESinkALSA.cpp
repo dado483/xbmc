@@ -172,9 +172,7 @@ bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
   /* free the sound config */
   snd_config_delete(config);
 
-  if (!InitializeHW(format))
-    return false;
-  if (!InitializeSW(format))
+  if (!InitializeHW(format) || !InitializeSW(format))
     return false;
 
   snd_pcm_nonblock(m_pcm, 1);
@@ -510,15 +508,14 @@ void CAESinkALSA::Drain()
 
 void CAESinkALSA::EnumerateDevices(AEDeviceList &devices, bool passthrough)
 {
+  devices.push_back(AEDevice("default", "alsa:default"));
   if (!passthrough)
   {
-    devices.push_back(AEDevice("default", "alsa:default"));
     devices.push_back(AEDevice("iec958" , "alsa:plug:iec958"));
     devices.push_back(AEDevice("hdmi"   , "alsa:plug:hdmi"));
   }
   else
   {
-    devices.push_back(AEDevice("default", "alsa:default"));
     devices.push_back(AEDevice("iec958" , "alsa:iec958"));
     devices.push_back(AEDevice("hdmi"   , "alsa:hdmi"));
   }
@@ -596,7 +593,7 @@ void CAESinkALSA::GenSoundLabel(AEDeviceList& devices, std::string sink, std::st
   sstr << sink << ":CARD=" << card;
   std::string deviceString = sstr.str();
 
-  if (sink == "default" || SoundDeviceExists(deviceString.c_str()))
+  if (sink == "default" || SoundDeviceExists(deviceString))
     devices.push_back(AEDevice(readableCard + " " + sink, "alsa:" + deviceString));
 }
 
@@ -676,13 +673,8 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
         dev_index = hdmi_index++;
         sstr << "hdmi";
       }
-      else if (devname.find("Digital") != std::string::npos)
-      { 
-        info.m_deviceType = AE_DEVTYPE_IEC958;
-        dev_index = iec958_index++;
-        sstr << "iec958";
-      }
-      else if (devname.find("IEC958" ) != std::string::npos)
+      else if (devname.find("Digital") != std::string::npos ||
+               devname.find("IEC958" ) != std::string::npos)
       { 
         info.m_deviceType = AE_DEVTYPE_IEC958;
         dev_index = iec958_index++;
