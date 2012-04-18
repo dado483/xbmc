@@ -456,9 +456,7 @@ bool CSoftAE::Initialize()
 void CSoftAE::OnSettingsChange(std::string setting)
 {
   if (setting == "audiooutput.passthroughdevice" ||
-      setting == "audiooutput.custompassthrough" ||
       setting == "audiooutput.audiodevice"       ||
-      setting == "audiooutput.customdevice"      ||
       setting == "audiooutput.mode"              ||
       setting == "audiooutput.ac3passthrough"    ||
       setting == "audiooutput.dtspassthrough"    ||
