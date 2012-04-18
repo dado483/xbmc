@@ -98,6 +98,7 @@ public:
 
   __int64 m_TotalTime;  // time in ms
   int m_SampleRate;
+  int m_EncodedSampleRate;
   int m_BitsPerSample;
   enum AEDataFormat m_DataFormat;
   int m_Bitrate;

@@ -271,7 +271,7 @@ bool PAPlayer::QueueNextFileEx(const CFileItem &file, bool fadeIn/* = true */)
   }
   
   /* init the streaminfo struct */
-  si->m_decoder.GetDataFormat(&si->m_channelInfo, &si->m_sampleRate, &si->m_dataFormat);
+  si->m_decoder.GetDataFormat(&si->m_channelInfo, &si->m_sampleRate, &si->m_encodedSampleRate, &si->m_dataFormat);
   si->m_startOffset        = file.m_lStartOffset * 1000 / 75;
   si->m_endOffset          = file.m_lEndOffset   * 1000 / 75;
   si->m_bytesPerSample     = CAEUtil::DataFormatToBits(si->m_dataFormat) >> 3;
@@ -313,7 +313,7 @@ inline bool PAPlayer::PrepareStream(StreamInfo *si)
   si->m_stream = CAEFactory::AE->MakeStream(
     si->m_dataFormat,
     si->m_sampleRate,
-    0,
+    si->m_encodedSampleRate,
     si->m_channelInfo,
     AESTREAM_PAUSED
   );

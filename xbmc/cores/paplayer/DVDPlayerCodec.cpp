@@ -157,6 +157,7 @@ bool DVDPlayerCodec::Init(const CStdString &strFile, unsigned int filecache)
     m_DataFormat    = m_pAudioCodec->GetDataFormat();
     m_BitsPerSample = CAEUtil::DataFormatToBits(m_DataFormat);
     m_SampleRate = m_pAudioCodec->GetSampleRate();
+    m_EncodedSampleRate = m_pAudioCodec->GetEncodedSampleRate();
     m_Channels = m_pAudioCodec->GetChannels();
     m_ChannelInfo = m_pAudioCodec->GetChannelMap();
 

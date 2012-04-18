@@ -69,7 +69,7 @@ public:
   int GetStatus() { return m_status; };
   void SetStatus(int status) { m_status = status; };
 
-  void GetDataFormat(CAEChannelInfo *channelInfo, unsigned int *samplerate, enum AEDataFormat *dataFormat);
+  void GetDataFormat(CAEChannelInfo *channelInfo, unsigned int *samplerate, unsigned int *encodedSampleRate, enum AEDataFormat *dataFormat);
   unsigned int GetChannels() { if (m_codec) return m_codec->GetChannelInfo().Count(); else return 0; };
   // Data management
   unsigned int GetDataSize();

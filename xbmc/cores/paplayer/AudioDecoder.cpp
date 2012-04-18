@@ -103,14 +103,15 @@ bool CAudioDecoder::Create(const CFileItem &file, __int64 seekOffset)
   return true;
 }
 
-void CAudioDecoder::GetDataFormat(CAEChannelInfo *channelInfo, unsigned int *samplerate, enum AEDataFormat *dataFormat)
+void CAudioDecoder::GetDataFormat(CAEChannelInfo *channelInfo, unsigned int *samplerate, unsigned int *encodedSampleRate, enum AEDataFormat *dataFormat)
 {
   if (!m_codec)
     return;
 
-  if (channelInfo) *channelInfo = m_codec->GetChannelInfo();
-  if (samplerate ) *samplerate  = m_codec->m_SampleRate;
-  if (dataFormat ) *dataFormat  = m_codec->m_DataFormat;
+  if (channelInfo      ) *channelInfo       = m_codec->GetChannelInfo();
+  if (samplerate       ) *samplerate        = m_codec->m_SampleRate;
+  if (encodedSampleRate) *encodedSampleRate = m_codec->m_EncodedSampleRate;
+  if (dataFormat       ) *dataFormat        = m_codec->m_DataFormat;
 }
 
 __int64 CAudioDecoder::Seek(__int64 time)

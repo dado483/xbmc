@@ -85,6 +85,7 @@ private:
     __int64           m_endOffset;           /* the stream end offset */
     CAEChannelInfo    m_channelInfo;         /* channel layout information */
     unsigned int      m_sampleRate;          /* sample rate of the stream */
+    unsigned int      m_encodedSampleRate;   /* the encoded sample rate of raw streams */
     enum AEDataFormat m_dataFormat;          /* data format of the samples */
     unsigned int      m_bytesPerSample;      /* number of bytes per audio sample */
     unsigned int      m_framesPerSecond;     /* sample rate * channel count */

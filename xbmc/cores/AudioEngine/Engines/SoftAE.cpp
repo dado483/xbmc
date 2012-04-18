@@ -663,6 +663,10 @@ IAEStream *CSoftAE::MakeStream(enum AEDataFormat dataFormat, unsigned int sample
     ((std::string)channelInfo).c_str()
   );
 
+  /* ensure we have the encoded sample rate if the format is RAW */
+  if (AE_IS_RAW(dataFormat))
+    ASSERT(encodedSampleRate);
+
   CSingleLock streamLock(m_streamLock);
   CSoftAEStream *stream = new CSoftAEStream(dataFormat, sampleRate, encodedSampleRate, channelLayout, options);
   m_newStreams.push_back(stream);
