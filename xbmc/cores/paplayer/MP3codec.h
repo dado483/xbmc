@@ -61,17 +61,17 @@ public:
   virtual bool CanSeek();
   virtual __int64 Seek(__int64 iSeekTime);
   virtual int ReadPCM(BYTE *pBuffer, int size, int *actualsize);
-  virtual int ReadSamples(float *pBuffer, int numsamples, int *actualsamples);
   virtual bool CanInit();
   virtual bool SkipNext();
-  virtual bool HasFloatData() const { return m_BitsPerSampleInternal == 32; };
+  virtual CAEChannelInfo GetChannelInfo();
+
 private:
 
   /* TODO decoder functions */
   virtual int Decode(int *out_len);
   virtual void Flush();
   int madx_init(madx_house* mxhouse);
-  madx_sig madx_read(madx_house *mxhouse, madx_stat* mxstat, int maxwrite, bool discard = false);
+  madx_sig madx_read(madx_house *mxhouse, madx_stat* mxstat, int maxwrite);
   void madx_deinit(madx_house* mxhouse);
   /* END decoder functions */
 

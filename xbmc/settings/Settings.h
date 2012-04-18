@@ -60,10 +60,12 @@
 #define CACHE_VIDEO 1
 #define CACHE_VOB   2
 
-#define VOLUME_MINIMUM -6000  // -60dB
-#define VOLUME_MAXIMUM 0      // 0dB
-#define VOLUME_DRC_MINIMUM 0    // 0dB
-#define VOLUME_DRC_MAXIMUM 6000 // 60dB
+#define VOLUME_MINIMUM 0.0f        // -60dB
+#define VOLUME_MAXIMUM 1.0f        // 0dB
+#define VOLUME_DYNAMIC_RANGE 90.0f // 60dB
+#define VOLUME_CONTROL_STEPS 90    // 90 steps
+#define VOLUME_DRC_MINIMUM 0       // 0dB
+#define VOLUME_DRC_MAXIMUM 6000    // 60dB
 
 #define VIEW_MODE_NORMAL        0
 #define VIEW_MODE_ZOOM          1
@@ -215,13 +217,11 @@ public:
 
   int iAdditionalSubtitleDirectoryChecked;
 
-  int m_HttpApiBroadcastPort;
-  int m_HttpApiBroadcastLevel;
-  int m_nVolumeLevel;                     // measured in milliBels -60dB -> 0dB range.
-  int m_dynamicRangeCompressionLevel;     // measured in milliBels  0dB -> 30dB range.
-  int m_iPreMuteVolumeLevel;    // save the m_nVolumeLevel for proper restore
-  bool m_bMute;
-  int m_iSystemTimeTotalUp;    // Uptime in minutes!
+  int   m_HttpApiBroadcastPort;
+  int   m_HttpApiBroadcastLevel;
+  float m_fVolumeLevel;          // measured in milliBels -60dB -> 0dB range.
+  bool  m_bMute;
+  int   m_iSystemTimeTotalUp;    // Uptime in minutes!
 
   CStdString m_userAgent;
 

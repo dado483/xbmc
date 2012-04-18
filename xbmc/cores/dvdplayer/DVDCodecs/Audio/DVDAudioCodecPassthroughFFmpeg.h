@@ -27,10 +27,10 @@
 #include "DllAvCodec.h"
 #include "DllAvUtil.h"
 
-#include "../DVDFactoryCodec.h"
 #include "DVDAudioCodec.h"
-
-class IDVDAudioEncoder;
+#include "cores/AudioEngine/AEAudioFormat.h"
+#include "cores/AudioEngine/Utils/AEStreamInfo.h"
+#include "cores/AudioEngine/Utils/AEPackIEC61937.h"
 
 class CDVDAudioCodecPassthroughFFmpeg : public CDVDAudioCodec
 {
@@ -44,8 +44,10 @@ public:
   virtual int GetData(BYTE** dst);
   virtual void Reset();
   virtual int GetChannels();
-  virtual enum PCMChannels *GetChannelMap() { static enum PCMChannels map[2] = {PCM_FRONT_LEFT, PCM_FRONT_RIGHT}; return map; }
-  virtual int GetSampleRate();
+  virtual CAEChannelInfo GetChannelMap();
+  virtual int  GetSampleRate();
+  virtual int  GetEncodedSampleRate();
+  virtual enum AEDataFormat GetDataFormat();
   virtual int GetBitsPerSample();
   virtual bool NeedPassthrough() { return true; }
   virtual const char* GetName()  { return "PassthroughFFmpeg"; }
@@ -90,20 +92,17 @@ private:
   bool m_bSupportsMP3Out;
 
   CDVDAudioCodec   *m_Codec;
-  IDVDAudioEncoder *m_Encoder;
-  bool              m_InitEncoder;
-  unsigned int      m_EncPacketSize;
   BYTE             *m_DecodeBuffer;
   unsigned int      m_DecodeSize;
   bool SupportsFormat(CDVDStreamInfo &hints);
-  bool SetupEncoder  (CDVDStreamInfo &hints);
 
   uint8_t      m_NeededBuffer[AVCODEC_MAX_AUDIO_FRAME_SIZE];
   unsigned int m_NeededUsed;
   unsigned int m_Needed;
   bool         m_LostSync;
   int          m_SampleRate;
-
+  CodecID      m_codec;
+  
   unsigned int (CDVDAudioCodecPassthroughFFmpeg::*m_pSyncFrame)(BYTE* pData, unsigned int iSize, unsigned int *fSize);
   unsigned int SyncAC3(BYTE* pData, unsigned int iSize, unsigned int *fSize);
   unsigned int SyncDTS(BYTE* pData, unsigned int iSize, unsigned int *fSize);
