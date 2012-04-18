@@ -133,8 +133,7 @@ CCoreAudioAEStream::~CCoreAudioAEStream()
   _aligned_free(m_remapBuffer);
   _aligned_free(m_vizRemapBuffer);
 
-  if (m_Buffer)
-    delete m_Buffer;
+  delete m_Buffer;
 
   /*
   if (m_resample)
@@ -300,8 +299,7 @@ void CCoreAudioAEStream::Initialize()
   // we have to keep in mind that we convert our data to the output format
   m_AvgBytesPerSec =  m_OutputFormat.m_frameSize * m_OutputFormat.m_sampleRate;
 
-  if (m_Buffer)
-    delete m_Buffer;
+  delete m_Buffer;
 
   m_Buffer = new CoreAudioRingBuffer(m_AvgBytesPerSec);
 

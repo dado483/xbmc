@@ -1968,22 +1968,16 @@ CCoreAudioMixMap::CCoreAudioMixMap(AudioChannelLayout& inLayout, AudioChannelLay
 
 CCoreAudioMixMap::~CCoreAudioMixMap()
 {
-  if (m_pMap)
-  {
-    free(m_pMap);
-    m_pMap = NULL;
-  }
+  free(m_pMap);
+  m_pMap = NULL;
 }
 
 void CCoreAudioMixMap::Rebuild(AudioChannelLayout& inLayout, AudioChannelLayout& outLayout)
 {
   // map[in][out] = mix-level of input_channel[in] into output_channel[out]
 
-  if (m_pMap)
-  {
-    free(m_pMap);
-    m_pMap = NULL;
-  }
+  free(m_pMap);
+  m_pMap = NULL;
 
   m_inChannels = CCoreAudioChannelLayout::GetChannelCountForLayout(inLayout);
   m_outChannels = CCoreAudioChannelLayout::GetChannelCountForLayout(outLayout);
@@ -2167,14 +2161,12 @@ m_pLayout(NULL)
 
 CCoreAudioChannelLayout::~CCoreAudioChannelLayout()
 {
-  if (m_pLayout)
-    free(m_pLayout);
+  free(m_pLayout);
 }
 
 bool CCoreAudioChannelLayout::CopyLayout(AudioChannelLayout& layout)
 {
-  if (m_pLayout)
-    free(m_pLayout);
+  free(m_pLayout);
   m_pLayout = NULL;
 
   // This method always produces a layout with a ChannelDescriptions structure
@@ -2338,8 +2330,7 @@ CCoreAudioGraph::~CCoreAudioGraph()
 {
   Close();
 
-  if(m_mixMap)
-    delete m_mixMap;
+  delete m_mixMap;
 }
 
 bool CCoreAudioGraph::Open(ICoreAudioSource *pSource, AEAudioFormat &format, AudioDeviceID deviceId, bool allowMixing, AudioChannelLayoutTag layoutTag)
@@ -2387,8 +2378,7 @@ bool CCoreAudioGraph::Open(ICoreAudioSource *pSource, AEAudioFormat &format, Aud
 
   if (allowMixing)
   {
-    if (m_mixMap)
-      delete m_mixMap;
+    delete m_mixMap;
     m_mixMap = CCoreAudioMixMap::CreateMixMap(m_audioUnit, format, layoutTag);
 
     if (m_mixMap || m_mixMap->IsValid())
@@ -2817,8 +2807,7 @@ CAUOutputDevice *CCoreAudioGraph::CreateUnit(AEAudioFormat &format)
   return outputUnit;
 
 error:
-  if (outputUnit)
-    delete outputUnit;
+  delete outputUnit;
   return NULL;
 }
 
@@ -2914,8 +2903,7 @@ CCoreAudioAEHALOSX::~CCoreAudioAEHALOSX()
 {
   Deinitialize();
 
-  if (m_audioGraph)
-    delete m_audioGraph;
+  delete m_audioGraph;
   delete m_AudioDevice;
   delete m_OutputStream;
 }

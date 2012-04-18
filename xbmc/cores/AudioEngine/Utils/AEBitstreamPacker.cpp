@@ -40,10 +40,8 @@ CAEBitstreamPacker::CAEBitstreamPacker() :
 
 CAEBitstreamPacker::~CAEBitstreamPacker()
 {
-  if (m_trueHD)
-    delete[] m_trueHD;
-  if (m_dtsHD )
-    delete[] m_dtsHD;
+  delete[] m_trueHD;
+  delete[] m_dtsHD;
 }
 
 void CAEBitstreamPacker::Pack(CAEStreamInfo &info, uint8_t* data, int size)
@@ -125,8 +123,7 @@ void CAEBitstreamPacker::PackDTSHD(CAEStreamInfo &info, uint8_t* data, int size)
 
   if (dataSize > m_dtsHDSize)
   {
-    if (m_dtsHD)
-      delete[] m_dtsHD;
+    delete[] m_dtsHD;
     m_dtsHDSize = dataSize;
     m_dtsHD     = new uint8_t[dataSize];
     memcpy(m_dtsHD, dtshd_start_code, sizeof(dtshd_start_code));

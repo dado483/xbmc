@@ -1028,8 +1028,7 @@ CAUOutputDevice *CCoreAudioGraph::CreateUnit(AEAudioFormat &format)
   return outputUnit;
 
 error:
-  if (outputUnit)
-    delete outputUnit;
+  delete outputUnit;
   return NULL;
 }
 
@@ -1112,8 +1111,7 @@ CCoreAudioAEHALIOS::~CCoreAudioAEHALIOS()
 {
   Deinitialize();
 
-  if (m_audioGraph)
-    delete m_audioGraph;
+  delete m_audioGraph;
 }
 
 bool CCoreAudioAEHALIOS::InitializePCM(ICoreAudioSource *pSource, AEAudioFormat &format, bool allowMixing)
