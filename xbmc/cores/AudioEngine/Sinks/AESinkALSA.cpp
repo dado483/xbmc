@@ -110,74 +110,17 @@ inline CAEChannelInfo CAESinkALSA::GetChannelLayout(AEAudioFormat format)
   return info;
 }
 
-std::string CAESinkALSA::GetDeviceUse(AEAudioFormat format, std::string device, bool passthrough)
+void CAESinkALSA::GetPassthroughDevice(AEAudioFormat format, std::string& device)
 {
-  if (passthrough) {
-    device += ",AES0=0x06,AES1=0x82,AES2=0x00";
-         if (format.m_sampleRate == 192000) device += ",AES3=0x0e";
-    else if (format.m_sampleRate == 176400) device += ",AES3=0x0c";
-    else if (format.m_sampleRate ==  96000) device += ",AES3=0x0a";
-    else if (format.m_sampleRate ==  88200) device += ",AES3=0x08";
-    else if (format.m_sampleRate ==  48000) device += ",AES3=0x02";
-    else if (format.m_sampleRate ==  44100) device += ",AES3=0x00";
-    else if (format.m_sampleRate ==  32000) device += ",AES3=0x03";
-    else device += ",AES3=0x01";
-    return device;
-  }
-  return device;
-
-  int pos;
-  std::string cardName;
-  
-  pos = device.find_first_of(':');
-  if (pos > 0)
-    cardName = device.substr(pos + 1, device.length() - pos - 1);
-  else
-    cardName.clear();
-
-  if (device != "default" && !SoundDeviceExists(device))
-    device = "default";
-
-  if (AE_IS_RAW(format.m_dataFormat) || passthrough)
-  {
-    if (device == "default")
-    {
-      if (g_guiSettings.GetInt("audiooutput.mode") == AUDIO_HDMI)
-        device = "hdmi";
-      else
-        device = "iec958";
-    }
-
-    if (cardName.empty())
-      device += ":AES0=0x06,AES1=0x82,AES2=0x00";
-    else
-      device += ",AES0=0x06,AES1=0x82,AES2=0x00";
-         if (format.m_sampleRate == 192000) device += ",AES3=0x0e";
-    else if (format.m_sampleRate == 176400) device += ",AES3=0x0c";
-    else if (format.m_sampleRate ==  96000) device += ",AES3=0x0a";
-    else if (format.m_sampleRate ==  88200) device += ",AES3=0x08";
-    else if (format.m_sampleRate ==  48000) device += ",AES3=0x02";
-    else if (format.m_sampleRate ==  44100) device += ",AES3=0x00";
-    else if (format.m_sampleRate ==  32000) device += ",AES3=0x03";
-    else device += ",AES3=0x01";
-  }
-
-  if (device == "default" && g_guiSettings.GetInt("audiooutput.mode") == AUDIO_HDMI)
-    device = "hdmi";
-
-  if (device == "hdmi")
-    return "plug:hdmi";
-
-  if (device == "default")
-    switch(format.m_channelLayout.Count())
-    {
-      case 8: return "plug:surround71";
-      case 6: return "plug:surround51";
-      case 5: return "plug:surround50";
-      case 4: return "plug:surround40";
-    }
-
-  return device;
+  device += ",AES0=0x06,AES1=0x82,AES2=0x00";
+       if (format.m_sampleRate == 192000) device += ",AES3=0x0e";
+  else if (format.m_sampleRate == 176400) device += ",AES3=0x0c";
+  else if (format.m_sampleRate ==  96000) device += ",AES3=0x0a";
+  else if (format.m_sampleRate ==  88200) device += ",AES3=0x08";
+  else if (format.m_sampleRate ==  48000) device += ",AES3=0x02";
+  else if (format.m_sampleRate ==  44100) device += ",AES3=0x00";
+  else if (format.m_sampleRate ==  32000) device += ",AES3=0x03";
+  else device += ",AES3=0x01";
 }
 
 bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
@@ -205,8 +148,12 @@ bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
   }
 
   format.m_channelLayout = m_channelLayout;
-  
-  m_device = device = GetDeviceUse(format, device, m_passthrough);
+
+  /* if passthrough we need the additional AES flags */  
+  if(m_passthrough)
+    GetPassthroughDevice(format, device);
+
+  m_device = device;
   CLog::Log(LOGINFO, "CAESinkALSA::Initialize - Attempting to open device %s", device.c_str());
 
   /* get the sound config */
