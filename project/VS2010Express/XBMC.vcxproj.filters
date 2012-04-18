@@ -2648,9 +2648,6 @@
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\PostProc\AEPPAnimationFade.cpp">
       <Filter>cores\AudioEngine\PostProc</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkALSA.cpp">
-      <Filter>cores\AudioEngine\Sinks</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkDirectSound.cpp">
       <Filter>cores\AudioEngine\Sinks</Filter>
     </ClCompile>
@@ -5380,9 +5377,6 @@
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\PostProc\AEPPAnimationFade.h">
       <Filter>cores\AudioEngine\PostProc</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkALSA.h">
-      <Filter>cores\AudioEngine\Sinks</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkDirectSound.h">
       <Filter>cores\AudioEngine\Sinks</Filter>

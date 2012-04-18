@@ -308,7 +308,6 @@
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAESound.cpp" />
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Engines\SoftAEStream.cpp" />
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\PostProc\AEPPAnimationFade.cpp" />
-    <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkALSA.cpp" />
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkDirectSound.cpp" />
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkNULL.cpp" />
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkProfiler.cpp" />
@@ -916,7 +915,6 @@
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\AEStream.h" />
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Interfaces\ThreadedAE.h" />
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\PostProc\AEPPAnimationFade.h" />
-    <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkALSA.h" />
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkDirectSound.h" />
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkNULL.h" />
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Sinks\AESinkProfiler.h" />
