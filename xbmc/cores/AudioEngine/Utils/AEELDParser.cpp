@@ -135,35 +135,35 @@ void CAEELDParser::Parse(const uint8_t *data, size_t length, CAEDeviceInfo& info
 
   if (header.flr)
   {
-    info.m_channels += AE_CH_FL;
-    info.m_channels += AE_CH_FR;
+    if (!info.m_channels.HasChannel(AE_CH_FL)) info.m_channels += AE_CH_FL;
+    if (!info.m_channels.HasChannel(AE_CH_FR)) info.m_channels += AE_CH_FR;
   }
 
   if (header.lfe)
-    info.m_channels += AE_CH_LFE;
+    if (!info.m_channels.HasChannel(AE_CH_LFE)) info.m_channels += AE_CH_LFE;
 
   if (header.fc)
-    info.m_channels += AE_CH_FC;
+    if (!info.m_channels.HasChannel(AE_CH_FC)) info.m_channels += AE_CH_FC;
 
   if (header.rlr)
   {
-    info.m_channels += AE_CH_BL;
-    info.m_channels += AE_CH_BR;
+    if (!info.m_channels.HasChannel(AE_CH_BL)) info.m_channels += AE_CH_BL;
+    if (!info.m_channels.HasChannel(AE_CH_BR)) info.m_channels += AE_CH_BR;
   }
 
   if (header.rc)
-    info.m_channels += AE_CH_BC;
+    if (!info.m_channels.HasChannel(AE_CH_BC)) info.m_channels += AE_CH_BC;
 
   if (header.flrc)
   {
-    info.m_channels += AE_CH_FLOC;
-    info.m_channels += AE_CH_FROC;
+    if (!info.m_channels.HasChannel(AE_CH_FLOC)) info.m_channels += AE_CH_FLOC;
+    if (!info.m_channels.HasChannel(AE_CH_FROC)) info.m_channels += AE_CH_FROC;
   }
 
   if (header.rlrc)
   {
-    info.m_channels += AE_CH_BLOC;
-    info.m_channels += AE_CH_BROC;
+    if (!info.m_channels.HasChannel(AE_CH_BLOC)) info.m_channels += AE_CH_BLOC;
+    if (!info.m_channels.HasChannel(AE_CH_BROC)) info.m_channels += AE_CH_BROC;
   }
 
   const uint8_t *sad = data + 20 + header.monitor_name_length;
