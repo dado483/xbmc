@@ -291,6 +291,14 @@ void CSoftAE::InternalOpenSink()
     /* create the new sink */
     m_sink = GetSink(newFormat, m_transcode || m_rawPassthrough, device);
 
+    /* perform basic sanity checks on the format returned by the sink */
+    ASSERT(newFormat.m_channelLayout.Count() > 0);
+    ASSERT(newFormat.m_dataFormat           <= AE_FMT_FLOAT);
+    ASSERT(newFormat.m_frames                > 0);
+    ASSERT(newFormat.m_frameSamples          > 0);
+    ASSERT(newFormat.m_frameSize            == (CAEUtil::DataFormatToBits(newFormat.m_dataFormat) >> 3) * newFormat.m_channelLayout.Count());
+    ASSERT(newFormat.m_sampleRate            > 0);
+
     CLog::Log(LOGINFO, "CSoftAE::InternalOpenSink - %s Initialized:", m_sink->GetName());
     CLog::Log(LOGINFO, "  Output Device : %s", device.c_str());
     CLog::Log(LOGINFO, "  Sample Rate   : %d", newFormat.m_sampleRate);

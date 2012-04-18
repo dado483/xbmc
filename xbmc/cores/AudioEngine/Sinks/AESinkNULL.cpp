@@ -47,6 +47,7 @@ bool CAESinkNULL::Initialize(AEAudioFormat &format, std::string &device)
   m_msPerFrame           = 1000.0f / format.m_sampleRate;
   m_ts                   = 0;
 
+  format.m_dataFormat    = AE_IS_RAW(format.m_dataFormat) ? AE_FMT_S16NE : AE_FMT_FLOAT;
   format.m_frames        = format.m_sampleRate / 1000 * 500; /* 500ms */
   format.m_frameSamples  = format.m_channelLayout.Count();
   format.m_frameSize     = format.m_frameSamples * (CAEUtil::DataFormatToBits(format.m_dataFormat) >> 3);
