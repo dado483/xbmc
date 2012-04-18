@@ -75,9 +75,9 @@ public:
   enum AEDataFormat GetDataFormat();
   AEAudioFormat     GetAudioFormat();
 
-  virtual float GetDelay();
-  virtual float GetVolume();
-  virtual void  SetVolume(float volume);
+  virtual double GetDelay();
+  virtual float  GetVolume();
+  virtual void   SetVolume(float volume);
 
   virtual bool SupportsRaw();
   

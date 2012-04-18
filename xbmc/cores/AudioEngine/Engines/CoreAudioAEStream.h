@@ -62,9 +62,9 @@ public:
   virtual unsigned int GetSpace();
   virtual unsigned int AddData(void *data, unsigned int size);
   unsigned int GetFrames(uint8_t *buffer, unsigned int size);
-  virtual float GetDelay();
-  virtual float GetCacheTime();
-  virtual float GetCacheTotal();
+  virtual double GetDelay();
+  virtual double GetCacheTime();
+  virtual double GetCacheTotal();
 
   bool IsPaused();
   virtual bool IsDraining();

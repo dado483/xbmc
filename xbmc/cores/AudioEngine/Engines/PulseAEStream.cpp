@@ -275,10 +275,10 @@ unsigned int CPulseAEStream::AddData(void *data, unsigned int size)
   return length;
 }
 
-float CPulseAEStream::GetDelay()
+double CPulseAEStream::GetDelay()
 {
   if (!m_Initialized)
-    return 0.0f;
+    return 0.0;
 
   pa_usec_t latency = 0;
   pa_threaded_mainloop_lock(m_MainLoop);
@@ -287,23 +287,23 @@ float CPulseAEStream::GetDelay()
     CLog::Log(LOGERROR, "PulseAudio: pa_stream_get_latency() failed");
 
   pa_threaded_mainloop_unlock(m_MainLoop);
-  return (float)((float)latency / 1000000.0f);
+  return (double)((double)latency / 1000000.0);
 }
 
-float CPulseAEStream::GetCacheTime()
+double CPulseAEStream::GetCacheTime()
 {
   if (!m_Initialized)
-    return 0.0f;
+    return 0.0;
 
-  return (float)(m_cacheSize - GetSpace()) / (float)m_sampleRate;
+  return (double)(m_cacheSize - GetSpace()) / (double)m_sampleRate;
 }
 
-float CPulseAEStream::GetCacheTotal()
+double CPulseAEStream::GetCacheTotal()
 {
   if (!m_Initialized)
-    return 0.0f;
+    return 0.0;
 
-  return (float)m_cacheSize / (float)m_sampleRate;
+  return (double)m_cacheSize / (double)m_sampleRate;
 }
 
 bool CPulseAEStream::IsPaused()

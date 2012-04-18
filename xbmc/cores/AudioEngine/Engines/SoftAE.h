@@ -61,9 +61,9 @@ public:
   virtual bool  Initialize();
   virtual void  OnSettingsChange(std::string setting);
 
-  virtual void  Run();
-  virtual void  Stop();
-  virtual float GetDelay();
+  virtual void   Run();
+  virtual void   Stop();
+  virtual double GetDelay();
 
   virtual float GetVolume();
   virtual void  SetVolume(const float volume);

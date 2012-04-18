@@ -72,9 +72,9 @@ bool CAESinkNULL::IsCompatible(const AEAudioFormat format, const std::string dev
   return false;
 }
 
-float CAESinkNULL::GetDelay()
+double CAESinkNULL::GetDelay()
 {
-  return std::max(0.0f, (float)(m_ts - CurrentHostCounter()) / 1000000.0f);
+  return std::max(0.0, (double)(m_ts - CurrentHostCounter()) / 1000000.0f);
 }
 
 unsigned int CAESinkNULL::AddPackets(uint8_t *data, unsigned int frames)

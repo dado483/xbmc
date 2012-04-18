@@ -334,7 +334,7 @@ AEAudioFormat CCoreAudioAE::GetAudioFormat()
   return m_format;
 }
 
-float CCoreAudioAE::GetDelay()
+double CCoreAudioAE::GetDelay()
 {  
   return HAL->GetDelay();
 }

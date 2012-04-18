@@ -451,23 +451,23 @@ uint8_t* CSoftAEStream::GetFrame()
   return ret;
 }
 
-float CSoftAEStream::GetDelay()
+double CSoftAEStream::GetDelay()
 {
-  if (m_delete) return 0.0f;
-  float delay = (float)m_framesBuffered / (float)AE.GetSampleRate();
+  if (m_delete) return 0.0;
+  double delay = (double)m_framesBuffered / (double)AE.GetSampleRate();
   return AE.GetDelay() + delay;
 }
 
-float CSoftAEStream::GetCacheTime()
+double CSoftAEStream::GetCacheTime()
 {
-  if (m_delete) return 0.0f;
-  return (float)std::max((int)m_waterLevel - (int)m_refillBuffer, 0) / (float)AE.GetSampleRate();
+  if (m_delete) return 0.0;
+  return (double)std::max((int)m_waterLevel - (int)m_refillBuffer, 0) / (double)AE.GetSampleRate();
 }
 
-float CSoftAEStream::GetCacheTotal()
+double CSoftAEStream::GetCacheTotal()
 {
-  if (m_delete) return 0.0f;
-  return (float)m_waterLevel / (float)AE.GetSampleRate();
+  if (m_delete) return 0.0;
+  return (double)m_waterLevel / (double)AE.GetSampleRate();
 }
 
 void CSoftAEStream::Pause()

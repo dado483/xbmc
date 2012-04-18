@@ -37,7 +37,7 @@ public:
   virtual void Deinitialize();
   virtual bool IsCompatible(const AEAudioFormat format, const std::string device);
 
-  virtual float        GetDelay        ();
+  virtual double       GetDelay        ();
   virtual unsigned int AddPackets      (uint8_t *data, unsigned int frames);
   virtual void         Drain           ();
   static void          EnumerateDevices(AEDeviceList &devices, bool passthrough);

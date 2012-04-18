@@ -1316,7 +1316,7 @@ void CCoreAudioAEHALIOS::SetDirectInput(ICoreAudioSource *pSource, AEAudioFormat
   
 }
 
-float CCoreAudioAEHALIOS::GetDelay()
+double CCoreAudioAEHALIOS::GetDelay()
 {   
   /*
   float delay;
@@ -1326,7 +1326,7 @@ float CCoreAudioAEHALIOS::GetDelay()
   return delay;
   */
   
-  return (float)(BUFFERED_FRAMES) / (float)(m_initformat.m_sampleRate);
+  return (double)(BUFFERED_FRAMES) / (double)(m_initformat.m_sampleRate);
 }
 
 void  CCoreAudioAEHALIOS::SetVolume(float volume)

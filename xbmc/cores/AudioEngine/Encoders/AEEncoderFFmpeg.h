@@ -45,7 +45,7 @@ public:
 
   virtual int Encode (float *data, unsigned int frames);
   virtual int GetData(uint8_t **data);
-  virtual float GetDelay(unsigned int bufferSize);
+  virtual double GetDelay(unsigned int bufferSize);
 private:
   DllAvCodec  m_dllAvCodec;
   DllAvFormat m_dllAvFormat;
@@ -62,8 +62,8 @@ private:
   uint8_t           m_Buffer[IEC61937_DATA_OFFSET + FF_MIN_BUFFER_SIZE];
   int               m_BufferSize;
   int               m_OutputSize;
-  float             m_OutputRatio;
-  float             m_SampleRateMul;
+  double            m_OutputRatio;
+  double            m_SampleRateMul;
 
   unsigned int      m_NeededFrames;
 

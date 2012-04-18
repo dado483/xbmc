@@ -52,9 +52,9 @@ protected:
 public:
   virtual unsigned int      GetSpace        ();
   virtual unsigned int      AddData         (void *data, unsigned int size);
-  virtual float             GetDelay        ();
-  virtual float             GetCacheTime    ();
-  virtual float             GetCacheTotal   ();
+  virtual double            GetDelay        ();
+  virtual double            GetCacheTime    ();
+  virtual double            GetCacheTotal   ();
 
   virtual void              Pause           ();
   virtual void              Resume          ();

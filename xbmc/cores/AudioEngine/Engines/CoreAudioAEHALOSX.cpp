@@ -3290,11 +3290,11 @@ void CCoreAudioAEHALOSX::SetDirectInput(ICoreAudioSource *pSource, AEAudioFormat
   
 }
 
-float CCoreAudioAEHALOSX::GetDelay()
+double CCoreAudioAEHALOSX::GetDelay()
 {   
-  float delay;
+  double delay;
   
-  delay = (float)(m_NumLatencyFrames) / (m_initformat.m_sampleRate);
+  delay = (double)(m_NumLatencyFrames) / (m_initformat.m_sampleRate);
 
   return delay;
 }

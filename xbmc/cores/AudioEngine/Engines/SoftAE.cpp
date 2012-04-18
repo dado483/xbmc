@@ -302,8 +302,8 @@ void CSoftAE::InternalOpenSink()
     CLog::Log(LOGINFO, "  Frame Size    : %d", newFormat.m_frameSize);
 
     m_sinkFormat              = newFormat;
-    m_sinkFormatSampleRateMul = 1.0f / (float)newFormat.m_sampleRate;
-    m_sinkFormatFrameSizeMul  = 1.0f / (float)newFormat.m_frameSize;
+    m_sinkFormatSampleRateMul = 1.0 / (float)newFormat.m_sampleRate;
+    m_sinkFormatFrameSizeMul  = 1.0 / (float)newFormat.m_frameSize;
 
     /* invalidate the buffer */
     m_buffer.Empty();
@@ -350,7 +350,7 @@ void CSoftAE::InternalOpenSink()
         m_buffer.Empty();
         SetupEncoder(encoderFormat);
         m_encoderFormat       = encoderFormat;
-        m_encoderFrameSizeMul = 1.0f / (float)encoderFormat.m_frameSize;
+        m_encoderFrameSizeMul = 1.0 / (float)encoderFormat.m_frameSize;
       }
       
       /* remap directly to the format we need for encode */
@@ -754,14 +754,14 @@ IAEStream *CSoftAE::FreeStream(IAEStream *stream)
   return NULL;
 }
 
-float CSoftAE::GetDelay()
+double CSoftAE::GetDelay()
 {
   m_sinkLock.lock_shared();
 
-  float delay = m_sink->GetDelay();
+  double delay = m_sink->GetDelay();
   if (m_transcode && m_encoder && !m_rawPassthrough)
-    delay += m_encoder->GetDelay((float)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
-  float buffered = (float)m_buffer.Used() * m_sinkFormatFrameSizeMul;
+    delay += m_encoder->GetDelay((double)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
+  double buffered = (double)m_buffer.Used() * m_sinkFormatFrameSizeMul;
 
   m_sinkLock.unlock_shared();
   return delay + buffered * m_sinkFormatSampleRateMul;

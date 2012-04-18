@@ -61,19 +61,19 @@ public:
    * Returns how long until new data will be played
    * @return The delay in seconds
    */
-  virtual float GetDelay() = 0;
+  virtual double GetDelay() = 0;
 
   /**
    * Returns how long until playback will start
    * @return The delay in seconds
    */
-  virtual float GetCacheTime() = 0;
+  virtual double GetCacheTime() = 0;
 
   /**
    * Returns the total length of the cache before playback will start
    * @return The delay in seconds
    */
-  virtual float GetCacheTotal() = 0;
+  virtual double GetCacheTotal() = 0;
 
   /**
    * Pauses the stream playback

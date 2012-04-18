@@ -204,8 +204,8 @@ bool CAEEncoderFFmpeg::Initialize(AEAudioFormat &format)
   m_CurrentFormat = format;
   m_NeededFrames  = format.m_frames;
   m_OutputSize    = m_PackFunc(NULL, 0, m_Buffer);
-  m_OutputRatio   = (float)m_NeededFrames / m_OutputSize;
-  m_SampleRateMul = 1.0f / (float)m_CodecCtx->sample_rate;
+  m_OutputRatio   = (double)m_NeededFrames / m_OutputSize;
+  m_SampleRateMul = 1.0 / (double)m_CodecCtx->sample_rate;
 
   CLog::Log(LOGERROR, "CAEEncoderFFmpeg::Initialize - %s encoder ready", m_CodecName.c_str());
   return true;
@@ -260,7 +260,7 @@ int CAEEncoderFFmpeg::GetData(uint8_t **data)
   return size;
 }
 
-float CAEEncoderFFmpeg::GetDelay(unsigned int bufferSize)
+double CAEEncoderFFmpeg::GetDelay(unsigned int bufferSize)
 {
   if (!m_CodecCtx)
     return 0;
@@ -269,6 +269,6 @@ float CAEEncoderFFmpeg::GetDelay(unsigned int bufferSize)
   if (m_BufferSize)
     frames += m_NeededFrames;
 
-  return ((float)frames + ((float)bufferSize * m_OutputRatio)) * m_SampleRateMul;
+  return ((double)frames + ((double)bufferSize * m_OutputRatio)) * m_SampleRateMul;
 }
 

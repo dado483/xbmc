@@ -45,7 +45,7 @@ public:
   virtual bool IsCompatible(const AEAudioFormat format, const std::string device);
 
   virtual void         Stop            ();
-  virtual float        GetDelay        ();
+  virtual double       GetDelay        ();
   virtual unsigned int AddPackets      (uint8_t *data, unsigned int frames);
   virtual void         Drain           ();
   static void          EnumerateDevices(AEDeviceList &devices, bool passthrough);
@@ -58,7 +58,7 @@ private:
   std::string       m_initDevice;
   AEAudioFormat     m_initFormat;
   AEAudioFormat     m_format;
-  float             m_formatSampleRateMul;
+  double            m_formatSampleRateMul;
   bool              m_passthrough;
   CAEChannelInfo    m_channelLayout;
   std::string       m_device;

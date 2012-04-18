@@ -96,6 +96,6 @@ public:
    * @param bufferSize how much encoded data the caller has buffered to add to the delay
    * @return the delay in seconds including any un-fetched encoded data
    */
-  virtual float GetDelay(unsigned int bufferSize) = 0;
+  virtual double GetDelay(unsigned int bufferSize) = 0;
 };
 

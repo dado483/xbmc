@@ -67,7 +67,7 @@ bool CAESinkProfiler::IsCompatible(const AEAudioFormat format, const std::string
   return true;
 }
 
-float CAESinkProfiler::GetDelay()
+double CAESinkProfiler::GetDelay()
 {
   return 0.0f;
 }

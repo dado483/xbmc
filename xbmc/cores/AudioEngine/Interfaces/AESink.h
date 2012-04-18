@@ -55,7 +55,7 @@ public:
   /*
     This method must return the delay in seconds till new data will be sent out
   */
-  virtual float GetDelay() = 0;
+  virtual double GetDelay() = 0;
 
   /*
     Adds packets to be sent out, must block after at-least one block is being rendered

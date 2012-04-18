@@ -186,16 +186,16 @@ public:
   CCoreAudioAEHALIOS();
   virtual ~CCoreAudioAEHALIOS();
   
-  virtual bool  InitializePCM(ICoreAudioSource *pSource, AEAudioFormat &format, bool allowMixing);
-  virtual bool  InitializePCMEncoded(ICoreAudioSource *pSource, AEAudioFormat &format);
-  virtual bool  Initialize(ICoreAudioSource *ae, bool passThrough, AEAudioFormat &format, AEDataFormat rawDataFormat, std::string &device);
-  virtual void  Deinitialize();
-  virtual void  EnumerateOutputDevices(AEDeviceList &devices, bool passthrough);
-  virtual void  SetDirectInput(ICoreAudioSource *pSource, AEAudioFormat &format);
-  virtual void  Stop();
-  virtual bool  Start();
-  virtual float GetDelay();
-  virtual void  SetVolume(float volume);
+  virtual bool   InitializePCM(ICoreAudioSource *pSource, AEAudioFormat &format, bool allowMixing);
+  virtual bool   InitializePCMEncoded(ICoreAudioSource *pSource, AEAudioFormat &format);
+  virtual bool   Initialize(ICoreAudioSource *ae, bool passThrough, AEAudioFormat &format, AEDataFormat rawDataFormat, std::string &device);
+  virtual void   Deinitialize();
+  virtual void   EnumerateOutputDevices(AEDeviceList &devices, bool passthrough);
+  virtual void   SetDirectInput(ICoreAudioSource *pSource, AEAudioFormat &format);
+  virtual void   Stop();
+  virtual bool   Start();
+  virtual double GetDelay();
+  virtual void   SetVolume(float volume);
   virtual unsigned int GetBufferIndex();
   virtual CAUOutputDevice *DestroyUnit(CAUOutputDevice *outputUnit);
   virtual CAUOutputDevice *CreateUnit(ICoreAudioSource *pSource, AEAudioFormat &format);

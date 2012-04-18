@@ -507,29 +507,29 @@ unsigned int CCoreAudioAEStream::GetSpace()
   return m_Buffer->GetWriteSize();
 }
 
-float CCoreAudioAEStream::GetDelay()
+double CCoreAudioAEStream::GetDelay()
 {
   if (m_delete || !m_Buffer) return 0.0f;
   
-  float delay = (float)(m_Buffer->GetReadSize()) / (float)m_AvgBytesPerSec;
+  double delay = (double)(m_Buffer->GetReadSize()) / (double)m_AvgBytesPerSec;
   
   delay += AE.GetDelay();
   
   return delay;
 }
 
-float CCoreAudioAEStream::GetCacheTime()
+double CCoreAudioAEStream::GetCacheTime()
 {
   if (m_delete || !m_Buffer) return 0.0f;
 
-  return (float)(m_Buffer->GetReadSize()) / (float)m_AvgBytesPerSec;
+  return (double)(m_Buffer->GetReadSize()) / (double)m_AvgBytesPerSec;
 }
 
-float CCoreAudioAEStream::GetCacheTotal()
+double CCoreAudioAEStream::GetCacheTotal()
 {
   if (m_delete || !m_Buffer) return 0.0f;
   
-  return (float)m_Buffer->GetMaxSize() / (float)m_AvgBytesPerSec;
+  return (double)m_Buffer->GetMaxSize() / (double)m_AvgBytesPerSec;
 }
 
 bool CCoreAudioAEStream::IsPaused()

@@ -40,15 +40,15 @@ protected:
   virtual ~ICoreAudioAEHAL() {}
 
 public:
-  virtual bool  Initialize(ICoreAudioSource *ae, bool passThrough, AEAudioFormat &format, AEDataFormat rawDataFormat, std::string &device) = 0;
-  virtual void  Deinitialize() = 0;
-  virtual void  EnumerateOutputDevices(AEDeviceList &devices, bool passthrough) = 0;
+  virtual bool   Initialize(ICoreAudioSource *ae, bool passThrough, AEAudioFormat &format, AEDataFormat rawDataFormat, std::string &device) = 0;
+  virtual void   Deinitialize() = 0;
+  virtual void   EnumerateOutputDevices(AEDeviceList &devices, bool passthrough) = 0;
   //virtual CAUOutputDevice *DestroyUnit(CAUOutputDevice *outputUnit);
   //virtual CAUOutputDevice *CreateUnit(ICoreAudioSource *pSource, AEAudioFormat &format);
   //virtual void  SetDirectInput(ICoreAudioSource *pSource, AEAudioFormat &format);
-  virtual void  Stop() = 0;
-  virtual bool  Start() = 0;
-  virtual float GetDelay() = 0;
-  virtual void  SetVolume(float volume) = 0;
+  virtual void   Stop() = 0;
+  virtual bool   Start() = 0;
+  virtual double GetDelay() = 0;
+  virtual void   SetVolume(float volume) = 0;
 };
 #endif

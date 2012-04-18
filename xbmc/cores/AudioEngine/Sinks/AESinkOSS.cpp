@@ -351,13 +351,13 @@ void CAESinkOSS::Stop()
 #endif
 }
 
-float CAESinkOSS::GetDelay()
+double CAESinkOSS::GetDelay()
 {
   int delay;
   if (ioctl(m_fd, SNDCTL_DSP_GETODELAY, &delay) == -1)
     return 0.0f;
 
-  return (float)delay / (m_format.m_frameSize * m_format.m_sampleRate);
+  return (double)delay / (m_format.m_frameSize * m_format.m_sampleRate);
 }
 
 unsigned int CAESinkOSS::AddPackets(uint8_t *data, unsigned int frames)
