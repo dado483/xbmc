@@ -313,6 +313,7 @@ inline bool PAPlayer::PrepareStream(StreamInfo *si)
   si->m_stream = CAEFactory::AE->MakeStream(
     si->m_dataFormat,
     si->m_sampleRate,
+    0,
     si->m_channelInfo,
     AESTREAM_PAUSED
   );

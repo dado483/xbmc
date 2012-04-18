@@ -36,7 +36,7 @@ class CSoftAEStream : public IAEStream
 {
 protected:
   friend class CSoftAE;
-  CSoftAEStream(enum AEDataFormat format, unsigned int sampleRate, CAEChannelInfo channelLayout, unsigned int options);
+  CSoftAEStream(enum AEDataFormat format, unsigned int sampleRate, unsigned int encodedSamplerate, CAEChannelInfo channelLayout, unsigned int options);
   virtual ~CSoftAEStream();
 
   void Initialize();
@@ -70,7 +70,9 @@ public:
 
   virtual const unsigned int      GetFrameSize   () const  { return m_format.m_frameSize; }
   virtual const unsigned int      GetChannelCount() const  { return m_initChannelLayout.Count(); }
+  
   virtual const unsigned int      GetSampleRate  () const  { return m_initSampleRate; }
+  virtual const unsigned int GetEncodedSampleRate() const  { return m_initEncodedSampleRate; }
   virtual const enum AEDataFormat GetDataFormat  () const  { return m_initDataFormat; }
   
   virtual double            GetResampleRatio();
@@ -87,6 +89,7 @@ private:
   CSharedSection    m_lock;
   enum AEDataFormat m_initDataFormat;
   unsigned int      m_initSampleRate;
+  unsigned int      m_initEncodedSampleRate;
   CAEChannelInfo    m_initChannelLayout;
   unsigned int      m_chLayoutCount;
   

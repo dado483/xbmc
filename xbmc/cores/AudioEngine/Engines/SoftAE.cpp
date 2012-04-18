@@ -197,6 +197,7 @@ void CSoftAE::InternalOpenSink()
 
     if (m_masterStream->IsRaw())
     {
+      newFormat.m_sampleRate    = m_masterStream->GetEncodedSampleRate();
       newFormat.m_dataFormat    = m_masterStream->GetDataFormat();
       newFormat.m_channelLayout = m_masterStream->m_initChannelLayout;
       m_rawPassthrough = true;
@@ -653,7 +654,7 @@ void CSoftAE::Stop()
   CSingleLock lock(m_runningLock);
 }
 
-IAEStream *CSoftAE::MakeStream(enum AEDataFormat dataFormat, unsigned int sampleRate, CAEChannelInfo channelLayout, unsigned int options/* = 0 */)
+IAEStream *CSoftAE::MakeStream(enum AEDataFormat dataFormat, unsigned int sampleRate, unsigned int encodedSampleRate, CAEChannelInfo channelLayout, unsigned int options/* = 0 */)
 {
   CAEChannelInfo channelInfo(channelLayout);
   CLog::Log(LOGINFO, "CSoftAE::MakeStream - %s, %u, %s",
@@ -663,7 +664,7 @@ IAEStream *CSoftAE::MakeStream(enum AEDataFormat dataFormat, unsigned int sample
   );
 
   CSingleLock streamLock(m_streamLock);
-  CSoftAEStream *stream = new CSoftAEStream(dataFormat, sampleRate, channelLayout, options);
+  CSoftAEStream *stream = new CSoftAEStream(dataFormat, sampleRate, encodedSampleRate, channelLayout, options);
   m_newStreams.push_back(stream);
   streamLock.Leave();
 
@@ -768,7 +769,7 @@ double CSoftAE::GetDelay()
     delay += m_encoder->GetDelay((double)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
   double buffered = (double)m_buffer.Used() * m_sinkFormatFrameSizeMul;
 
-  return delay + buffered * m_sinkFormatSampleRateMul;
+  return delay + (buffered * m_sinkFormatSampleRateMul);
 }
 
 float CSoftAE::GetVolume()

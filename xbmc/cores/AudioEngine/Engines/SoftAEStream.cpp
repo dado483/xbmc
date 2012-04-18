@@ -37,7 +37,7 @@
 
 using namespace std;
 
-CSoftAEStream::CSoftAEStream(enum AEDataFormat dataFormat, unsigned int sampleRate, CAEChannelInfo channelLayout, unsigned int options) :
+CSoftAEStream::CSoftAEStream(enum AEDataFormat dataFormat, unsigned int sampleRate, unsigned int encodedSampleRate, CAEChannelInfo channelLayout, unsigned int options) :
   m_resampleRatio   (1.0  ),
   m_internalRatio   (1.0  ),
   m_convertBuffer   (NULL ),
@@ -60,12 +60,13 @@ CSoftAEStream::CSoftAEStream(enum AEDataFormat dataFormat, unsigned int sampleRa
 {
   m_ssrcData.data_out = NULL;
 
-  m_initDataFormat    = dataFormat;
-  m_initSampleRate    = sampleRate;
-  m_initChannelLayout = channelLayout;
-  m_chLayoutCount     = channelLayout.Count();
-  m_forceResample     = (options & AESTREAM_FORCE_RESAMPLE) != 0;
-  m_paused            = (options & AESTREAM_PAUSED) != 0;
+  m_initDataFormat        = dataFormat;
+  m_initSampleRate        = sampleRate;
+  m_initEncodedSampleRate = encodedSampleRate;
+  m_initChannelLayout     = channelLayout;
+  m_chLayoutCount         = channelLayout.Count();
+  m_forceResample         = (options & AESTREAM_FORCE_RESAMPLE) != 0;
+  m_paused                = (options & AESTREAM_PAUSED) != 0;
   
   ASSERT(m_initChannelLayout.Count());  
 }
@@ -136,6 +137,7 @@ void CSoftAEStream::Initialize()
 
   m_format.m_dataFormat    = useDataFormat;
   m_format.m_sampleRate    = m_initSampleRate;
+  m_format.m_encodedRate   = m_initEncodedSampleRate;
   m_format.m_channelLayout = m_initChannelLayout;
   m_format.m_frames        = SOFTAE_FRAMES;
   m_format.m_frameSamples  = m_format.m_frames * m_initChannelLayout.Count();

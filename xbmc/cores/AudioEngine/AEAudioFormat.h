@@ -75,31 +75,36 @@ typedef struct {
   /**
    * The stream's data format (eg, AE_FMT_S16LE)
    */
-  enum AEDataFormat  m_dataFormat;
+  enum AEDataFormat m_dataFormat;
 
   /**
    * The stream's sample rate (eg, 48000)
    */
-  unsigned int       m_sampleRate;
+  unsigned int m_sampleRate;
+
+  /**
+   * The encoded streams sample rate if a bitstream, otherwise undefined
+   */
+  unsigned int m_encodedRate;
 
   /**
    * The stream's channel layout
    */
-  CAEChannelInfo     m_channelLayout;
+  CAEChannelInfo m_channelLayout;
 
   /**
    * The number of frames per period
    */
-  unsigned int       m_frames;
+  unsigned int m_frames;
 
   /**
    * The number of samples in one frame
    */
-  unsigned int       m_frameSamples;
+  unsigned int m_frameSamples;
 
   /**
    * The size of one frame in bytes
    */
-  unsigned int       m_frameSize;
+  unsigned int m_frameSize;
 } AEAudioFormat;
 
