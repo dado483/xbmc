@@ -552,8 +552,6 @@ bool CCoreAudioDevice::SetInputSource(ICoreAudioSource* pSource, unsigned int fr
     return AddIOProc();
   else
     return RemoveIOProc();
-
-  return true;
 }
 
 bool CCoreAudioDevice::AddIOProc()
