@@ -363,8 +363,8 @@ void PAPlayer::Process()
       m_signalSpeedChange = false;
     }
 
-    float delay = 1.0f;
-    float buffer = 1.0f;
+    double delay  = 1.0;
+    double buffer = 1.0;
     ProcessStreams(delay, buffer);
 #ifndef TARGET_DARWIN_IOS
     if (buffer > 0.2)
@@ -378,7 +378,7 @@ void PAPlayer::Process()
   }
 }
 
-inline void PAPlayer::ProcessStreams(float &delay, float &buffer)
+inline void PAPlayer::ProcessStreams(double &delay, double &buffer)
 {
   CSharedLock sharedLock(m_streamsLock);
   if (m_isFinished && m_streams.empty() && m_finishing.empty())
@@ -485,7 +485,7 @@ inline void PAPlayer::ProcessStreams(float &delay, float &buffer)
   }
 }
 
-inline bool PAPlayer::ProcessStream(StreamInfo *si, float &delay, float &buffer)
+inline bool PAPlayer::ProcessStream(StreamInfo *si, double &delay, double &buffer)
 {
   /* if playback needs to start on this stream, do it */
   if (si == m_currentStream && !si->m_started)
@@ -548,8 +548,8 @@ inline bool PAPlayer::ProcessStream(StreamInfo *si, float &delay, float &buffer)
   /* update the delay time if we are running */
   if (si->m_started)
   {
-    float cacheTime = si->m_stream->GetCacheTime();
-    float cacheTotalTime = si->m_stream->GetCacheTotal();
+    double cacheTime = si->m_stream->GetCacheTime();
+    double cacheTotalTime = si->m_stream->GetCacheTotal();
     delay  = std::min(delay, cacheTime);
     buffer = std::min(buffer, cacheTime / cacheTotalTime);
   }
@@ -651,7 +651,7 @@ __int64 PAPlayer::GetTime()
   if (!m_currentStream)
     return 0;
 
-  float time = (float)m_currentStream->m_framesSent / (float)(m_currentStream->m_framesPerSecond) * 1000.0f;
+  double time = (double)m_currentStream->m_framesSent / (double)(m_currentStream->m_framesPerSecond) * 1000.0f;
   if (m_currentStream->m_stream)
     time -= m_currentStream->m_stream->GetDelay();
   return (__int64)time;
