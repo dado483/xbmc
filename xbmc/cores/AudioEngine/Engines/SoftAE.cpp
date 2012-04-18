@@ -242,7 +242,9 @@ void CSoftAE::InternalOpenSink()
   */
   if (m_transcode && !m_rawPassthrough)
   {
-    newFormat.m_sampleRate = 48000;
+    enum AEChannel ac3Layout[3] = {AE_CH_RAW, AE_CH_RAW, AE_CH_NULL};
+    newFormat.m_sampleRate    = 48000;
+    newFormat.m_channelLayout = ac3Layout;
     m_outputStageFn = &CSoftAE::RunTranscodeStage;
   }
 
