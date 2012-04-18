@@ -485,8 +485,9 @@ void CGUISettings::Initialize()
 #elif defined(_WIN32)
   AddSeparator(ao, "audiooutput.sep1");
   if(g_sysinfo.IsVistaOrHigher())
-    AddBool(ao, "audiooutput.useexclusivemode", 347, false);
-  AddString(ao, "audiooutput.audiodevice", 545, "Default", SPIN_CONTROL_TEXT);
+    AddBool(ao, "audiooutput.useexclusivemode" , 347, false);
+  AddString(ao, "audiooutput.audiodevice"      , 545, CStdString(CAEFactory::AE->GetDefaultDevice(false)), SPIN_CONTROL_TEXT);
+  AddString(ao, "audiooutput.passthroughdevice", 546, CStdString(CAEFactory::AE->GetDefaultDevice(true )), SPIN_CONTROL_TEXT);
 #endif
 
   AddBool(ao, "audiooutput.guisoundwhileplayback", 34120, true);
