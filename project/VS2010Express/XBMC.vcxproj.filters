@@ -16,9 +16,6 @@
     <Filter Include="cores\dvdplayer\DVDCodecs\Audio">
       <UniqueIdentifier>{5bee29f5-b152-4416-9413-0bed2a669575}</UniqueIdentifier>
     </Filter>
-    <Filter Include="cores\dvdplayer\DVDCodecs\Audio\Encoders">
-      <UniqueIdentifier>{950294bc-2e98-414e-8bf4-57c43fb73b31}</UniqueIdentifier>
-    </Filter>
     <Filter Include="cores\dvdplayer\DVDCodecs\Video">
       <UniqueIdentifier>{09e9057e-7017-4f3d-b5d3-2f5e9a23a53c}</UniqueIdentifier>
     </Filter>
@@ -2693,13 +2690,13 @@
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEWAVLoader.cpp">
       <Filter>cores\AudioEngine\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPassthrough.cpp">
-      <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\AudioEngine\Utils\AEDeviceInfo.cpp">
       <Filter>cores\AudioEngine\Utils</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\windowing\windows\WinSystemWin32GL.cpp" />
+    <ClCompile Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPassthrough.cpp">
+      <Filter>cores\dvdplayer\DVDCodecs\Audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\xbmc\win32\pch.h">
@@ -5426,11 +5423,11 @@
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEWAVLoader.h">
       <Filter>cores\AudioEngine\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPassthrough.h">
-      <Filter>cores\dvdplayer\DVDCodecs\Audio\Encoders</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\AudioEngine\Utils\AEDeviceInfo.h">
       <Filter>cores\AudioEngine\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\cores\dvdplayer\DVDCodecs\Audio\DVDAudioCodecPassthrough.h">
+      <Filter>cores\dvdplayer\DVDCodecs\Audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
