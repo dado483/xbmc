@@ -234,16 +234,11 @@ void CAESinkDirectSound::Deinitialize()
 bool CAESinkDirectSound::IsCompatible(const AEAudioFormat format, const std::string device)
 {
   CSingleLock lock(m_runLock);
-  if (!m_initialized)
-    return false;
 
-  if (m_device == device &&
-      m_format.m_sampleRate    == format.m_sampleRate  &&
-      m_format.m_dataFormat    == format.m_dataFormat  &&
-      m_format.m_channelLayout == format.m_channelLayout)
-     return true;
-
-  return false;
+  return m_initialized && m_device == device                  &&
+          m_format.m_sampleRate    == format.m_sampleRate     &&
+          m_format.m_dataFormat    == format.m_dataFormat     &&
+          m_format.m_channelLayout == format.m_channelLayout;
 }
 
 unsigned int CAESinkDirectSound::AddPackets(uint8_t *data, unsigned int frames)
