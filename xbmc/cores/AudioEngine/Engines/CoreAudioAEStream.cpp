@@ -572,10 +572,7 @@ void CCoreAudioAEStream::Drain()
 
 bool CCoreAudioAEStream::IsDrained()
 {
-  if (m_Buffer->GetReadSize() > 0)
-    return false;
-  else
-    return true;
+  return m_buffer->GetReadSize() <= 0;
 }
 
 void CCoreAudioAEStream::Flush()
