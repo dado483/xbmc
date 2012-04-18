@@ -269,7 +269,7 @@ void CSoftAE::InternalOpenSink()
     CLog::Log(LOGINFO, "CSoftAE::InternalOpenSink - sink incompatible, re-starting");
    
     /* take the sink lock */
-    m_sinkLock.lock();
+    CExclusiveLock sinkLock(m_sinkLock);
 
     /* let the thread know we have re-opened the sink */
     m_reOpened = true;
@@ -408,9 +408,6 @@ void CSoftAE::InternalOpenSink()
   /* notify any event listeners that we are done */
   m_reOpen = false;
   m_reOpenEvent.Set();
-
-  if (reInit)
-    m_sinkLock.unlock();
 }
 
 void CSoftAE::ResetEncoder()
@@ -754,14 +751,13 @@ IAEStream *CSoftAE::FreeStream(IAEStream *stream)
 
 double CSoftAE::GetDelay()
 {
-  m_sinkLock.lock_shared();
+  CSharedLock sinkLock(m_sinkLock);
 
   double delay = m_sink->GetDelay();
   if (m_transcode && m_encoder && !m_rawPassthrough)
     delay += m_encoder->GetDelay((double)m_encodedBuffer.Used() * m_encoderFrameSizeMul);
   double buffered = (double)m_buffer.Used() * m_sinkFormatFrameSizeMul;
 
-  m_sinkLock.unlock_shared();
   return delay + buffered * m_sinkFormatSampleRateMul;
 }
 
