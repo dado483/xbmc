@@ -42,7 +42,6 @@ class CAESinkFactory
 public:
   static void     ParseDevice(std::string &device, std::string &driver);
   static IAESink *Create(std::string &device, AEAudioFormat &desiredFormat, bool rawPassthrough);
-  static void     Enumerate(AEDeviceList &devices, bool passthrough);
 #ifndef __APPLE__
   static void     EnumerateEx(AESinkInfoList &list);
 #endif

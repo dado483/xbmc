@@ -48,7 +48,6 @@ public:
   virtual double       GetDelay        ();
   virtual unsigned int AddPackets      (uint8_t *data, unsigned int frames);
   virtual void         Drain           ();
-  static void          EnumerateDevices(AEDeviceList &devices, bool passthrough);
 
   static void EnumerateDevicesEx(AEDeviceInfoList &list);
 private:
@@ -71,7 +70,6 @@ private:
   bool InitializeSW(AEAudioFormat &format);
 
   static bool SoundDeviceExists(const std::string& device);
-  static void GenSoundLabel(AEDeviceList& devices, std::string sink, std::string card, std::string readableCard);
   static bool GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool& badHDMI);
 };
 #endif

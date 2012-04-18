@@ -138,25 +138,6 @@ IAESink *CAESinkFactory::Create(std::string &device, AEAudioFormat &desiredForma
   return NULL;
 }
 
-void CAESinkFactory::Enumerate(AEDeviceList &devices, bool passthrough)
-{
-#ifdef _WIN32
-
-  if (g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound)
-    CAESinkWASAPI::EnumerateDevices(devices, passthrough);
-  else
-    CAESinkDirectSound::EnumerateDevices(devices, passthrough);
-
-#elif defined _LINUX && !defined __APPLE__
-
-#ifdef HAS_ALSA
-  CAESinkALSA::EnumerateDevices(devices, passthrough);
-#endif
-  CAESinkOSS ::EnumerateDevices(devices, passthrough);
-
-#endif
-}
-
 /* no support for apple yet  */
 #ifndef __APPLE__
 
