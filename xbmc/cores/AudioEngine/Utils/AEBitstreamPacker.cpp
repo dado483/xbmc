@@ -40,16 +40,22 @@ CAEBitstreamPacker::CAEBitstreamPacker() :
 
 CAEBitstreamPacker::~CAEBitstreamPacker()
 {
-  if (m_trueHD) delete[] m_trueHD;
-  if (m_dtsHD ) delete[] m_dtsHD;
+  if (m_trueHD)
+    delete[] m_trueHD;
+  if (m_dtsHD )
+    delete[] m_dtsHD;
 }
 
 void CAEBitstreamPacker::Pack(CAEStreamInfo &info, uint8_t* data, int size)
 {
-  switch(info.GetDataType())
+  switch (info.GetDataType())
   {
-    case CAEStreamInfo::STREAM_TYPE_TRUEHD: PackTrueHD(info, data, size); break;
-    case CAEStreamInfo::STREAM_TYPE_DTSHD : PackDTSHD (info, data, size); break;
+    case CAEStreamInfo::STREAM_TYPE_TRUEHD:
+      PackTrueHD(info, data, size);
+      break;
+    case CAEStreamInfo::STREAM_TYPE_DTSHD:
+      PackDTSHD (info, data, size);
+      break;
     default:
       /* pack the data into an IEC61937 frame */
       CAEPackIEC61937::PackFunc pack = info.GetPackFunc();
@@ -94,9 +100,12 @@ void CAEBitstreamPacker::PackTrueHD(CAEStreamInfo &info, uint8_t* data, int size
   }
 
   size_t offset;
-       if (m_trueHDPos == 0 ) offset = (m_trueHDPos * TRUEHD_FRAME_OFFSET) + sizeof(mat_start_code);
-  else if (m_trueHDPos == 12) offset = (m_trueHDPos * TRUEHD_FRAME_OFFSET) + sizeof(mat_middle_code) - BURST_HEADER_SIZE + MAT_MIDDLE_CODE_OFFSET;
-  else                        offset = (m_trueHDPos * TRUEHD_FRAME_OFFSET) - BURST_HEADER_SIZE;
+  if (m_trueHDPos == 0 )
+    offset = (m_trueHDPos * TRUEHD_FRAME_OFFSET) + sizeof(mat_start_code);
+  else if (m_trueHDPos == 12)
+    offset = (m_trueHDPos * TRUEHD_FRAME_OFFSET) + sizeof(mat_middle_code) - BURST_HEADER_SIZE + MAT_MIDDLE_CODE_OFFSET;
+  else
+    offset = (m_trueHDPos * TRUEHD_FRAME_OFFSET) - BURST_HEADER_SIZE;
 
   memcpy(m_trueHD + offset, data, size);
 

@@ -141,7 +141,7 @@ bool CAEEncoderFFmpeg::Initialize(AEAudioFormat &format)
 
     for(int i = 0; codec->sample_fmts[i] != AV_SAMPLE_FMT_NONE; ++i)
     {
-      switch(codec->sample_fmts[i])
+      switch (codec->sample_fmts[i])
       {
         case AV_SAMPLE_FMT_FLT: hasFloat  = true; break;
         case AV_SAMPLE_FMT_DBL: hasDouble = true; break;
@@ -193,7 +193,7 @@ bool CAEEncoderFFmpeg::Initialize(AEAudioFormat &format)
   {
     m_dllAvUtil.av_freep(&m_CodecCtx);
     return false;
-  }  
+  }
 
   format.m_dataFormat    = AE_FMT_FLOAT;
   format.m_frames        = m_CodecCtx->frame_size;

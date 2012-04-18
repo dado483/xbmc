@@ -1968,16 +1968,22 @@ CCoreAudioMixMap::CCoreAudioMixMap(AudioChannelLayout& inLayout, AudioChannelLay
 
 CCoreAudioMixMap::~CCoreAudioMixMap()
 {
-  free(m_pMap);
-  m_pMap = NULL;
+  if (m_pMap)
+  {
+    free(m_pMap);
+    m_pMap = NULL;
+  }
 }
 
 void CCoreAudioMixMap::Rebuild(AudioChannelLayout& inLayout, AudioChannelLayout& outLayout)
 {
   // map[in][out] = mix-level of input_channel[in] into output_channel[out]
 
-  free(m_pMap);
-  m_pMap = NULL;
+  if (m_pMap)
+  {
+    free(m_pMap);
+    m_pMap = NULL;
+  }
 
   m_inChannels = CCoreAudioChannelLayout::GetChannelCountForLayout(inLayout);
   m_outChannels = CCoreAudioChannelLayout::GetChannelCountForLayout(outLayout);
@@ -2161,12 +2167,14 @@ m_pLayout(NULL)
 
 CCoreAudioChannelLayout::~CCoreAudioChannelLayout()
 {
-  free(m_pLayout);
+  if (m_pLayout)
+    free(m_pLayout);
 }
 
 bool CCoreAudioChannelLayout::CopyLayout(AudioChannelLayout& layout)
 {
-  free(m_pLayout);
+  if (m_pLayout)
+    free(m_pLayout);
   m_pLayout = NULL;
 
   // This method always produces a layout with a ChannelDescriptions structure
@@ -2330,7 +2338,8 @@ CCoreAudioGraph::~CCoreAudioGraph()
 {
   Close();
 
-  delete m_mixMap;
+  if(m_mixMap)
+    delete m_mixMap;
 }
 
 bool CCoreAudioGraph::Open(ICoreAudioSource *pSource, AEAudioFormat &format, AudioDeviceID deviceId, bool allowMixing, AudioChannelLayoutTag layoutTag)
@@ -2378,7 +2387,8 @@ bool CCoreAudioGraph::Open(ICoreAudioSource *pSource, AEAudioFormat &format, Aud
 
   if (allowMixing)
   {
-    delete m_mixMap;
+    if (m_mixMap)
+      delete m_mixMap;
     m_mixMap = CCoreAudioMixMap::CreateMixMap(m_audioUnit, format, layoutTag);
 
     if (m_mixMap || m_mixMap->IsValid())
@@ -2736,7 +2746,9 @@ CAUOutputDevice *CCoreAudioGraph::DestroyUnit(CAUOutputDevice *outputUnit)
 
   AUGraphUpdate(m_audioGraph, NULL);
 
+  printf("Remove unit\n\n");
   ShowGraph();
+  printf("\n");
 
   Start();
 
@@ -2796,14 +2808,17 @@ CAUOutputDevice *CCoreAudioGraph::CreateUnit(AEAudioFormat &format)
 
   AUGraphUpdate(m_audioGraph, NULL);
 
+  printf("Add unit\n\n");
   ShowGraph();
+  printf("\n");
 
   m_auUnitList.push_back(outputUnit);
 
   return outputUnit;
 
 error:
-  delete outputUnit;
+  if (outputUnit)
+    delete outputUnit;
   return NULL;
 }
 
@@ -2899,7 +2914,8 @@ CCoreAudioAEHALOSX::~CCoreAudioAEHALOSX()
 {
   Deinitialize();
 
-  delete m_audioGraph;
+  if (m_audioGraph)
+    delete m_audioGraph;
   delete m_AudioDevice;
   delete m_OutputStream;
 }

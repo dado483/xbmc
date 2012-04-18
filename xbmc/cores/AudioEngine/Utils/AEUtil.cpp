@@ -41,7 +41,7 @@ CAEChannelInfo CAEUtil::GuessChLayout(const unsigned int channels)
   if (channels < 1 || channels > 8)
     return result;
 
-  switch(channels)
+  switch (channels)
   {
     case 1: result = AE_CH_LAYOUT_1_0; break;
     case 2: result = AE_CH_LAYOUT_2_0; break;
@@ -61,7 +61,7 @@ const char* CAEUtil::GetStdChLayoutName(const enum AEStdChLayout layout)
   if (layout < 0 || layout >= AE_CH_LAYOUT_MAX)
     return "UNKNOWN";
 
-  static const char* layouts[AE_CH_LAYOUT_MAX] = 
+  static const char* layouts[AE_CH_LAYOUT_MAX] =
   {
     "1.0",
     "2.0", "2.1", "3.0", "3.1", "4.0",
@@ -160,7 +160,7 @@ void CAEUtil::SSEMulArray(float *data, const float mul, uint32_t count)
   const __m128 m = _mm_set_ps1(mul);
 
   /* work around invalid alignment */
-  while(((uintptr_t)data & 0xF) && count > 0)
+  while (((uintptr_t)data & 0xF) && count > 0)
   {
     data[0] *= mul;
     ++data;
@@ -168,7 +168,7 @@ void CAEUtil::SSEMulArray(float *data, const float mul, uint32_t count)
   }
 
   uint32_t even = count & ~0x3;
-  for(uint32_t i = 0; i < even; i+=4, data+=4)
+  for (uint32_t i = 0; i < even; i+=4, data+=4)
   {
     __m128 to      = _mm_load_ps(data);
     *(__m128*)data = _mm_mul_ps (to, m);
@@ -180,7 +180,7 @@ void CAEUtil::SSEMulArray(float *data, const float mul, uint32_t count)
     if (odd == 1)
       data[0] *= mul;
     else
-    {     
+    {
       __m128 to;
       if (odd == 2)
       {
@@ -206,7 +206,7 @@ void CAEUtil::SSEMulAddArray(float *data, float *add, const float mul, uint32_t 
   const __m128 m = _mm_set_ps1(mul);
 
   /* work around invalid alignment */
-  while((((uintptr_t)data & 0xF) || ((uintptr_t)add & 0xF)) && count > 0)
+  while ((((uintptr_t)data & 0xF) || ((uintptr_t)add & 0xF)) && count > 0)
   {
     data[0] += add[0] * mul;
     ++add;
@@ -215,7 +215,7 @@ void CAEUtil::SSEMulAddArray(float *data, float *add, const float mul, uint32_t 
   }
 
   uint32_t even = count & ~0x3;
-  for(uint32_t i = 0; i < even; i+=4, data+=4, add+=4)
+  for (uint32_t i = 0; i < even; i+=4, data+=4, add+=4)
   {
     __m128 ad      = _mm_load_ps(add );
     __m128 to      = _mm_load_ps(data);
@@ -261,8 +261,10 @@ inline float CAEUtil::SoftClamp(const float x)
        It is based on the pade-approximation of the tanh function with tweaked coefficients.
        See: http://www.musicdsp.org/showone.php?id=238
     */
-         if (x < -3.0f) return -1.0f;
-    else if (x >  3.0f) return  1.0f;
+    if (x < -3.0f)
+      return -1.0f;
+    else if (x >  3.0f)
+      return 1.0f;
     float y = x * x;
     return x * (27.0f + y) / (27.0f + 9.0f * y);
 #else
@@ -270,12 +272,16 @@ inline float CAEUtil::SoftClamp(const float x)
 
     static const double k = 0.9f;
     /* perform a soft clamp */
-         if (x >  k) x = (float) (tanh((x - k) / (1 - k)) * (1 - k) + k);
-    else if (x < -k) x = (float) (tanh((x + k) / (1 - k)) * (1 - k) - k);
+    if (x >  k)
+      x = (float) (tanh((x - k) / (1 - k)) * (1 - k) + k);
+    else if (x < -k)
+      x = (float) (tanh((x + k) / (1 - k)) * (1 - k) - k);
 
     /* hard clamp anything still outside the bounds */
-    if (x >  1.0f) return  1.0f;
-    if (x < -1.0f) return -1.0f;
+    if (x >  1.0f)
+      return  1.0f;
+    if (x < -1.0f)
+      return -1.0f;
 
     /* return the final sample */
     return x;
@@ -285,7 +291,7 @@ inline float CAEUtil::SoftClamp(const float x)
 void CAEUtil::ClampArray(float *data, uint32_t count)
 {
 #ifndef __SSE__
-  for(uint32_t i = 0; i < count; ++i)
+  for (uint32_t i = 0; i < count; ++i)
     data[i] = SoftClamp(data[i]);
 
 #else
@@ -293,7 +299,7 @@ void CAEUtil::ClampArray(float *data, uint32_t count)
   const __m128 c2 = _mm_set_ps1(27.0f + 9.0f);
 
   /* work around invalid alignment */
-  while(((uintptr_t)data & 0xF) && count > 0)
+  while (((uintptr_t)data & 0xF) && count > 0)
   {
     data[0] = SoftClamp(data[0]);
     ++data;
@@ -301,7 +307,7 @@ void CAEUtil::ClampArray(float *data, uint32_t count)
   }
 
   uint32_t even = count & ~0x3;
-  for(uint32_t i = 0; i < even; i+=4, data+=4)
+  for (uint32_t i = 0; i < even; i+=4, data+=4)
   {
     /* tanh approx clamp */
     __m128 dt = _mm_load_ps(data);
@@ -410,10 +416,10 @@ void CAEUtil::FloatRand4(const float min, const float max, float result[4], __m1
     mod_mask       = _mm_load_si128((__m128i*)mask);
     cur_seed_split = _mm_shuffle_epi32(m_sseSeed, _MM_SHUFFLE(2, 3, 0, 1));
 
-    m_sseSeed      = _mm_mul_epu32(m_sseSeed, multiplier); 
+    m_sseSeed      = _mm_mul_epu32(m_sseSeed, multiplier);
     multiplier     = _mm_shuffle_epi32(multiplier, _MM_SHUFFLE(2, 3, 0, 1));
     cur_seed_split = _mm_mul_epu32(cur_seed_split, multiplier);
-    
+
     m_sseSeed      = _mm_and_si128(m_sseSeed, mod_mask);
     cur_seed_split = _mm_and_si128(cur_seed_split, mod_mask);
     cur_seed_split = _mm_shuffle_epi32(cur_seed_split, _MM_SHUFFLE(2, 3, 0, 1));

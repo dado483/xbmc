@@ -31,7 +31,8 @@
 #include "utils/TimeUtils.h"
 #include "settings/GUISettings.h"
 
-CAESinkProfiler::CAESinkProfiler() {
+CAESinkProfiler::CAESinkProfiler()
+{
 }
 
 CAESinkProfiler::~CAESinkProfiler()

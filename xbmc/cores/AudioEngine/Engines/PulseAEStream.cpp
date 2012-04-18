@@ -105,7 +105,7 @@ CPulseAEStream::CPulseAEStream(pa_context *context, pa_threaded_mainloop *mainLo
   struct pa_channel_map map;
   map.channels = m_channelLayout.Count();
 
-  for(unsigned int ch = 0; ch < m_channelLayout.Count(); ++ch)
+  for (unsigned int ch = 0; ch < m_channelLayout.Count(); ++ch)
     switch(m_channelLayout[ch])
     {
       case AE_CH_NULL: break;

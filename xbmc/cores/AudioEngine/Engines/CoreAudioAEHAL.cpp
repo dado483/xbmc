@@ -28,18 +28,20 @@
 std::string GetError(OSStatus error)
 {
   char buffer[128];
-  
+ 
   *(UInt32 *)(buffer + 1) = CFSwapInt32HostToBig(error);
-  if (isprint(buffer[1]) && isprint(buffer[2]) && isprint(buffer[3]) && isprint(buffer[4])) {
+  if (isprint(buffer[1]) && isprint(buffer[2]) &&
+      isprint(buffer[3]) && isprint(buffer[4]))
+  {
     buffer[0] = buffer[5] = '\'';
     buffer[6] = '\0';
-  } 
+  }
   else
   {
     // no, format it as an integer
     sprintf(buffer, "%d", (int)error);
   }
-  
+ 
   return std::string(buffer);
 }
 
@@ -62,11 +64,11 @@ const char* StreamDescriptionToString(AudioStreamBasicDescription desc, std::str
   fourCC[0]='\0';
   strncat(fourCC, UInt32ToFourCC(&formatId), 4);
   std::stringstream sstr;
-  
+ 
   switch (desc.mFormatID)
   {
     case kAudioFormatLinearPCM:
-      sstr  << "[" 
+      sstr  << "["
             << fourCC
             << "] "
             << ((desc.mFormatFlags & kAudioFormatFlagIsNonMixable) ? "" : "Mixable " )
@@ -84,14 +86,14 @@ const char* StreamDescriptionToString(AudioStreamBasicDescription desc, std::str
       str = sstr.str();
       break;
     case kAudioFormatAC3:
-      sstr  << "[" 
+      sstr  << "["
             << fourCC
             << "] "
             << ((desc.mFormatFlags & kAudioFormatFlagIsBigEndian) ? "BE" : "LE")
             << " AC-3/DTS ("
             << (UInt32)desc.mSampleRate
             << "Hz)";
-      str = sstr.str();                 
+      str = sstr.str();                
       break;
     case kAudioFormat60958AC3:
       sstr  << "["
@@ -112,9 +114,9 @@ const char* StreamDescriptionToString(AudioStreamBasicDescription desc, std::str
 
 void CheckOutputBufferSize(void **buffer, int *oldSize, int newSize)
 {
-  if(newSize > *oldSize)
+  if (newSize > *oldSize)
   {
-    if(*buffer)
+    if (*buffer)
       _aligned_free(*buffer);
     *buffer = _aligned_malloc(newSize, 16);
     *oldSize = newSize;

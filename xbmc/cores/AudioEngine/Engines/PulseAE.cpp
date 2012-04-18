@@ -159,7 +159,7 @@ void CPulseAE::SetVolume(float volume)
   CSingleLock lock(m_lock);
   m_Volume = volume;
   std::list<CPulseAEStream*>::iterator itt;
-  for(itt = m_streams.begin(); itt != m_streams.end(); ++itt)
+  for (itt = m_streams.begin(); itt != m_streams.end(); ++itt)
     (*itt)->UpdateVolume(volume);
 }
 
@@ -175,10 +175,10 @@ IAEStream *CPulseAE::MakeStream(enum AEDataFormat dataFormat, unsigned int sampl
 void CPulseAE::RemoveStream(IAEStream *stream)
 {
   std::list<CPulseAEStream*>::iterator itt;
-  
+
 	m_streams.remove((CPulseAEStream *)stream);
 	
-  for(itt = m_streams.begin(); itt != m_streams.end(); ++itt)
+  for (itt = m_streams.begin(); itt != m_streams.end(); ++itt)
   {
     if (*itt == stream)
     {
@@ -195,7 +195,7 @@ IAEStream *CPulseAE::FreeStream(IAEStream *stream)
   CPulseAEStream *istream = (CPulseAEStream *)stream;
 	
   delete istream;
-  
+
   return NULL;
 }
 
@@ -216,11 +216,12 @@ IAESound *CPulseAE::MakeSound(const std::string& file)
 
 void CPulseAE::FreeSound(IAESound *sound)
 {
-  if (!sound) return;
+  if (!sound)
+    return;
 
   sound->Stop();
   CSingleLock lock(m_lock);
-  for(std::list<CPulseAESound*>::iterator itt = m_sounds.begin(); itt != m_sounds.end(); ++itt)
+  for (std::list<CPulseAESound*>::iterator itt = m_sounds.begin(); itt != m_sounds.end(); ++itt)
     if (*itt == sound)
     {
       m_sounds.erase(itt);
@@ -234,7 +235,7 @@ void CPulseAE::GarbageCollect()
 {
   CSingleLock lock(m_lock);
   std::list<CPulseAEStream*>::iterator itt;
-  for(itt = m_streams.begin(); itt != m_streams.end();)
+  for (itt = m_streams.begin(); itt != m_streams.end();)
   {
     if ((*itt)->IsDestroyed())
     {

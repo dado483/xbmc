@@ -112,7 +112,7 @@ void CAEELDParser::Parse(const uint8_t *data, size_t length, CAEDeviceInfo& info
   header.mfg_name[3]         = '\0';
   header.product_code        = Endian_SwapLE16(*((uint16_t*)(data + 18)));
 
-  switch(header.conn_type)
+  switch (header.conn_type)
   {
     case ELD_CONN_TYPE_HDMI: info.m_deviceType = AE_DEVTYPE_HDMI; break;
     case ELD_CONN_TYPE_DP  : info.m_deviceType = AE_DEVTYPE_DP  ; break;
@@ -128,42 +128,54 @@ void CAEELDParser::Parse(const uint8_t *data, size_t length, CAEDeviceInfo& info
       info.m_displayNameExtra.append(" ");
       info.m_displayNameExtra.append(header.monitor_name);
       if (header.conn_type == ELD_CONN_TYPE_HDMI)
-           info.m_displayNameExtra.append(" on HDMI"       );
-      else info.m_displayNameExtra.append(" on DisplayPort");
+        info.m_displayNameExtra.append(" on HDMI"       );
+      else
+        info.m_displayNameExtra.append(" on DisplayPort");
     }
   }
 
   if (header.flr)
   {
-    if (!info.m_channels.HasChannel(AE_CH_FL)) info.m_channels += AE_CH_FL;
-    if (!info.m_channels.HasChannel(AE_CH_FR)) info.m_channels += AE_CH_FR;
+    if (!info.m_channels.HasChannel(AE_CH_FL))
+      info.m_channels += AE_CH_FL;
+    if (!info.m_channels.HasChannel(AE_CH_FR))
+      info.m_channels += AE_CH_FR;
   }
 
   if (header.lfe)
-    if (!info.m_channels.HasChannel(AE_CH_LFE)) info.m_channels += AE_CH_LFE;
+    if (!info.m_channels.HasChannel(AE_CH_LFE))
+      info.m_channels += AE_CH_LFE;
 
   if (header.fc)
-    if (!info.m_channels.HasChannel(AE_CH_FC)) info.m_channels += AE_CH_FC;
+    if (!info.m_channels.HasChannel(AE_CH_FC))
+      info.m_channels += AE_CH_FC;
 
   if (header.rlr)
   {
-    if (!info.m_channels.HasChannel(AE_CH_BL)) info.m_channels += AE_CH_BL;
-    if (!info.m_channels.HasChannel(AE_CH_BR)) info.m_channels += AE_CH_BR;
+    if (!info.m_channels.HasChannel(AE_CH_BL))
+      info.m_channels += AE_CH_BL;
+    if (!info.m_channels.HasChannel(AE_CH_BR))
+      info.m_channels += AE_CH_BR;
   }
 
   if (header.rc)
-    if (!info.m_channels.HasChannel(AE_CH_BC)) info.m_channels += AE_CH_BC;
+    if (!info.m_channels.HasChannel(AE_CH_BC))
+      info.m_channels += AE_CH_BC;
 
   if (header.flrc)
   {
-    if (!info.m_channels.HasChannel(AE_CH_FLOC)) info.m_channels += AE_CH_FLOC;
-    if (!info.m_channels.HasChannel(AE_CH_FROC)) info.m_channels += AE_CH_FROC;
+    if (!info.m_channels.HasChannel(AE_CH_FLOC))
+      info.m_channels += AE_CH_FLOC;
+    if (!info.m_channels.HasChannel(AE_CH_FROC))
+      info.m_channels += AE_CH_FROC;
   }
 
   if (header.rlrc)
   {
-    if (!info.m_channels.HasChannel(AE_CH_BLOC)) info.m_channels += AE_CH_BLOC;
-    if (!info.m_channels.HasChannel(AE_CH_BROC)) info.m_channels += AE_CH_BROC;
+    if (!info.m_channels.HasChannel(AE_CH_BLOC))
+      info.m_channels += AE_CH_BLOC;
+    if (!info.m_channels.HasChannel(AE_CH_BROC))
+      info.m_channels += AE_CH_BROC;
   }
 
   const uint8_t *sad = data + 20 + header.monitor_name_length;
@@ -175,7 +187,7 @@ void CAEELDParser::Parse(const uint8_t *data, size_t length, CAEDeviceInfo& info
     //uint8_t sampleRates  =  sad[offset + 1];
 
     AEDataFormat fmt = AE_FMT_INVALID;
-    switch(formatCode)
+    switch (formatCode)
     {
       case CEA_861_FORMAT_AAC  : fmt = AE_FMT_AAC   ; break;
       case CEA_861_FORMAT_AC3  : fmt = AE_FMT_AC3   ; break;

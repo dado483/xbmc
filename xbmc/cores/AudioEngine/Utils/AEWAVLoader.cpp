@@ -73,7 +73,7 @@ bool CAEWAVLoader::Initialize(const std::string &filename, unsigned int resample
     delete file;
     return false;
   }
-  
+
   bool isRIFF = false;
   bool isWAVE = false;
   bool isFMT  = false;
@@ -86,7 +86,8 @@ bool CAEWAVLoader::Initialize(const std::string &filename, unsigned int resample
   uint16_t bitsPerSample;
 
   WAVE_CHUNK chunk;
-  while(file->Read(&chunk, sizeof(chunk)) == sizeof(chunk)) {
+  while (file->Read(&chunk, sizeof(chunk)) == sizeof(chunk))
+  {
     chunk.chunksize = Endian_SwapLE32(chunk.chunksize);
 
     /* if its the RIFF header */
@@ -109,26 +110,36 @@ bool CAEWAVLoader::Initialize(const std::string &filename, unsigned int resample
 
       /* we only support WAVE files */
       char format[4];
-      if (file->Read(&format, 4) != 4) break;
+      if (file->Read(&format, 4) != 4)
+        break;
       isWAVE = memcmp(format, "WAVE", 4) == 0;
-      if (!isWAVE) break;
+      if (!isWAVE)
+        break;
     }
     /* if its the fmt section */
     else if (!isFMT && memcmp(chunk.chunk_id, "fmt ", 4) == 0)
     {
       isFMT = true;
-      if (chunk.chunksize < 16) break;
+      if (chunk.chunksize < 16)
+        break;
       uint16_t format;
-      if (file->Read(&format, sizeof(format)) != sizeof(format)) break;
+      if (file->Read(&format, sizeof(format)) != sizeof(format))
+        break;
       format = Endian_SwapLE16(format);
-      if (format != WAVE_FORMAT_PCM) break;
+      if (format != WAVE_FORMAT_PCM)
+        break;
 
       uint16_t channelCount;
-      if (file->Read(&channelCount , 2) != 2) break;
-      if (file->Read(&sampleRate   , 4) != 4) break;
-      if (file->Read(&byteRate     , 4) != 4) break;
-      if (file->Read(&blockAlign   , 2) != 2) break;
-      if (file->Read(&bitsPerSample, 2) != 2) break;
+      if (file->Read(&channelCount , 2) != 2)
+        break;
+      if (file->Read(&sampleRate   , 4) != 4)
+        break;
+      if (file->Read(&byteRate     , 4) != 4)
+        break;
+      if (file->Read(&blockAlign   , 2) != 2)
+        break;
+      if (file->Read(&bitsPerSample, 2) != 2)
+        break;
 
       m_channelCount = Endian_SwapLE16(channelCount );
       m_sampleRate   = Endian_SwapLE32(sampleRate   );
@@ -136,7 +147,8 @@ bool CAEWAVLoader::Initialize(const std::string &filename, unsigned int resample
       blockAlign     = Endian_SwapLE16(blockAlign   );
       bitsPerSample  = Endian_SwapLE16(bitsPerSample);
 
-      if (m_channelCount > 2) break;
+      if (m_channelCount > 2)
+        break;
       isPCM = true;
 
       if (chunk.chunksize > 16)
@@ -152,7 +164,7 @@ bool CAEWAVLoader::Initialize(const std::string &filename, unsigned int resample
 
        /* get the conversion function */
        CAEConvert::AEConvertToFn convertFn;
-       switch(bitsPerSample)
+       switch (bitsPerSample)
        {
          case 8 : convertFn = CAEConvert::ToFloat(AE_FMT_U8   ); break;
          case 16: convertFn = CAEConvert::ToFloat(AE_FMT_S16LE); break;
@@ -168,7 +180,7 @@ bool CAEWAVLoader::Initialize(const std::string &filename, unsigned int resample
        unsigned int s;
        m_samples = (float*)_aligned_malloc(sizeof(float) * m_sampleCount, 16);
        uint8_t *raw = (uint8_t *)_aligned_malloc(bytesPerSample, 16);
-       for(s = 0; s < m_sampleCount; ++s)
+       for (s = 0; s < m_sampleCount; ++s)
        {
          if (file->Read(raw, bytesPerSample) != bytesPerSample)
          {
@@ -180,7 +192,7 @@ bool CAEWAVLoader::Initialize(const std::string &filename, unsigned int resample
            delete file;
            return false;
          }
-         
+
          /* convert the sample to float */
          convertFn(raw, 1, &m_samples[s]);
        }
@@ -249,7 +261,8 @@ void CAEWAVLoader::DeInitialize()
   m_channelCount = 0;
 }
 
-bool CAEWAVLoader::Remap(CAEChannelInfo to, enum AEStdChLayout stdChLayout/* = AE_CH_LAYOUT_INVALID */) {
+bool CAEWAVLoader::Remap(CAEChannelInfo to, enum AEStdChLayout stdChLayout/* = AE_CH_LAYOUT_INVALID */)
+{
   /* FIXME: add support for multichannel files */
   if (m_channelCount > 2)
     return false;
@@ -258,7 +271,7 @@ bool CAEWAVLoader::Remap(CAEChannelInfo to, enum AEStdChLayout stdChLayout/* = A
     {AE_CH_FC, AE_CH_NULL},
     {AE_CH_FL, AE_CH_FR, AE_CH_NULL}
   };
-   
+
   CAERemap remap;
   if (!remap.Initialize(layouts[m_channelCount - 1], to, false, false, stdChLayout))
     return false;

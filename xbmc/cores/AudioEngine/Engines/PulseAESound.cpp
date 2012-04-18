@@ -64,7 +64,8 @@ bool CPulseAESound::Initialize()
 
   struct pa_channel_map map;
   map.channels = m_sampleSpec.channels;
-  switch(map.channels) {
+  switch (map.channels)
+  {
     case 1:
       map.map[0] = PA_CHANNEL_POSITION_MONO;
       break;
@@ -95,7 +96,8 @@ bool CPulseAESound::Initialize()
   pa_stream_set_state_callback(m_stream, CPulseAESound::StreamStateCallback, this);
   pa_stream_set_write_callback(m_stream, CPulseAESound::StreamWriteCallback, this);
 
-  if (pa_stream_connect_upload(m_stream, m_wavLoader.GetFrameCount() * pa_frame_size(&m_sampleSpec)) != 0) {
+  if (pa_stream_connect_upload(m_stream, m_wavLoader.GetFrameCount() * pa_frame_size(&m_sampleSpec)) != 0)
+  {
     CLog::Log(LOGERROR, "CPulseAESound::Initialize - Could not initialize the stream");
     pa_stream_disconnect(m_stream);
     m_stream = NULL;
@@ -180,7 +182,7 @@ void CPulseAESound::StreamStateCallback(pa_stream *s, void *userdata)
   {
     case PA_STREAM_FAILED:
       CLog::Log(LOGERROR, "CPulseAESound::StreamStateCallback - %s", pa_strerror(pa_context_errno(sound->m_context)));
-   
+
     case PA_STREAM_UNCONNECTED:
     case PA_STREAM_CREATING:
     case PA_STREAM_READY:
@@ -206,7 +208,8 @@ void CPulseAESound::Upload(size_t length)
     m_dataSent += send;
 
   /* if we have no more data disable the callback */
-  if (left == send) {
+  if (left == send)
+  {
     pa_stream_set_write_callback(m_stream, NULL, NULL);
     if (pa_stream_finish_upload(m_stream) != 0)
     {
@@ -216,7 +219,7 @@ void CPulseAESound::Upload(size_t length)
 
     /* disconnect the stream as we dont need it anymore */
     pa_stream_disconnect(m_stream);
-    m_stream = NULL;   
+    m_stream = NULL;
   }
 }
 

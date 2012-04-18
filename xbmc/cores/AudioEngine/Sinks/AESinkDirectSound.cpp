@@ -79,15 +79,16 @@ CAESinkDirectSound::~CAESinkDirectSound()
 bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
 {
   CSingleLock lock(m_runLock);
-  if(m_initialized) return false;
+  if (m_initialized)
+    return false;
 
   LPGUID deviceGUID = NULL;
   std::list<DSDevice> DSDeviceList;
   DirectSoundEnumerate(DSEnumCallback, &DSDeviceList);
 
-  for(std::list<DSDevice>::iterator itt = DSDeviceList.begin(); itt != DSDeviceList.end(); itt++)
+  for (std::list<DSDevice>::iterator itt = DSDeviceList.begin(); itt != DSDeviceList.end(); itt++)
   {
-    if((*itt).name == device)
+    if ((*itt).name == device)
     {
       deviceGUID = (*itt).lpGuid;
       break;
@@ -96,7 +97,7 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
 
   HRESULT hr = DirectSoundCreate(deviceGUID, &m_pDSound, NULL);
 
-  if(FAILED(hr))
+  if (FAILED(hr))
   {
     CLog::Log(LOGERROR, __FUNCTION__": Failed to create the DirectSound device.");
     CLog::Log(LOGERROR, __FUNCTION__": DSErr: %s", dserr2str(hr));
@@ -105,7 +106,7 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
 
   hr = m_pDSound->SetCooperativeLevel(g_hWnd, DSSCL_PRIORITY);
 
-  if(FAILED(hr))
+  if (FAILED(hr))
   {
     CLog::Log(LOGERROR, __FUNCTION__": Failed to create the DirectSound device cooperative level.");
     CLog::Log(LOGERROR, __FUNCTION__": DSErr: %s", dserr2str(hr));
@@ -205,7 +206,8 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
 void CAESinkDirectSound::Deinitialize()
 {
   CSingleLock lock(m_runLock);
-  if(!m_initialized) return;
+  if (!m_initialized)
+    return;
 
   CLog::Log(LOGDEBUG, __FUNCTION__": Cleaning up");
 
@@ -215,7 +217,7 @@ void CAESinkDirectSound::Deinitialize()
     SAFE_RELEASE(m_pBuffer);
   }
 
-  if(m_pDSound)
+  if (m_pDSound)
   {
     m_pDSound->Release();
   }
@@ -232,12 +234,13 @@ void CAESinkDirectSound::Deinitialize()
 bool CAESinkDirectSound::IsCompatible(const AEAudioFormat format, const std::string device)
 {
   CSingleLock lock(m_runLock);
-  if(!m_initialized) return false;
+  if (!m_initialized)
+    return false;
 
-  if(m_device == device &&
-     m_format.m_sampleRate    == format.m_sampleRate  &&
-     m_format.m_dataFormat    == format.m_dataFormat  &&
-     m_format.m_channelLayout == format.m_channelLayout)
+  if (m_device == device &&
+      m_format.m_sampleRate    == format.m_sampleRate  &&
+      m_format.m_dataFormat    == format.m_dataFormat  &&
+      m_format.m_channelLayout == format.m_channelLayout)
      return true;
 
   return false;
@@ -246,7 +249,8 @@ bool CAESinkDirectSound::IsCompatible(const AEAudioFormat format, const std::str
 unsigned int CAESinkDirectSound::AddPackets(uint8_t *data, unsigned int frames)
 {
   CSingleLock lock(m_runLock);
-  if(!m_initialized) return 0;
+  if (!m_initialized)
+    return 0;
 
   DWORD total = m_dwFrameSize * frames;
   DWORD len = total;
@@ -260,7 +264,7 @@ unsigned int CAESinkDirectSound::AddPackets(uint8_t *data, unsigned int frames)
     m_pBuffer->Restore();
   }
 
-  while(GetSpace() < total)
+  while (GetSpace() < total)
     Sleep(1);
 
   while (len)
@@ -304,14 +308,15 @@ void CAESinkDirectSound::Stop()
 {
   CSingleLock lock(m_runLock);
 
-  if(m_pBuffer)
+  if (m_pBuffer)
     m_pBuffer->Stop();
 }
 
 double CAESinkDirectSound::GetDelay()
 {
   CSingleLock lock(m_runLock);
-  if(!m_initialized) return 0.0f;
+  if (!m_initialized)
+    return 0.0f;
 
    // Make sure we know how much data is in the cache
   UpdateCacheStatus();
@@ -329,7 +334,7 @@ void CAESinkDirectSound::EnumerateDevices(AEDeviceList &devices, bool passthroug
 
   std::list<DSDevice>::iterator it;
 
-  for(it = dev.begin(); it != dev.end(); it++)
+  for (it = dev.begin(); it != dev.end(); it++)
   {
     devices.push_back(AEDevice((*it).name, std::string("DIRECTSOUND:") + (*it).name));
   }
@@ -342,7 +347,7 @@ void CAESinkDirectSound::CheckPlayStatus()
   DWORD status = 0;
   m_pBuffer->GetStatus(&status);
 
-  if(!(status & DSBSTATUS_PLAYING) && m_CacheLen != 0) // If we have some data, see if we can start playback
+  if (!(status & DSBSTATUS_PLAYING) && m_CacheLen != 0) // If we have some data, see if we can start playback
   {
     HRESULT hr = m_pBuffer->Play(0, 0, DSBPLAY_LOOPING);
     dserr2str(hr);
@@ -411,7 +416,7 @@ unsigned int CAESinkDirectSound::GetSpace()
   // We can never allow the internal buffers to fill up complete
   // as we get confused between if the buffer is full or empty
   // so never allow the last chunk to be added
-  if(space > m_dwChunkSize)
+  if (space > m_dwChunkSize)
     return space - m_dwChunkSize;
   else
     return 0;
@@ -423,9 +428,9 @@ void CAESinkDirectSound::AEChannelsFromSpeakerMask(DWORD speakers)
 
   m_channelLayout.Reset();
 
-  for(int i = 0; i < SPEAKER_COUNT; i++)
+  for (int i = 0; i < SPEAKER_COUNT; i++)
   {
-    if(speakers & DSChannelOrder[i])
+    if (speakers & DSChannelOrder[i])
       m_channelLayout += AEChannelNames[i];
   }
 }
@@ -434,10 +439,10 @@ DWORD CAESinkDirectSound::SpeakerMaskFromAEChannels(const CAEChannelInfo &channe
 {
   DWORD mask = 0;
 
-  for(unsigned int i = 0; i < channels.Count(); i++)
+  for (unsigned int i = 0; i < channels.Count(); i++)
   {
-    for(unsigned int j = 0; j < SPEAKER_COUNT; j++)
-      if(channels[i] == AEChannelNames[j])
+    for (unsigned int j = 0; j < SPEAKER_COUNT; j++)
+      if (channels[i] == AEChannelNames[j])
         mask |= DSChannelOrder[j];
   }
 

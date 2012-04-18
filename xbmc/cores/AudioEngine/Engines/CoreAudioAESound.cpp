@@ -71,9 +71,9 @@ void CCoreAudioAESound::DeInitialize()
 
 bool CCoreAudioAESound::Initialize()
 {
-  
+
   DeInitialize();
-  
+
   if (!m_wavLoader.Initialize(m_filename, AE.GetSampleRate()))
     return false;
 
@@ -81,7 +81,7 @@ bool CCoreAudioAESound::Initialize()
 }
 
 void CCoreAudioAESound::SetVolume(float volume)
-{ 
+{
   m_volume = std::max(0.0f, std::min(1.0f, volume));
 }
 

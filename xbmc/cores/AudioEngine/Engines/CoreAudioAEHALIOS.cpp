@@ -962,7 +962,9 @@ CAUOutputDevice *CCoreAudioGraph::DestroyUnit(CAUOutputDevice *outputUnit)
 
   AUGraphUpdate(m_audioGraph, NULL);
 
+  printf("Remove unit\n\n");
   ShowGraph();
+  printf("\n");
 
   Start();
 
@@ -1014,7 +1016,9 @@ CAUOutputDevice *CCoreAudioGraph::CreateUnit(AEAudioFormat &format)
 
   AUGraphUpdate(m_audioGraph, NULL);
 
+  printf("Add unit\n\n");
   ShowGraph();
+  printf("\n");
 
   CLog::Log(LOGINFO, "CCoreAudioGraph::Open: Input Stream Format  %s", StreamDescriptionToString(inputFormat, formatString));
   CLog::Log(LOGINFO, "CCoreAudioGraph::Open: Output Stream Format %s", StreamDescriptionToString(outputFormat, formatString));
@@ -1024,7 +1028,8 @@ CAUOutputDevice *CCoreAudioGraph::CreateUnit(AEAudioFormat &format)
   return outputUnit;
 
 error:
-  delete outputUnit;
+  if (outputUnit)
+    delete outputUnit;
   return NULL;
 }
 
@@ -1107,7 +1112,8 @@ CCoreAudioAEHALIOS::~CCoreAudioAEHALIOS()
 {
   Deinitialize();
 
-  delete m_audioGraph;
+  if (m_audioGraph)
+    delete m_audioGraph;
 }
 
 bool CCoreAudioAEHALIOS::InitializePCM(ICoreAudioSource *pSource, AEAudioFormat &format, bool allowMixing)

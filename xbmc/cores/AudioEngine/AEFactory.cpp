@@ -45,9 +45,11 @@ bool CAEFactory::LoadEngine()
     std::transform(engine.begin(), engine.end(), engine.begin(), ::toupper);
 
     #ifdef HAS_PULSEAUDIO
-    if (!loaded && engine == "PULSE") loaded = CAEFactory::LoadEngine(AE_ENGINE_PULSE);
+    if (!loaded && engine == "PULSE")
+      loaded = CAEFactory::LoadEngine(AE_ENGINE_PULSE);
     #endif
-    if (!loaded && engine == "SOFT" ) loaded = CAEFactory::LoadEngine(AE_ENGINE_SOFT);
+    if (!loaded && engine == "SOFT" )
+      loaded = CAEFactory::LoadEngine(AE_ENGINE_SOFT);
   }
 #endif
 

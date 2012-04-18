@@ -32,17 +32,19 @@ CAEDeviceInfo::operator std::string()
   ss << "m_channels        : " << (std::string)m_channels << '\n';
 
   ss << "m_sampleRates     : ";
-  for(AESampleRateList::iterator itt = m_sampleRates.begin(); itt != m_sampleRates.end(); ++itt)
+  for (AESampleRateList::iterator itt = m_sampleRates.begin(); itt != m_sampleRates.end(); ++itt)
   {
-    if (itt != m_sampleRates.begin()) ss << ',';
+    if (itt != m_sampleRates.begin())
+      ss << ',';
     ss << *itt;
   }
   ss << '\n';
 
   ss << "m_dataFormats     : ";
-  for(AEDataFormatList::iterator itt = m_dataFormats.begin(); itt != m_dataFormats.end(); ++itt)
+  for (AEDataFormatList::iterator itt = m_dataFormats.begin(); itt != m_dataFormats.end(); ++itt)
   {
-    if (itt != m_dataFormats.begin()) ss << ',';
+    if (itt != m_dataFormats.begin())
+      ss << ',';
     ss << CAEUtil::DataFormatToStr(*itt);
   }
   ss << '\n';
@@ -52,7 +54,7 @@ CAEDeviceInfo::operator std::string()
 
 std::string CAEDeviceInfo::DeviceTypeToString(enum AEDeviceType deviceType)
 {
-  switch(deviceType)
+  switch (deviceType)
   {
     case AE_DEVTYPE_PCM   : return "AE_DEVTYPE_PCM"   ; break;
     case AE_DEVTYPE_IEC958: return "AE_DEVTYPE_IEC958"; break;

@@ -49,7 +49,7 @@ void CAESinkFactory::ParseDevice(std::string &device, std::string &driver)
     /* check that it is a valid driver name */
     if (
 #if defined _LINUX && !defined __APPLE__
-#ifdef HAS_ALSA      
+#ifdef HAS_ALSA
         driver == "ALSA"        ||
 #endif
         driver == "OSS"         ||
@@ -86,9 +86,9 @@ IAESink *CAESinkFactory::Create(std::string &device, AEAudioFormat &desiredForma
 {
 #if !defined __APPLE__
   /* extract the driver from the device string if it exists */
-  std::string driver;  
+  std::string driver;
   ParseDevice(device, driver);
-  
+
   AEAudioFormat  tmpFormat;
   IAESink       *sink;
   std::string    tmpDevice;
@@ -101,10 +101,10 @@ IAESink *CAESinkFactory::Create(std::string &device, AEAudioFormat &desiredForma
 
   if ((driver.empty() && g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound) || driver == "WASAPI")
     TRY_SINK(WASAPI)
-    
+
   if (driver.empty() || driver == "DIRECTSOUND")
     TRY_SINK(DirectSound)
-    
+
 #elif defined _LINUX && !defined __APPLE__
 
   #ifdef HAS_ALSA
@@ -113,17 +113,17 @@ IAESink *CAESinkFactory::Create(std::string &device, AEAudioFormat &desiredForma
   #endif
   if (driver.empty() || driver == "OSS")
     TRY_SINK(OSS)
-  
+
   /* no need to try others as both will have been attempted if driver is empty */
   if (driver.empty())
     TRY_SINK(NULL);
 
   /* if we failed to get a sink, try to open one of the others */
   #ifdef HAS_ALSA
-  if(driver != "ALSA")
+  if (driver != "ALSA")
       TRY_SINK(ALSA)
   #endif
-  if(driver != "OSS")
+  if (driver != "OSS")
     TRY_SINK(OSS)
 
 #endif /* defined _LINUX && !defined __APPLE__ */
@@ -142,11 +142,11 @@ void CAESinkFactory::Enumerate(AEDeviceList &devices, bool passthrough)
 {
 #ifdef _WIN32
 
-  if(g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound)
+  if (g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound)
     CAESinkWASAPI::EnumerateDevices(devices, passthrough);
   else
     CAESinkDirectSound::EnumerateDevices(devices, passthrough);
-    
+
 #elif defined _LINUX && !defined __APPLE__
 
 #ifdef HAS_ALSA
@@ -176,9 +176,10 @@ void CAESinkFactory::EnumerateEx(AESinkInfoList &list)
 #endif
 
 #ifdef _WIN32
-  if(g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound)
-       ENUMERATE_SINK(WASAPI)
-//  else ENUMERATE_SINK(DirectSound);
+  if (g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound)
+    ENUMERATE_SINK(WASAPI)
+//  else
+//    ENUMERATE_SINK(DirectSound);
 #endif
 }
 #endif

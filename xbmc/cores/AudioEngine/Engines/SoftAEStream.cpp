@@ -67,8 +67,8 @@ CSoftAEStream::CSoftAEStream(enum AEDataFormat dataFormat, unsigned int sampleRa
   m_chLayoutCount         = channelLayout.Count();
   m_forceResample         = (options & AESTREAM_FORCE_RESAMPLE) != 0;
   m_paused                = (options & AESTREAM_PAUSED) != 0;
-  
-  ASSERT(m_initChannelLayout.Count());  
+
+  ASSERT(m_initChannelLayout.Count());
 }
 
 void CSoftAEStream::InitializeRemap()
@@ -172,8 +172,10 @@ void CSoftAEStream::Initialize()
     /* get the conversion function and allocate a buffer for the data */
     CLog::Log(LOGDEBUG, "CSoftAEStream::CSoftAEStream - Converting from %s to AE_FMT_FLOAT", CAEUtil::DataFormatToStr(m_initDataFormat));
     m_convertFn = CAEConvert::ToFloat(m_initDataFormat);
-    if (m_convertFn) m_convertBuffer = (float*)_aligned_malloc(m_format.m_frameSamples * sizeof(float), 16);
-    else             m_valid         = false;
+    if (m_convertFn)
+      m_convertBuffer = (float*)_aligned_malloc(m_format.m_frameSamples * sizeof(float), 16);
+    else
+      m_valid         = false;
   }
   else
     m_convertBuffer = (float*)m_inputBuffer.Raw(m_format.m_frames * m_format.m_frameSize);
@@ -223,7 +225,8 @@ CSoftAEStream::~CSoftAEStream()
 unsigned int CSoftAEStream::GetSpace()
 {
   CSharedLock lock(m_lock);
-  if (!m_valid || m_draining) return 0;  
+  if (!m_valid || m_draining)
+    return 0;
 
   if (m_framesBuffered >= m_waterLevel)
     return 0;
@@ -234,7 +237,8 @@ unsigned int CSoftAEStream::GetSpace()
 unsigned int CSoftAEStream::AddData(void *data, unsigned int size)
 {
   CExclusiveLock lock(m_lock);
-  if (!m_valid || size == 0 || data == NULL) return 0;
+  if (!m_valid || size == 0 || data == NULL)
+    return 0;
 
   /* if the stream is draining */
   if (m_draining)
@@ -250,7 +254,7 @@ unsigned int CSoftAEStream::AddData(void *data, unsigned int size)
     return 0;
 
   uint8_t *ptr = (uint8_t*)data;
-  while(size)
+  while (size)
   {
     size_t copy = std::min(m_inputBuffer.Free(), (size_t)size);
     if (copy == 0)
@@ -260,7 +264,7 @@ unsigned int CSoftAEStream::AddData(void *data, unsigned int size)
     size -= copy;
     ptr  += copy;
 
-    if(m_inputBuffer.Used() / m_bytesPerSample < m_format.m_frameSamples)
+    if (m_inputBuffer.Used() / m_bytesPerSample < m_format.m_frameSamples)
       continue;
 
     unsigned int consumed = ProcessFrameBuffer();
@@ -301,7 +305,8 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
   if (m_resample)
   {
     m_ssrcData.input_frames = samples / m_chLayoutCount;
-    if (src_process(m_ssrc, &m_ssrcData) != 0) return 0;
+    if (src_process(m_ssrc, &m_ssrcData) != 0)
+      return 0;
     data     = (uint8_t*)m_ssrcData.data_out;
     frames   = m_ssrcData.output_frames_gen;
     consumed = m_ssrcData.input_frames_used * m_bytesPerFrame;
@@ -319,8 +324,10 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
 
   if (m_refillBuffer)
   {
-    if (frames > m_refillBuffer) m_refillBuffer = 0;
-    else m_refillBuffer -= frames;
+    if (frames > m_refillBuffer)
+      m_refillBuffer = 0;
+    else
+      m_refillBuffer -= frames;
   }
 
   /* buffer the data */
@@ -328,7 +335,7 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
   const unsigned int inputBlockSize = m_format.m_frames * m_format.m_channelLayout.Count() * sampleSize;
 
   size_t remaining = samples * sampleSize;
-  while(remaining)
+  while (remaining)
   {
     size_t copy = std::min(m_newPacket->data.Free(), remaining);
     m_newPacket->data.Push(data, copy);
@@ -336,7 +343,7 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
     remaining -= copy;
 
     /* wait till we have a full packet, or no more data before processing the packet */
-    if((!m_draining || remaining) && m_newPacket->data.Free() > 0)
+    if ((!m_draining || remaining) && m_newPacket->data.Free() > 0)
       continue;
 
     /* if we have a full block of data */
@@ -407,11 +414,11 @@ uint8_t* CSoftAEStream::GetFrame()
     return NULL;
 
   /* if the packet is empty, advance to the next one */
-  if(!m_packet || m_packet->data.CursorEnd())
+  if (!m_packet || m_packet->data.CursorEnd())
   {
     delete m_packet;
     m_packet = NULL;
-    
+
     /* no more packets, return null */
     if (m_outBuffer.empty())
     {
@@ -431,7 +438,7 @@ uint8_t* CSoftAEStream::GetFrame()
     m_packet = m_outBuffer.front();
     m_outBuffer.pop_front();
   }
-  
+
   /* fetch one frame of data */
   ssize_t bytes = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
   uint8_t *ret  = (uint8_t*)m_packet->data.CursorRead(bytes);
@@ -455,33 +462,38 @@ uint8_t* CSoftAEStream::GetFrame()
 
 double CSoftAEStream::GetDelay()
 {
-  if (m_delete) return 0.0;
+  if (m_delete)
+    return 0.0;
   double delay = (double)m_framesBuffered / (double)AE.GetSampleRate();
   return AE.GetDelay() + delay;
 }
 
 double CSoftAEStream::GetCacheTime()
 {
-  if (m_delete) return 0.0;
+  if (m_delete)
+    return 0.0;
   return (double)std::max((int)m_waterLevel - (int)m_refillBuffer, 0) / (double)AE.GetSampleRate();
 }
 
 double CSoftAEStream::GetCacheTotal()
 {
-  if (m_delete) return 0.0;
+  if (m_delete)
+    return 0.0;
   return (double)m_waterLevel / (double)AE.GetSampleRate();
 }
 
 void CSoftAEStream::Pause()
 {
-  if (m_paused) return;
+  if (m_paused)
+    return;
   m_paused = true;
   AE.PauseStream(this);
 }
 
 void CSoftAEStream::Resume()
 {
-  if (!m_paused) return;
+  if (!m_paused)
+    return;
   m_paused = false;
   AE.ResumeStream(this);
 }
@@ -510,14 +522,15 @@ void CSoftAEStream::Flush()
 void CSoftAEStream::InternalFlush()
 {
   /* reset the resampler */
-  if (m_resample) {
+  if (m_resample)
+  {
     m_ssrcData.end_of_input = 0;
     src_reset(m_ssrc);
   }
-  
+
   /* invalidate any incoming samples */
   m_newPacket->data.Empty();
-  
+
   /*
     clear the current buffered packet, we cant delete the data as it may be
     in use by the AE thread, so we just seek to the end of the buffer
@@ -526,12 +539,13 @@ void CSoftAEStream::InternalFlush()
     m_packet->data.CursorSeek(m_packet->data.Size());
 
   /* clear any other buffered packets */
-  while(!m_outBuffer.empty()) {    
+  while (!m_outBuffer.empty())
+  {
     PPacket *p = m_outBuffer.front();
-    m_outBuffer.pop_front();    
+    m_outBuffer.pop_front();
     delete p;
-  };
- 
+  }
+
   /* reset our counts */
   m_framesBuffered = 0;
 }
@@ -560,7 +574,7 @@ bool CSoftAEStream::SetResampleRatio(double ratio)
   m_ssrcData.src_ratio = m_resampleRatio * m_internalRatio;
 
   //Check the resample buffer size and resize if necessary.
-  if(oldRatioInt < std::ceil(m_ssrcData.src_ratio))
+  if (oldRatioInt < std::ceil(m_ssrcData.src_ratio))
   {
     _aligned_free(m_ssrcData.data_out);
     m_ssrcData.data_out      = (float*)_aligned_malloc(m_format.m_frameSamples * std::ceil(m_ssrcData.src_ratio) * sizeof(float), 16);
@@ -588,7 +602,8 @@ void CSoftAEStream::UnRegisterAudioCallback()
 void CSoftAEStream::FadeVolume(float from, float target, unsigned int time)
 {
   /* can't fade a RAW stream */
-  if (AE_IS_RAW(m_initDataFormat)) return;
+  if (AE_IS_RAW(m_initDataFormat))
+    return;
 
   CExclusiveLock lock(m_lock);
   float delta   = target - from;
