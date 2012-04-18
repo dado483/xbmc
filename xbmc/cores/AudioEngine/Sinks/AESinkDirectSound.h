@@ -39,7 +39,7 @@ public:
   virtual bool IsCompatible(const AEAudioFormat format, const std::string device);
 
   virtual void         Stop             ();
-  virtual float        GetDelay         ();
+  virtual double       GetDelay         ();
   virtual unsigned int AddPackets       (uint8_t *data, unsigned int frames);
   static  void         EnumerateDevices (AEDeviceList &devices, bool passthrough);
 private:

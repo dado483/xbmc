@@ -308,7 +308,7 @@ void CAESinkDirectSound::Stop()
     m_pBuffer->Stop();
 }
 
-float CAESinkDirectSound::GetDelay()
+double CAESinkDirectSound::GetDelay()
 {
   CSingleLock lock(m_runLock);
   if(!m_initialized) return 0.0f;
@@ -316,7 +316,7 @@ float CAESinkDirectSound::GetDelay()
    // Make sure we know how much data is in the cache
   UpdateCacheStatus();
 
-  float delay  = 0.008f; // WTF?
+  double delay  = 0.008f; // WTF?
   delay += (float)m_CacheLen / (float)m_AvgBytesPerSec;
   return delay;
 }

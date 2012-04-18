@@ -178,10 +178,10 @@ bool CAESinkWASAPI::Initialize(AEAudioFormat &format, std::string &device)
     hr = m_pDevice->OpenPropertyStore(STGM_READ, &pProperty);
     EXIT_ON_FAILURE(hr, __FUNCTION__": Retrieval of WASAPI endpoint properties failed.")
 
-    hr = pProperty->GetValue(PKEY_Device_FriendlyName, &varName);
+    hr = pProperty->GetValue(PKEY_AudioEndpoint_GUID, &varName);
     if(FAILED(hr))
     {
-      CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint device name failed.");
+      CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint GUID failed.");
       SAFE_RELEASE(pProperty);
       goto failed;
     }
@@ -344,11 +344,11 @@ bool CAESinkWASAPI::IsCompatible(const AEAudioFormat format, const std::string d
     return false;
 }
 
-float CAESinkWASAPI::GetDelay()
+double CAESinkWASAPI::GetDelay()
 {
   HRESULT hr;
   if(!m_initialized) return 0.0;
-
+  /*
   if(m_isExclusive)
   {
     hr = m_pAudioClient->GetBufferSize(&m_uiBufferLen);
@@ -359,7 +359,7 @@ float CAESinkWASAPI::GetDelay()
     }
     return (double)m_uiBufferLen / (double)m_format.m_sampleRate;
   }
-
+  */
   UINT32 frames;
   m_pAudioClient->GetCurrentPadding(&frames);
   return (double)frames / (double)m_format.m_sampleRate;
@@ -473,10 +473,6 @@ void CAESinkWASAPI::EnumerateDevices(AEDeviceList &devices, bool passthrough)
 {
   AEDeviceInfoList deviceInfoList;
 
-  /* Go immediately to new function */
-  EnumerateDevicesEx(devices, deviceInfoList);
-  return;
-
   IMMDeviceEnumerator* pEnumerator = NULL;
   IMMDeviceCollection* pEnumDevices = NULL;
 
@@ -582,7 +578,7 @@ failed:
   SAFE_RELEASE(pEnumerator);
 }
 
-void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceList &devices, AEDeviceInfoList &deviceInfoList)
+void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
 {
   IMMDeviceEnumerator* pEnumerator = NULL;
   IMMDeviceCollection* pEnumDevices = NULL;
@@ -638,11 +634,24 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceList &devices, AEDeviceInfoList &
       goto failed;
     }
 
+    std::wstring strRawFriendlyName(varName.pwszVal);
+    std::string strFriendlyName = std::string(strRawFriendlyName.begin(), strRawFriendlyName.end());
+
+    CLog::Log(LOGDEBUG, __FUNCTION__": found endpoint device: %s", strRawFriendlyName.c_str());
+
+    PropVariantClear(&varName);
+
+    hr = pProperty->GetValue(PKEY_AudioEndpoint_GUID, &varName);
+    if(FAILED(hr))
+    {
+      CLog::Log(LOGERROR, __FUNCTION__": Retrieval of WASAPI endpoint GUID failed.");
+      SAFE_RELEASE(pDevice);
+      SAFE_RELEASE(pProperty);
+      goto failed;
+    }
+
     std::wstring strRawDevName(varName.pwszVal);
     std::string strDevName = std::string(strRawDevName.begin(), strRawDevName.end());
-
-    CLog::Log(LOGDEBUG, __FUNCTION__": found endpoint device: %s", strDevName.c_str());
-
     PropVariantClear(&varName);
 
     hr = pProperty->GetValue(PKEY_AudioEndpoint_FormFactor, &varName);
@@ -678,7 +687,7 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceList &devices, AEDeviceInfoList &
 
     PropVariantClear(&varName);
 
-    if(g_guiSettings.GetBool("audiooutput.useexclusivemode"))
+    if(true || g_guiSettings.GetBool("audiooutput.useexclusivemode"))
     {
       IAudioClient *pClient;
       hr = pDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&pClient);
@@ -828,10 +837,9 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceList &devices, AEDeviceInfoList &
       HRESULT hr = pClient->GetMixFormat((WAVEFORMATEX **)&wfxex);
       if(SUCCEEDED(hr))
       {
-        deviceInfo.m_channels              = (AEStdChLayout) wfxex.Format.nChannels;
-        deviceInfo.m_dataFormats.push_back   (AEDataFormat(AE_FMT_AAC));
-        deviceInfo.m_sampleRates.push_back   (wfxex.Format.nSamplesPerSec);
-        devices.push_back                    (AEDevice(std::string("WASAPI: "), strDevName));
+        deviceInfo.m_channels = (AEStdChLayout) wfxex.Format.nChannels;
+        deviceInfo.m_dataFormats.push_back(AEDataFormat(AE_FMT_AAC));
+        deviceInfo.m_sampleRates.push_back(wfxex.Format.nSamplesPerSec);
       }
       else
       {
@@ -844,16 +852,15 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceList &devices, AEDeviceInfoList &
     SAFE_RELEASE(pProperty);
 
     deviceInfo.m_deviceName       = strDevName;
-    deviceInfo.m_displayName      = strWinDevType.append(strDevName);
-    deviceInfo.m_displayNameExtra = std::string("WASAPI: ").append(strDevName);
+    deviceInfo.m_displayName      = strWinDevType.append(strFriendlyName);
+    deviceInfo.m_displayNameExtra = std::string("WASAPI: ").append(strFriendlyName);
     deviceInfo.m_deviceType       = aeDeviceType;
     deviceInfo.m_channels         = deviceChannels;
 
     //printf("%s", ((std::string)deviceInfo).c_str());
     CLog::Log(LOGDEBUG,"Audio Device %d:    %s", i, ((std::string)deviceInfo).c_str());
 
-    deviceInfoList.push_back        (deviceInfo);
-    devices.push_back               (AEDevice(strDevName, std::string("WASAPI:").append(strDevName)));
+    deviceInfoList.push_back(deviceInfo);
   }
   return;
 
@@ -901,15 +908,18 @@ void CAESinkWASAPI::BuildWaveFormatExtensible(AEAudioFormat &format, WAVEFORMATE
         //wfxex.Format.wFormatTag    = WAVE_FORMAT_DTS;
       }
 
-      wfxex.Format.wBitsPerSample  = 16;
-      wfxex.Format.nChannels       = format.m_channelLayout.Count();
-      wfxex.Format.nSamplesPerSec  = format.m_sampleRate;
+      format.m_dataFormat               = AE_FMT_S16NE;
+      wfxex.Format.wBitsPerSample       = 16;
+      wfxex.Samples.wValidBitsPerSample = 16;
+      wfxex.Format.nChannels            = format.m_channelLayout.Count();
+      wfxex.Format.nSamplesPerSec       = format.m_sampleRate;
     }
     else if(format.m_dataFormat == AE_FMT_EAC3 || format.m_dataFormat == AE_FMT_TRUEHD || format.m_dataFormat == AE_FMT_DTSHD)
     {
       //IEC 61937 transmissions.
       //Currently these formats only run over HDMI.
 
+      format.m_dataFormat               = AE_FMT_S16NE;
       wfxex.Format.nSamplesPerSec       = 192000L; // Link runs at 192 KHz.
       wfxex.Format.wBitsPerSample       = 16; // Always at 16 bits over IEC 60958.
       wfxex.Samples.wValidBitsPerSample = 16;
