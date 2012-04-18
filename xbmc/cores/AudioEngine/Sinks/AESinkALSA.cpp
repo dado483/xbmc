@@ -768,8 +768,16 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
         if (snd_pcm_hw_params_test_channels(pcmhandle, hwparams, i) >= 0)
           channels = i;
 
+      CAEChannelInfo alsaChannels;
       for(int i = 0; i < channels; ++i)
-        info.m_channels += ALSAChannelMap[i];
+      {
+        if (!info.m_channels.HasChannel(ALSAChannelMap[i]))
+          info.m_channels += ALSAChannelMap[i];
+        alsaChannels += ALSAChannelMap[i];
+      }
+
+      /* remove the channels from m_channels that we cant use */
+      info.m_channels.ResolveChannels(alsaChannels);
 
       /* detect the PCM sample formats that are available */
       for(enum AEDataFormat i = AE_FMT_MAX; i > AE_FMT_INVALID; i = (enum AEDataFormat)((int)i - 1))
