@@ -478,22 +478,16 @@ unsigned int CCoreAudioAEStream::GetFrames(uint8_t *buffer, unsigned int size)
         if (m_volume <= m_fadeTarget)
           m_fadeRunning = false;
       }
+
 #ifdef __SSE__
-      CAEUtil::SSEMulClampArray(floatBuffer, m_volume, samples);
+      CAEUtil::SSEMulArray(floatBuffer, m_volume, samples);
 #else
-      for(unsigned int i = 0; i < samples; ++i)
-        floatBuffer[i] = CAEUtil::SoftClamp(floatBuffer[i] * m_volume);
+      for(unsigned int i=0; i < samples; i++)
+        floatBuffer[i] *= m_volume;
 #endif
+      CAEUtil::ClampArray(floatBuffer, samples);
     }
   }
-  //m_fadeRunning = false;
-
-  /*
-  if(readsize == 0)
-  {
-    printf("buffer size zero\n");
-  }
-  */
 
   return readsize;
 }
