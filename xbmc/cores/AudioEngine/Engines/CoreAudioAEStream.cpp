@@ -74,7 +74,7 @@ void CCoreAudioAEStream::Upmix(void *input, unsigned int channelsInput, void *ou
   }
 }
 
-CCoreAudioAEStream::CCoreAudioAEStream(enum AEDataFormat dataFormat, unsigned int sampleRate, CAEChannelInfo channelLayout, unsigned int options) :
+CCoreAudioAEStream::CCoreAudioAEStream(enum AEDataFormat dataFormat, unsigned int sampleRate, unsigned int encodedSamplerate, CAEChannelInfo channelLayout, unsigned int options) :
   m_convertBuffer   (NULL ),
   m_valid           (false),
   m_delete          (false),
@@ -98,6 +98,7 @@ CCoreAudioAEStream::CCoreAudioAEStream(enum AEDataFormat dataFormat, unsigned in
   m_rawDataFormat                 = dataFormat;
   m_StreamFormat.m_dataFormat     = dataFormat;
   m_StreamFormat.m_sampleRate     = sampleRate;
+  m_StreamFormat.m_encodedRate    = 0;  //we don't support this
   m_StreamFormat.m_channelLayout  = channelLayout;
   m_chLayoutCountStream           = m_StreamFormat.m_channelLayout.Count();
   m_StreamFormat.m_frameSize      = (CAEUtil::DataFormatToBits(dataFormat) >> 3) * m_chLayoutCountStream;
@@ -571,7 +572,7 @@ void CCoreAudioAEStream::Drain()
 
 bool CCoreAudioAEStream::IsDrained()
 {
-  return m_buffer->GetReadSize() <= 0;
+  return m_Buffer->GetReadSize() <= 0;
 }
 
 void CCoreAudioAEStream::Flush()
@@ -642,6 +643,11 @@ const unsigned int CCoreAudioAEStream::GetChannelCount() const
 const unsigned int CCoreAudioAEStream::GetSampleRate() const
 {
   return m_StreamFormat.m_sampleRate;
+}
+
+const unsigned int CCoreAudioAEStream::GetEncodedSampleRate() const
+{
+  return m_StreamFormat.m_encodedRate;
 }
 
 const enum AEDataFormat CCoreAudioAEStream::GetDataFormat() const

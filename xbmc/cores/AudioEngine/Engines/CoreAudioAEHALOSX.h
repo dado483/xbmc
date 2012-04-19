@@ -364,7 +364,7 @@ public:
   virtual void  SetDirectInput(ICoreAudioSource *pSource, AEAudioFormat &format);
   virtual void  Stop();
   virtual bool  Start();
-  virtual float GetDelay();
+  virtual double GetDelay();
   virtual void  SetVolume(float volume);
   virtual unsigned int GetBufferIndex();
   virtual CAUOutputDevice *DestroyUnit(CAUOutputDevice *outputUnit);

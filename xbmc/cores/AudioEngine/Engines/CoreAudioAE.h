@@ -70,6 +70,7 @@ public:
   virtual void  OnSettingsChange(std::string setting);
 
   unsigned int      GetSampleRate();
+  unsigned int      GetEncodedSampleRate();
   CAEChannelInfo    GetChannelLayout();
   unsigned int      GetChannelCount();
   enum AEDataFormat GetDataFormat();
@@ -88,7 +89,8 @@ public:
   
   /* returns a new stream for data in the specified format */
   virtual IAEStream *MakeStream(enum AEDataFormat dataFormat, 
-                               unsigned int sampleRate, 
+                               unsigned int sampleRate,
+                               unsigned int encodedSamplerate,
                                CAEChannelInfo channelLayout, 
                                unsigned int options = 0);
   
