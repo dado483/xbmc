@@ -619,7 +619,7 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
       }
 
       /* open the device for testing */
-      if (snd_pcm_open_lconf(&pcmhandle, info.m_deviceName.c_str(), SND_PCM_STREAM_PLAYBACK, ALSA_OPTIONS, config) < 0)
+      if (snd_pcm_open_lconf(&pcmhandle, info.m_deviceName.c_str(), SND_PCM_STREAM_PLAYBACK, 0, config) < 0)
       {
         CLog::Log(LOGINFO, "CAESinkALSA::EnumerateDevicesEx - Unable to open %s for capability detection", info.m_deviceName.c_str());
         continue;
