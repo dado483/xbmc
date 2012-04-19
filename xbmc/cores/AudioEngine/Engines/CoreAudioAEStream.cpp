@@ -399,7 +399,7 @@ unsigned int CCoreAudioAEStream::AddData(void *data, unsigned int size)
 
   unsigned int room = m_Buffer->GetWriteSize();
 
-  while (addsize > room)
+  while (addsize > room && !m_paused)
   {
     // we got deleted
     if (!m_valid || size == 0 || data == NULL || m_draining || !m_Buffer)
