@@ -387,7 +387,7 @@ unsigned int CCoreAudioAEStream::AddData(void *data, unsigned int size)
   }
 
   /* upmix the ouput to 8 channels */
-  if (m_rawDataFormat == AE_FMT_LPCM && (m_chLayoutCountOutput != m_chLayoutCountStream))
+  if ( (!m_isRaw || m_rawDataFormat == AE_FMT_LPCM) && (m_chLayoutCountOutput > m_chLayoutCountStream) )
   {
     frames = addsize / m_StreamFormat.m_frameSize;
 
