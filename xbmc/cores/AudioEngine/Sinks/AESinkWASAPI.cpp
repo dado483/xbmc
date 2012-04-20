@@ -218,9 +218,6 @@ bool CAESinkWASAPI::Initialize(AEAudioFormat &format, std::string &device)
 
     std::wstring strRawDevName(varName.pwszVal);
     std::string strDevName = std::string(strRawDevName.begin(), strRawDevName.end());
-    //g_charsetConverter.ucs2CharsetToStringCharset(strRawDevName, strDevName);
-
-    CLog::Log(LOGINFO, __FUNCTION__": Found default sound device \"%s\"", strDevName.c_str());
 
     PropVariantClear(&varName);
     SAFE_RELEASE(pProperty);
@@ -253,10 +250,9 @@ bool CAESinkWASAPI::Initialize(AEAudioFormat &format, std::string &device)
     m_isExclusive = false;
   }
 
-  /* get the buffer size and device period to calculate the frames for AE */
-  REFERENCE_TIME hnsPeriod;
+  /* get the buffer size and calculate the frames for AE */
   m_pAudioClient->GetBufferSize(&m_uiBufferLen);
-  m_pAudioClient->GetDevicePeriod(NULL, &hnsPeriod);
+
   format.m_frames       = m_uiBufferLen;
   format.m_frameSamples = format.m_frames * format.m_channelLayout.Count();
   m_format = format;
@@ -349,9 +345,9 @@ bool CAESinkWASAPI::IsCompatible(const AEAudioFormat format, const std::string d
 
 double CAESinkWASAPI::GetDelay()
 {
-  HRESULT hr;
+  //HRESULT hr;
   if(!m_initialized) return 0.0;
-  /*
+/*
   if (m_isExclusive)
   {
     hr = m_pAudioClient->GetBufferSize(&m_uiBufferLen);
@@ -362,7 +358,7 @@ double CAESinkWASAPI::GetDelay()
     }
     return (double)m_uiBufferLen / (double)m_format.m_sampleRate;
   }
-  */
+*/
   UINT32 frames;
   m_pAudioClient->GetCurrentPadding(&frames);
   return (double)frames / (double)m_format.m_sampleRate;
@@ -642,8 +638,6 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
     std::wstring strRawFriendlyName(varName.pwszVal);
     std::string strFriendlyName = std::string(strRawFriendlyName.begin(), strRawFriendlyName.end());
 
-    CLog::Log(LOGDEBUG, __FUNCTION__": found endpoint device: %s", strRawFriendlyName.c_str());
-
     PropVariantClear(&varName);
 
     hr = pProperty->GetValue(PKEY_AudioEndpoint_GUID, &varName);
@@ -843,7 +837,7 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
       if (SUCCEEDED(hr))
       {
         deviceInfo.m_channels = (AEStdChLayout) wfxex.Format.nChannels;
-        deviceInfo.m_dataFormats.push_back(AEDataFormat(AE_FMT_AAC));
+        deviceInfo.m_dataFormats.push_back(AEDataFormat(AE_FMT_FLOAT));
         deviceInfo.m_sampleRates.push_back(wfxex.Format.nSamplesPerSec);
       }
       else
@@ -862,8 +856,8 @@ void CAESinkWASAPI::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList)
     deviceInfo.m_deviceType       = aeDeviceType;
     deviceInfo.m_channels         = deviceChannels;
 
-    //printf("%s", ((std::string)deviceInfo).c_str());
-    CLog::Log(LOGDEBUG,"Audio Device %d:    %s", i, ((std::string)deviceInfo).c_str());
+    /* Now logged by AESinkFactory on startup */
+    //CLog::Log(LOGDEBUG,"Audio Device %d:    %s", i, ((std::string)deviceInfo).c_str());
 
     deviceInfoList.push_back(deviceInfo);
   }
@@ -882,7 +876,6 @@ failed:
 
 void CAESinkWASAPI::BuildWaveFormatExtensible(AEAudioFormat &format, WAVEFORMATEXTENSIBLE &wfxex)
 {
-  //wfxex.Format.wFormatTag        = format.m_dataFormat == AE_FMT_FLOAT ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_EXTENSIBLE;
   wfxex.Format.wFormatTag        = WAVE_FORMAT_EXTENSIBLE;
   wfxex.Format.cbSize            = sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX);
 
@@ -890,7 +883,7 @@ void CAESinkWASAPI::BuildWaveFormatExtensible(AEAudioFormat &format, WAVEFORMATE
   if (!AE_IS_RAW(format.m_dataFormat)) // PCM data
   {
     wfxex.dwChannelMask          = SpeakerMaskFromAEChannels(format.m_channelLayout);
-    wfxex.Format.nChannels       = format.m_channelLayout.Count();
+    wfxex.Format.nChannels       = (WORD)format.m_channelLayout.Count();
     wfxex.Format.nSamplesPerSec  = format.m_sampleRate;
     wfxex.Format.wBitsPerSample  = format.m_dataFormat <= AE_FMT_S16NE ? 16 : 32;
     wfxex.SubFormat              = format.m_dataFormat <= AE_FMT_FLOAT ? KSDATAFORMAT_SUBTYPE_PCM : KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
@@ -913,18 +906,15 @@ void CAESinkWASAPI::BuildWaveFormatExtensible(AEAudioFormat &format, WAVEFORMATE
         //wfxex.Format.wFormatTag    = WAVE_FORMAT_DTS;
       }
 
-      format.m_dataFormat               = AE_FMT_S16NE;
       wfxex.Format.wBitsPerSample       = 16;
       wfxex.Samples.wValidBitsPerSample = 16;
-      wfxex.Format.nChannels            = format.m_channelLayout.Count();
+      wfxex.Format.nChannels            = (WORD)format.m_channelLayout.Count();
       wfxex.Format.nSamplesPerSec       = format.m_sampleRate;
     }
     else if (format.m_dataFormat == AE_FMT_EAC3 || format.m_dataFormat == AE_FMT_TRUEHD || format.m_dataFormat == AE_FMT_DTSHD)
     {
       //IEC 61937 transmissions.
       //Currently these formats only run over HDMI.
-
-      format.m_dataFormat               = AE_FMT_S16NE;
       wfxex.Format.nSamplesPerSec       = 192000L; // Link runs at 192 KHz.
       wfxex.Format.wBitsPerSample       = 16; // Always at 16 bits over IEC 60958.
       wfxex.Samples.wValidBitsPerSample = 16;
@@ -1256,6 +1246,9 @@ initialize:
     CLog::Log(LOGDEBUG, "  SubFormat       : KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD");
   else
     CLog::Log(LOGDEBUG, "  SubFormat       : NO SUBFORMAT SPECIFIED");
+
+  if (AE_IS_RAW(format.m_dataFormat))
+    format.m_dataFormat = AE_FMT_S16NE;
 
   hr = m_pAudioClient->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, AUDCLNT_STREAMFLAGS_EVENTCALLBACK | AUDCLNT_STREAMFLAGS_NOPERSIST, hnsRequestedDuration, hnsRequestedDuration, &wfxex.Format, NULL);
 
