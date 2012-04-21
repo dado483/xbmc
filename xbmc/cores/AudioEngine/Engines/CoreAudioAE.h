@@ -70,14 +70,18 @@ public:
   virtual void  OnSettingsChange(std::string setting);
 
   unsigned int      GetSampleRate();
+  unsigned int      GetEncodedSampleRate();
   CAEChannelInfo    GetChannelLayout();
   unsigned int      GetChannelCount();
   enum AEDataFormat GetDataFormat();
   AEAudioFormat     GetAudioFormat();
 
   virtual double GetDelay();
-  virtual float  GetVolume();
-  virtual void   SetVolume(float volume);
+  virtual float GetVolume();
+  virtual void  SetVolume(float volume);
+  virtual void  SetMute(const bool enabled);
+  virtual bool  IsMuted();
+  
 
   virtual bool SupportsRaw();
   
@@ -85,7 +89,8 @@ public:
   
   /* returns a new stream for data in the specified format */
   virtual IAEStream *MakeStream(enum AEDataFormat dataFormat, 
-                               unsigned int sampleRate, 
+                               unsigned int sampleRate,
+                               unsigned int encodedSamplerate,
                                CAEChannelInfo channelLayout, 
                                unsigned int options = 0);
   
@@ -153,5 +158,7 @@ private:
                     UInt32 inNumberFrames, 
                     AudioBufferList *ioData);
   float m_volume;
+  float m_volumeBeforeMute;  
+  bool  m_muted;
 };
 #endif

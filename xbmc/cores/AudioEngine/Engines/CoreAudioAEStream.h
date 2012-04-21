@@ -44,7 +44,7 @@ class CCoreAudioAEStream : public IAEStream, public ICoreAudioSource
 {
 protected:
   friend class CCoreAudioAE;
-  CCoreAudioAEStream(enum AEDataFormat format, unsigned int sampleRate, CAEChannelInfo channelLayout, unsigned int options);
+  CCoreAudioAEStream(enum AEDataFormat format, unsigned int sampleRate, unsigned int encodedSamplerate, CAEChannelInfo channelLayout, unsigned int options);
   virtual ~CCoreAudioAEStream();
   
   CAUOutputDevice    *m_outputUnit;
@@ -84,6 +84,7 @@ public:
 
   virtual const unsigned int      GetChannelCount() const;
   virtual const unsigned int      GetSampleRate() const;
+  virtual const unsigned int      GetEncodedSampleRate() const;
   virtual const enum AEDataFormat GetDataFormat() const;
   virtual const bool              IsRaw() const;
 

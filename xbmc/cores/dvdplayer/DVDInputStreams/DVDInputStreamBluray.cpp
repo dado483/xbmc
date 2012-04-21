@@ -912,7 +912,7 @@ bool CDVDInputStreamBluray::IsInMenu()
 {
   if(m_bd == NULL || !m_navmode)
     return false;
-  if(m_overlays[BD_OVERLAY_IG].size() > 0)
+  if(m_overlays[1].size() > 0)
     return true;
   return false;
 }

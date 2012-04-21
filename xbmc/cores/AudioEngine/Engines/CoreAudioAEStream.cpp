@@ -22,7 +22,6 @@
 #include "system.h"
 #include "threads/SingleLock.h"
 #include "utils/log.h"
-#include "DllAvCore.h"
 
 #include "Interfaces/AE.h"
 #include "AEFactory.h"
@@ -75,7 +74,7 @@ void CCoreAudioAEStream::Upmix(void *input, unsigned int channelsInput, void *ou
   }
 }
 
-CCoreAudioAEStream::CCoreAudioAEStream(enum AEDataFormat dataFormat, unsigned int sampleRate, CAEChannelInfo channelLayout, unsigned int options) :
+CCoreAudioAEStream::CCoreAudioAEStream(enum AEDataFormat dataFormat, unsigned int sampleRate, unsigned int encodedSamplerate, CAEChannelInfo channelLayout, unsigned int options) :
   m_convertBuffer   (NULL ),
   m_valid           (false),
   m_delete          (false),
@@ -99,6 +98,7 @@ CCoreAudioAEStream::CCoreAudioAEStream(enum AEDataFormat dataFormat, unsigned in
   m_rawDataFormat                 = dataFormat;
   m_StreamFormat.m_dataFormat     = dataFormat;
   m_StreamFormat.m_sampleRate     = sampleRate;
+  m_StreamFormat.m_encodedRate    = 0;  //we don't support this
   m_StreamFormat.m_channelLayout  = channelLayout;
   m_chLayoutCountStream           = m_StreamFormat.m_channelLayout.Count();
   m_StreamFormat.m_frameSize      = (CAEUtil::DataFormatToBits(dataFormat) >> 3) * m_chLayoutCountStream;
@@ -388,7 +388,7 @@ unsigned int CCoreAudioAEStream::AddData(void *data, unsigned int size)
   }
 
   /* upmix the ouput to 8 channels */
-  if (m_rawDataFormat == AE_FMT_LPCM && (m_chLayoutCountOutput != m_chLayoutCountStream))
+  if ( (!m_isRaw || m_rawDataFormat == AE_FMT_LPCM) && (m_chLayoutCountOutput > m_chLayoutCountStream) )
   {
     frames = addsize / m_StreamFormat.m_frameSize;
 
@@ -400,7 +400,7 @@ unsigned int CCoreAudioAEStream::AddData(void *data, unsigned int size)
 
   unsigned int room = m_Buffer->GetWriteSize();
 
-  while (addsize > room)
+  while (addsize > room && !m_paused)
   {
     // we got deleted
     if (!m_valid || size == 0 || data == NULL || m_draining || !m_Buffer)
@@ -438,57 +438,57 @@ unsigned int CCoreAudioAEStream::GetFrames(uint8_t *buffer, unsigned int size)
   unsigned int readsize = std::min(m_Buffer->GetReadSize(), size);
   m_Buffer->Read(buffer, readsize);
 
-  /* we have a frame, if we have a viz we need to hand the data to it.
-     Keep in mind that our buffer is already in output format.
-     So we remap output format to viz format !!!*/
-//#if defined(TARGET_DARWIN_OSX)
-  if (!m_isRaw && (m_OutputFormat.m_dataFormat == AE_FMT_FLOAT))
+  if (!m_isRaw)
   {
-    // TODO : Why the hell is vizdata limited ?
-    unsigned int samples   = readsize / m_OutputBytesPerSample;
-    unsigned int frames    = samples / m_chLayoutCountOutput;
-
-    if (samples)
+    float *floatBuffer      = (float *)buffer;
+    unsigned int samples    = readsize / m_OutputBytesPerSample;        
+  
+    /* we have a frame, if we have a viz we need to hand the data to it.
+      Keep in mind that our buffer is already in output format. 
+      So we remap output format to viz format !!!*/  
+    if (m_OutputFormat.m_dataFormat == AE_FMT_FLOAT)
     {
-      // Viz channel count is 2
-      CheckOutputBufferSize((void **)&m_vizRemapBuffer, &m_vizRemapBufferSize, frames * 2 * sizeof(float));
-
-      samples  = (samples > 512) ? 512 : samples;
-
-      m_vizRemap.Remap((float*)buffer, (float*)m_vizRemapBuffer, frames);
-      if (m_audioCallback)
-      {
-        m_audioCallback->OnAudioData((float *)m_vizRemapBuffer, samples);
+      // TODO : Why the hell is vizdata limited ?
+      unsigned int frames         = samples / m_chLayoutCountOutput;
+      unsigned int samplesClamped = (samples > 512) ? 512 : samples;
+      if(samplesClamped) {
+        // Viz channel count is 2
+        CheckOutputBufferSize((void **)&m_vizRemapBuffer, &m_vizRemapBufferSize, frames * 2 * sizeof(float));
+      
+        m_vizRemap.Remap(floatBuffer, (float*)m_vizRemapBuffer, frames);
+        if (m_audioCallback)
+        {
+          m_audioCallback->OnAudioData((float *)m_vizRemapBuffer, samplesClamped);
+        }
       }
     }
-  }
-//#endif
-
-  /* if we are fading */
-  if (m_fadeRunning && !m_isRaw)
-  {
-    // TODO: check if we correctly respect the amount of our blockoperation
-    m_volume += (m_fadeStep * ((float)readsize / (float)m_OutputFormat.m_frameSize));
-    m_volume = std::min(1.0f, std::max(0.0f, m_volume));
-    if (m_fadeDirUp)
+    
+    /* if we are fading */
+    if (m_fadeRunning)
     {
-      if (m_volume >= m_fadeTarget)
-        m_fadeRunning = false;
-    }
-    else
-    {
-      if (m_volume <= m_fadeTarget)
-        m_fadeRunning = false;
-    }
-  }
-  //m_fadeRunning = false;
+      // TODO: check if we correctly respect the amount of our blockoperation
+      m_volume += (m_fadeStep * ((float)readsize / (float)m_OutputFormat.m_frameSize));
+      m_volume = std::min(1.0f, std::max(0.0f, m_volume));
+      if (m_fadeDirUp)
+      {
+        if (m_volume >= m_fadeTarget)
+          m_fadeRunning = false;
+      }
+      else
+      {
+        if (m_volume <= m_fadeTarget)
+          m_fadeRunning = false;
+      }
 
-  /*
-  if(readsize == 0)
-  {
-    printf("buffer size zero\n");
+#ifdef __SSE__
+      CAEUtil::SSEMulArray(floatBuffer, m_volume, samples);
+#else
+      for(unsigned int i=0; i < samples; i++)
+        floatBuffer[i] *= m_volume;
+#endif
+      CAEUtil::ClampArray(floatBuffer, samples);
+    }
   }
-  */
 
   return readsize;
 }
@@ -572,7 +572,7 @@ void CCoreAudioAEStream::Drain()
 
 bool CCoreAudioAEStream::IsDrained()
 {
-  return m_buffer->GetReadSize() <= 0;
+  return m_Buffer->GetReadSize() <= 0;
 }
 
 void CCoreAudioAEStream::Flush()
@@ -643,6 +643,11 @@ const unsigned int CCoreAudioAEStream::GetChannelCount() const
 const unsigned int CCoreAudioAEStream::GetSampleRate() const
 {
   return m_StreamFormat.m_sampleRate;
+}
+
+const unsigned int CCoreAudioAEStream::GetEncodedSampleRate() const
+{
+  return m_StreamFormat.m_encodedRate;
 }
 
 const enum AEDataFormat CCoreAudioAEStream::GetDataFormat() const

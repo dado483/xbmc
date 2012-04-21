@@ -105,7 +105,7 @@ public:
   bool SetObjectListenerProc(AudioObjectPropertyListenerProc callback, void* pClientData);
   
   AudioDeviceID GetId() {return m_DeviceId;}
-  const char* GetName(std::string& name);
+  std::string GetName();
   UInt32 GetTotalOutputChannels();
   bool GetStreams(AudioStreamIdList* pList);
   bool IsRunning();
@@ -364,7 +364,7 @@ public:
   virtual void  SetDirectInput(ICoreAudioSource *pSource, AEAudioFormat &format);
   virtual void  Stop();
   virtual bool  Start();
-  virtual float GetDelay();
+  virtual double GetDelay();
   virtual void  SetVolume(float volume);
   virtual unsigned int GetBufferIndex();
   virtual CAUOutputDevice *DestroyUnit(CAUOutputDevice *outputUnit);

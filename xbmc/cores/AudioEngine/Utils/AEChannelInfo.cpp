@@ -221,15 +221,24 @@ CAEChannelInfo::operator std::string()
 
 const char* CAEChannelInfo::GetChName(const enum AEChannel ch)
 {
-  if (ch < 0 || ch >= AE_CH_MAX)
-    return "UNKNOWN";
+  ASSERT(ch >= 0 || ch < AE_CH_MAX);
 
   static const char* channels[AE_CH_MAX] =
   {
     "RAW" ,
     "FL"  , "FR" , "FC" , "LFE", "BL"  , "BR"  , "FLOC",
     "FROC", "BC" , "SL" , "SR" , "TFL" , "TFR" , "TFC" ,
-    "TC"  , "TBL", "TBR", "TBC", "BLOC", "BROC"
+    "TC"  , "TBL", "TBR", "TBC", "BLOC", "BROC",
+
+    /* p16v devices */
+    "UNKNOWN1",
+    "UNKNOWN2",
+    "UNKNOWN3",
+    "UNKNOWN4",
+    "UNKNOWN5",
+    "UNKNOWN6",
+    "UNKNOWN7",
+    "UNKNOWN8"
   };
 
   return channels[ch];

@@ -45,10 +45,11 @@ CCoreAudioAE::CCoreAudioAE() :
   m_Initialized        (false  ),
   m_rawPassthrough     (false  ),
   m_volume             (1.0f   ),
+  m_volumeBeforeMute   (1.0f   ),
+  m_muted              (false  ),
   m_chLayoutCount      (0      ),
   m_callbackRunning    (false  )
 {
-  m_volume    = g_settings.m_fVolumeLevel;
   HAL         = new CCoreAudioAEHAL;
 }
 
@@ -200,6 +201,8 @@ bool CCoreAudioAE::OpenCoreAudio(unsigned int sampleRate, bool forceRaw, enum AE
     m_format.m_dataFormat       = AE_FMT_FLOAT;
   }
 
+  m_format.m_encodedRate = 0;
+
   if (m_outputDevice.empty())
     m_outputDevice = "default";
 
@@ -315,6 +318,11 @@ unsigned int CCoreAudioAE::GetSampleRate()
   return m_format.m_sampleRate;
 }
 
+unsigned int CCoreAudioAE::GetEncodedSampleRate()
+{
+  return m_format.m_encodedRate;
+}
+
 CAEChannelInfo CCoreAudioAE::GetChannelLayout()
 {
   return m_format.m_channelLayout;
@@ -350,11 +358,30 @@ void CCoreAudioAE::SetVolume(float volume)
   if (m_rawPassthrough)
     return;
 
-  g_settings.m_fVolumeLevel = volume;
   m_volume = volume;
 
   HAL->SetVolume(m_volume);
 }
+
+void CCoreAudioAE::SetMute(const bool enabled)
+{
+  m_muted = enabled;
+  if(m_muted)
+  {
+    m_volumeBeforeMute = m_volume;  
+    SetVolume(VOLUME_MINIMUM);
+  }
+  else
+  {
+    SetVolume(m_volumeBeforeMute);
+  }
+}
+
+bool CCoreAudioAE::IsMuted()
+{
+  return m_muted;
+}
+
 
 bool CCoreAudioAE::SupportsRaw()
 {
@@ -368,19 +395,21 @@ CCoreAudioAEHAL  *CCoreAudioAE::GetHAL()
 
 IAEStream *CCoreAudioAE::MakeStream(enum AEDataFormat dataFormat,
                                    unsigned int sampleRate,
+                                   unsigned int encodedSamplerate,
                                    CAEChannelInfo channelLayout,
                                    unsigned int options/* = 0 */)
 {
   CAEChannelInfo channelInfo(channelLayout);
-  CLog::Log(LOGINFO, "CCoreAudioAE::MakeStream - %s, %u, %s",
+  CLog::Log(LOGINFO, "CCoreAudioAE::MakeStream - %s, %u, %u, %s",
             CAEUtil::DataFormatToStr(dataFormat),
             sampleRate,
+            encodedSamplerate,
             ((std::string)channelInfo).c_str()
             );
 
   CSingleLock streamLock(m_streamLock);
   //bool wasEmpty = m_streams.empty();
-  CCoreAudioAEStream *stream = new CCoreAudioAEStream(dataFormat, sampleRate, channelLayout, options);
+  CCoreAudioAEStream *stream = new CCoreAudioAEStream(dataFormat, sampleRate, encodedSamplerate, channelLayout, options);
   m_streams.push_back(stream);
   streamLock.Leave();
 
