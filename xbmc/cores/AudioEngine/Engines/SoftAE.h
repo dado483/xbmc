@@ -150,6 +150,7 @@ private:
   AEAudioFormat             m_sinkFormat;
   float                     m_sinkFormatSampleRateMul;
   float                     m_sinkFormatFrameSizeMul;
+  unsigned int              m_sinkBlockSize;
   AEAudioFormat             m_encoderFormat;
   float                     m_encoderFrameSizeMul;
   unsigned int              m_bytesPerSample;

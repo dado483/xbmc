@@ -321,6 +321,7 @@ void CSoftAE::InternalOpenSink()
     m_sinkFormat              = newFormat;
     m_sinkFormatSampleRateMul = 1.0 / (float)newFormat.m_sampleRate;
     m_sinkFormatFrameSizeMul  = 1.0 / (float)newFormat.m_frameSize;
+    m_sinkBlockSize           = newFormat.m_frames * newFormat.m_frameSize;
 
     /* invalidate the buffer */
     m_buffer.Empty();
@@ -982,13 +983,11 @@ void CSoftAE::RunOutputStage()
 
 void CSoftAE::RunRawOutputStage()
 {
-  unsigned int block = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
-
   /* this normally only loops once */
-  while (m_buffer.Used() >= block)
+  while (m_buffer.Used() >= m_sinkBlockSize)
   {
     int wroteFrames;
-    wroteFrames = m_sink->AddPackets((uint8_t*)m_buffer.Raw(block), m_sinkFormat.m_frames);
+    wroteFrames = m_sink->AddPackets((uint8_t*)m_buffer.Raw(m_sinkBlockSize), m_sinkFormat.m_frames);
     m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
   }
 }
