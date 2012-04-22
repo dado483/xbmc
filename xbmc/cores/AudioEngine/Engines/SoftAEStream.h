@@ -123,7 +123,6 @@ private:
   unsigned int        m_samplesPerFrame;
   CAEChannelInfo      m_aeChannelLayout;
   unsigned int        m_aeBytesPerFrame;
-  unsigned int        m_aePacketSamples;
   SRC_STATE          *m_ssrc;
   SRC_DATA            m_ssrcData;
   unsigned int        m_framesBuffered;

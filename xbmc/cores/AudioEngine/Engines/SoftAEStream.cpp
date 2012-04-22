@@ -89,7 +89,6 @@ void CSoftAEStream::InitializeRemap()
     {
       InternalFlush();
       m_aeChannelLayout = AE.GetChannelLayout();
-      m_aePacketSamples = AE.GetSampleRate() / 10 * m_aeChannelLayout.Count();
       m_samplesPerFrame = AE.GetChannelLayout().Count();
       m_aeBytesPerFrame = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
     }
@@ -136,15 +135,14 @@ void CSoftAEStream::Initialize()
   m_bytesPerFrame   = m_bytesPerSample * m_initChannelLayout.Count();
 
   m_aeChannelLayout = AE.GetChannelLayout();
-  m_aePacketSamples = AE.GetSampleRate() / 10 * m_aeChannelLayout.Count();
   m_aeBytesPerFrame = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
-  m_waterLevel      = AE.GetSampleRate() / 10 * 8;
+  m_waterLevel      = AE.GetSampleRate();
 
   m_format.m_dataFormat    = useDataFormat;
   m_format.m_sampleRate    = m_initSampleRate;
   m_format.m_encodedRate   = m_initEncodedSampleRate;
   m_format.m_channelLayout = m_initChannelLayout;
-  m_format.m_frames        = AE.GetSampleRate() / 10;
+  m_format.m_frames        = m_initSampleRate / 40;
   m_format.m_frameSamples  = m_format.m_frames * m_initChannelLayout.Count();
   m_format.m_frameSize     = m_bytesPerFrame;
 
@@ -258,25 +256,17 @@ unsigned int CSoftAEStream::AddData(void *data, unsigned int size)
   if (m_framesBuffered >= m_waterLevel)
     return 0;
 
-  uint8_t *ptr = (uint8_t*)data;
-  while (size)
+  size_t copy = std::min(m_inputBuffer.Free(), (size_t)size);
+  if (copy > 0)
+    m_inputBuffer.Push(data, copy);
+
+  if (m_inputBuffer.Free() == 0)
   {
-    size_t copy = std::min(m_inputBuffer.Free(), (size_t)size);
-    if (copy == 0)
-      break;
-
-    m_inputBuffer.Push(ptr, copy);
-    size -= copy;
-    ptr  += copy;
-
-    if (m_inputBuffer.Used() / m_bytesPerSample < m_format.m_frameSamples)
-      continue;
-
     unsigned int consumed = ProcessFrameBuffer();
     m_inputBuffer.Shift(NULL, consumed);
   }
 
-  return ptr - (uint8_t*)data;
+  return copy;
 }
 
 unsigned int CSoftAEStream::ProcessFrameBuffer()
@@ -472,22 +462,31 @@ double CSoftAEStream::GetDelay()
 {
   if (m_delete)
     return 0.0;
-  double delay = (double)m_framesBuffered / (double)AE.GetSampleRate();
-  return AE.GetDelay() + delay;
+
+  double delay = AE.GetDelay();
+  delay += (double)(m_inputBuffer.Used() / m_format.m_frameSize) / (double)m_format.m_sampleRate;
+  delay += (double)m_framesBuffered / (double)AE.GetSampleRate();
+  return delay;
 }
 
 double CSoftAEStream::GetCacheTime()
 {
   if (m_delete)
     return 0.0;
-  return (double)std::max((int)m_waterLevel - (int)m_refillBuffer, 0) / (double)AE.GetSampleRate();
+
+  double time = (double)m_inputBuffer.Free() / (double)m_format.m_sampleRate;
+  time += (double)std::max((int)m_waterLevel - (int)m_refillBuffer, 0) / (double)AE.GetSampleRate();
+  return time;
 }
 
 double CSoftAEStream::GetCacheTotal()
 {
   if (m_delete)
     return 0.0;
-  return (double)m_waterLevel / (double)AE.GetSampleRate();
+
+  double total = (double)m_inputBuffer.Size() / (double)m_format.m_sampleRate;
+  total += (double)m_waterLevel / (double)AE.GetSampleRate();
+  return total;
 }
 
 void CSoftAEStream::Pause()
