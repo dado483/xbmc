@@ -218,7 +218,7 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
 {
   snd_pcm_hw_params_t *hw_params;
 
-  snd_pcm_hw_params_malloc(&hw_params);
+  snd_pcm_hw_params_alloca(&hw_params);
   snd_pcm_hw_params_any(m_pcm, hw_params);
   snd_pcm_hw_params_set_access(m_pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
 
@@ -231,7 +231,6 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
   if (format.m_channelLayout.Count() > channelCount)
   {
     CLog::Log(LOGERROR, "CAESinkALSA::InitializeHW - Unable to open the required number of channels");
-    snd_pcm_hw_params_free(hw_params);
     return false;
   }
 
@@ -286,7 +285,6 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
     if (fmt == SND_PCM_FORMAT_UNKNOWN)
     {
       CLog::Log(LOGERROR, "CAESinkALSA::InitializeHW - Unable to find a suitable output format");
-      snd_pcm_hw_params_free(hw_params);
       return false;
     }
   }
@@ -305,7 +303,7 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
 
   /* work on a copy of the hw params */
   snd_pcm_hw_params_t *hw_params_copy;
-  snd_pcm_hw_params_malloc(&hw_params_copy);
+  snd_pcm_hw_params_alloca(&hw_params_copy);
 
   /* try to set the buffer size then the period size */
   snd_pcm_hw_params_copy(hw_params_copy, hw_params);
@@ -334,10 +332,8 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
         if (snd_pcm_hw_params(m_pcm, hw_params_copy) != 0)
         {
           CLog::Log(LOGERROR, "CAESinkALSA::InitializeHW - Failed to set the parameters");
-          snd_pcm_hw_params_free(hw_params_copy);
-          snd_pcm_hw_params_free(hw_params     );
           return false;
-	      }
+	}
       }
     }
   }
@@ -360,8 +356,6 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
 
   CLog::Log(LOGDEBUG, "CAESinkALSA::InitializeHW - Setting timeout to %d ms", m_timeout);
 
-  snd_pcm_hw_params_free(hw_params_copy);
-  snd_pcm_hw_params_free(hw_params    );
   return true;
 }
 
@@ -370,7 +364,7 @@ bool CAESinkALSA::InitializeSW(AEAudioFormat &format)
   snd_pcm_sw_params_t *sw_params;
   snd_pcm_uframes_t boundary;
 
-  snd_pcm_sw_params_malloc(&sw_params);
+  snd_pcm_sw_params_alloca(&sw_params);
 
   snd_pcm_sw_params_current              (m_pcm, sw_params);
   snd_pcm_sw_params_set_start_threshold  (m_pcm, sw_params, INT_MAX);
@@ -382,7 +376,6 @@ bool CAESinkALSA::InitializeSW(AEAudioFormat &format)
   if (snd_pcm_sw_params(m_pcm, sw_params) < 0)
   {
     CLog::Log(LOGERROR, "CAESinkALSA::InitializeSW - Failed to set the parameters");
-    snd_pcm_sw_params_free(sw_params);
     return false;
   }
 
