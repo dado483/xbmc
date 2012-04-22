@@ -812,9 +812,10 @@ void CSoftAE::Run()
   {
     m_reOpened = false;
 
-    /* output the buffer to the sink */
+    /* output the buffer to the sink if its full */
     (this->*m_outputStageFn)();
 
+    /* if there is no room left in the buffer */
     if (m_buffer.Free() < m_frameSize)
     {
       CLog::Log(LOGDEBUG, "CSoftAE::Run - no room left in output buffer");
@@ -839,13 +840,12 @@ void CSoftAE::Run()
     {
       CLog::Log(LOGDEBUG, "CSoftAE::Run - Sink restart flagged");
       InternalOpenSink();
+      if (m_reOpened)
+        continue;
     }
 
-    if (!m_reOpened)
-    {
-      if (!m_rawPassthrough && mixed)
-        RunNormalizeStage(m_chLayout.Count(), out, mixed);
-    }
+    if (!m_rawPassthrough && mixed)
+      RunNormalizeStage(m_chLayout.Count(), out, mixed);
   }
 }
 
@@ -1045,8 +1045,6 @@ unsigned int CSoftAE::RunRawStreamStage(unsigned int channelCount, void *out, bo
 {
   StreamList resumeStreams;
   static StreamList::iterator itt;
-
-  /* identify the masterStream */
   CSingleLock streamLock(m_streamLock);
 
   /* handle playing streams */
@@ -1066,15 +1064,18 @@ unsigned int CSoftAE::RunRawStreamStage(unsigned int channelCount, void *out, bo
 
   /* get the frame and append it to the output */
   uint8_t *frame = m_masterStream->GetFrame();
-  unsigned int mixed = 0;
+  unsigned int mixed;
   if (frame)
   {
-    memcpy(out, frame, m_sinkFormat.m_frameSize);
     mixed = 1;
+    memcpy(out, frame, m_sinkFormat.m_frameSize);
   }
-
-  if (!frame && m_masterStream->IsDrained() && m_masterStream->m_slave && m_masterStream->m_slave->IsPaused())
-    resumeStreams.push_back(m_masterStream);
+  else
+  {
+    mixed = 0;
+    if (m_masterStream->IsDrained() && m_masterStream->m_slave && m_masterStream->m_slave->IsPaused())
+      resumeStreams.push_back(m_masterStream);
+  }
 
   ResumeSlaveStreams(resumeStreams);
   return mixed;
