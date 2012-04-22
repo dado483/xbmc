@@ -90,6 +90,8 @@ void CSoftAEStream::InitializeRemap()
       InternalFlush();
       m_aeChannelLayout = AE.GetChannelLayout();
       m_aePacketSamples = AE.GetSampleRate() / 10 * m_aeChannelLayout.Count();
+      m_samplesPerFrame = AE.GetChannelLayout().Count();
+      m_aeBytesPerFrame = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
     }
   }
 }
@@ -135,6 +137,7 @@ void CSoftAEStream::Initialize()
 
   m_aeChannelLayout = AE.GetChannelLayout();
   m_aePacketSamples = AE.GetSampleRate() / 10 * m_aeChannelLayout.Count();
+  m_aeBytesPerFrame = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
   m_waterLevel      = AE.GetSampleRate() / 10 * 8;
 
   m_format.m_dataFormat    = useDataFormat;
@@ -446,8 +449,7 @@ uint8_t* CSoftAEStream::GetFrame()
   }
 
   /* fetch one frame of data */
-  ssize_t bytes = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
-  uint8_t *ret  = (uint8_t*)m_packet->data.CursorRead(bytes);
+  uint8_t *ret = (uint8_t*)m_packet->data.CursorRead(m_aeBytesPerFrame);
 
   /* we have a frame, if we have a viz we need to hand the data to it */
   if (m_audioCallback && !m_packet->vizData.CursorEnd())
