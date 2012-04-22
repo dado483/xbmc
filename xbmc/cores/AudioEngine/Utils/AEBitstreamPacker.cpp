@@ -51,9 +51,11 @@ void CAEBitstreamPacker::Pack(CAEStreamInfo &info, uint8_t* data, int size)
     case CAEStreamInfo::STREAM_TYPE_TRUEHD:
       PackTrueHD(info, data, size);
       break;
+
     case CAEStreamInfo::STREAM_TYPE_DTSHD:
       PackDTSHD (info, data, size);
       break;
+
     default:
       /* pack the data into an IEC61937 frame */
       CAEPackIEC61937::PackFunc pack = info.GetPackFunc();
@@ -118,7 +120,6 @@ void CAEBitstreamPacker::PackTrueHD(CAEStreamInfo &info, uint8_t* data, int size
 void CAEBitstreamPacker::PackDTSHD(CAEStreamInfo &info, uint8_t* data, int size)
 {
   static const uint8_t dtshd_start_code[10] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfe, 0xfe };
-  unsigned int period   = (info.GetOutputRate() * (info.GetOutputChannels() / 2)) * (info.GetDTSBlocks() << 5) / info.GetSampleRate();
   unsigned int dataSize = sizeof(dtshd_start_code) + 2 + size;
 
   if (dataSize > m_dtsHDSize)
@@ -133,6 +134,6 @@ void CAEBitstreamPacker::PackDTSHD(CAEStreamInfo &info, uint8_t* data, int size)
   m_dtsHD[sizeof(dtshd_start_code) + 1] = ((uint16_t)size & 0x00FF);
   memcpy(m_dtsHD + sizeof(dtshd_start_code) + 2, data, size);
 
-  m_dataSize = CAEPackIEC61937::PackDTSHD(m_dtsHD, dataSize, m_packedBuffer, period);
+  m_dataSize = CAEPackIEC61937::PackDTSHD(m_dtsHD, dataSize, m_packedBuffer, info.GetDTSPeriod());
 }
 
