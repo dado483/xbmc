@@ -53,6 +53,7 @@ public:
 private:
   CAEChannelInfo GetChannelLayout(AEAudioFormat format);
   void           GetPassthroughDevice(const AEAudioFormat format, std::string& device);
+  void           HandleError(const char* name, int err);
 
   std::string       m_initDevice;
   AEAudioFormat     m_initFormat;
