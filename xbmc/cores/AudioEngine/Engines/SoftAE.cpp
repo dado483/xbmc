@@ -318,6 +318,10 @@ void CSoftAE::InternalOpenSink()
     CLog::Log(LOGINFO, "  Frame Samples : %d", newFormat.m_frameSamples);
     CLog::Log(LOGINFO, "  Frame Size    : %d", newFormat.m_frameSize);
 
+    /* setup a 50ms buffer */
+    m_bufferFrames = std::max(newFormat.m_frames, newFormat.m_sampleRate / 20);
+    CLog::Log(LOGINFO, "  Buffer Frames : %d", m_bufferFrames);
+
     m_sinkFormat              = newFormat;
     m_sinkFormatSampleRateMul = 1.0 / (float)newFormat.m_sampleRate;
     m_sinkFormatFrameSizeMul  = 1.0 / (float)newFormat.m_frameSize;
@@ -340,7 +344,7 @@ void CSoftAE::InternalOpenSink()
     m_convertFn      = NULL;
     m_bytesPerSample = CAEUtil::DataFormatToBits(m_sinkFormat.m_dataFormat) >> 3;
     m_frameSize      = m_sinkFormat.m_frameSize;
-    neededBufferSize = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
+    neededBufferSize = m_bufferFrames * m_sinkFormat.m_frameSize;
   }
   else
   {
@@ -373,19 +377,18 @@ void CSoftAE::InternalOpenSink()
 
       /* remap directly to the format we need for encode */
       reInit = (reInit || m_chLayout != m_encoderFormat.m_channelLayout);
-      m_chLayout       = m_encoderFormat.m_channelLayout;
-      m_convertFn      = CAEConvert::FrFloat(m_encoderFormat.m_dataFormat);
-      neededBufferSize = m_encoderFormat.m_frames * sizeof(float) * m_chLayout.Count();
-
+      m_bufferFrames = m_encoderFormat.m_frames;
+      m_chLayout     = m_encoderFormat.m_channelLayout;
+      m_convertFn    = CAEConvert::FrFloat(m_encoderFormat.m_dataFormat);
       CLog::Log(LOGDEBUG, "CSoftAE::Initialize - Encoding using layout: %s", ((std::string)m_chLayout).c_str());
     }
     else
     {
-      m_convertFn      = CAEConvert::FrFloat(m_sinkFormat.m_dataFormat);
-      neededBufferSize = m_sinkFormat.m_frames * sizeof(float) * m_chLayout.Count();
+      m_convertFn = CAEConvert::FrFloat(m_sinkFormat.m_dataFormat);
       CLog::Log(LOGDEBUG, "CSoftAE::Initialize - Using speaker layout: %s", CAEUtil::GetStdChLayoutName(m_stdChLayout));
     }
 
+    neededBufferSize = m_bufferFrames * sizeof(float) * m_chLayout.Count();
     m_bytesPerSample = CAEUtil::DataFormatToBits(AE_FMT_FLOAT) >> 3;
     m_frameSize      = m_bytesPerSample * m_chLayout.Count();
   }
@@ -939,57 +942,54 @@ void CSoftAE::FinalizeSamples(float *buffer, unsigned int samples)
 
 void CSoftAE::RunOutputStage()
 {
+  if (m_buffer.Used() / m_sinkFormat.m_frameSize < m_sinkFormat.m_frames)
+    return;
+
   const unsigned int rSamples = m_sinkFormat.m_frames * m_sinkFormat.m_channelLayout.Count();
+  int wroteFrames;
 
-  /* this normally only loops once */
-  while (m_buffer.Used() / m_sinkFormat.m_frameSize >= m_sinkFormat.m_frames)
+  if (m_remappedSize < rSamples)
   {
-    int wroteFrames;
-
-    if (m_remappedSize < rSamples)
-    {
-      _aligned_free(m_remapped);
-      m_remapped = (float *)_aligned_malloc(rSamples * sizeof(float), 16);
-      m_remappedSize = rSamples;
-    }
-
-    m_remap.Remap(
-      (float *)m_buffer.Raw(m_sinkFormat.m_frames * m_sinkFormat.m_frameSize),
-      m_remapped,
-      m_sinkFormat.m_frames
-    );
-    FinalizeSamples(m_remapped, rSamples);
-
-    if (m_convertFn)
-    {
-      unsigned int newSize = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
-      if (m_convertedSize < newSize)
-      {
-        _aligned_free(m_converted);
-        m_converted = (uint8_t *)_aligned_malloc(newSize, 16);
-        m_convertedSize = newSize;
-      }
-      m_convertFn(m_remapped, rSamples, m_converted);
-      wroteFrames = m_sink->AddPackets(m_converted, m_sinkFormat.m_frames);
-    }
-    else
-    {
-      wroteFrames = m_sink->AddPackets((uint8_t*)m_remapped, m_sinkFormat.m_frames);
-    }
-
-    m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
+    _aligned_free(m_remapped);
+    m_remapped = (float *)_aligned_malloc(rSamples * sizeof(float), 16);
+    m_remappedSize = rSamples;
   }
+
+  m_remap.Remap(
+    (float *)m_buffer.Raw(m_sinkFormat.m_frames * m_sinkFormat.m_frameSize),
+    m_remapped,
+    m_sinkFormat.m_frames
+  );
+  FinalizeSamples(m_remapped, rSamples);
+
+  if (m_convertFn)
+  {
+    unsigned int newSize = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
+    if (m_convertedSize < newSize)
+    {
+      _aligned_free(m_converted);
+      m_converted = (uint8_t *)_aligned_malloc(newSize, 16);
+      m_convertedSize = newSize;
+    }
+    m_convertFn(m_remapped, rSamples, m_converted);
+    wroteFrames = m_sink->AddPackets(m_converted, m_sinkFormat.m_frames);
+  }
+  else
+  {
+    wroteFrames = m_sink->AddPackets((uint8_t*)m_remapped, m_sinkFormat.m_frames);
+  }
+
+  m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
 }
 
 void CSoftAE::RunRawOutputStage()
 {
   /* this normally only loops once */
-  while (m_buffer.Used() >= m_sinkBlockSize)
-  {
-    int wroteFrames;
-    wroteFrames = m_sink->AddPackets((uint8_t*)m_buffer.Raw(m_sinkBlockSize), m_sinkFormat.m_frames);
-    m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
-  }
+  if(m_buffer.Used() < m_sinkBlockSize)
+    return;
+
+  int wroteFrames = m_sink->AddPackets((uint8_t*)m_buffer.Raw(m_sinkBlockSize), m_sinkFormat.m_frames);
+  m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
 }
 
 void CSoftAE::RunTranscodeStage()
@@ -1036,10 +1036,9 @@ void CSoftAE::RunTranscodeStage()
   }
 
   /* if we have enough data to write */
-  while (m_encodedBuffer.Used() >= sinkBlock)
+  if (m_encodedBuffer.Used() >= sinkBlock)
   {
-    unsigned int wroteFrames;
-    wroteFrames = m_sink->AddPackets((uint8_t*)m_encodedBuffer.Raw(sinkBlock), m_sinkFormat.m_frames);
+    int wroteFrames = m_sink->AddPackets((uint8_t*)m_encodedBuffer.Raw(sinkBlock), m_sinkFormat.m_frames);
     m_encodedBuffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
   }
 }
