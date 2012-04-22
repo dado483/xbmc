@@ -219,6 +219,8 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
   snd_pcm_hw_params_t *hw_params;
 
   snd_pcm_hw_params_alloca(&hw_params);
+  memset(hw_params, 0, snd_pcm_hw_params_sizeof());
+
   snd_pcm_hw_params_any(m_pcm, hw_params);
   snd_pcm_hw_params_set_access(m_pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
 
@@ -365,6 +367,7 @@ bool CAESinkALSA::InitializeSW(AEAudioFormat &format)
   snd_pcm_uframes_t boundary;
 
   snd_pcm_sw_params_alloca(&sw_params);
+  memset(sw_params, 0, snd_pcm_sw_params_sizeof());
 
   snd_pcm_sw_params_current              (m_pcm, sw_params);
   snd_pcm_sw_params_set_start_threshold  (m_pcm, sw_params, INT_MAX);
@@ -514,12 +517,15 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
 
   snd_ctl_card_info_t *ctlinfo;
   snd_ctl_card_info_alloca(&ctlinfo);
+  memset(ctlinfo, 0, snd_ctl_card_info_sizeof());
 
   snd_pcm_hw_params_t *hwparams;
   snd_pcm_hw_params_alloca(&hwparams);
+  memset(hwparams, 0, snd_pcm_hw_params_sizeof());
 
   snd_pcm_info_t *pcminfo;
   snd_pcm_info_alloca(&pcminfo);
+  memset(pcminfo, 0, snd_pcm_info_sizeof());
 
   /* get the sound config */
   snd_config_t *config;
@@ -687,6 +693,8 @@ bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool
   snd_hctl_elem_t      *elem;
 
   snd_ctl_elem_id_alloca(&id);
+  memset(id, 0, snd_ctl_elem_id_sizeof());
+
   snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_PCM);
   snd_ctl_elem_id_set_name     (id, "ELD" );
   snd_ctl_elem_id_set_device   (id, device);
@@ -695,6 +703,8 @@ bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool
     return false;
 
   snd_ctl_elem_info_alloca(&einfo);
+  memset(einfo, 0, snd_ctl_elem_info_sizeof());
+
   if (snd_hctl_elem_info(elem, einfo) < 0)
     return false;
 
@@ -705,6 +715,8 @@ bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool
     return false;
 
   snd_ctl_elem_value_alloca(&control);
+  memset(control, 0, snd_ctl_elem_value_sizeof());
+
   if (snd_hctl_elem_read(elem, control) < 0)
     return false;
 
