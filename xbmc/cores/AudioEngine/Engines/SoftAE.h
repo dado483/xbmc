@@ -151,7 +151,6 @@ private:
   float                     m_sinkFormatSampleRateMul;
   float                     m_sinkFormatFrameSizeMul;
   unsigned int              m_sinkBlockSize;
-  unsigned int              m_bufferFrames;
   AEAudioFormat             m_encoderFormat;
   float                     m_encoderFrameSizeMul;
   unsigned int              m_bytesPerSample;

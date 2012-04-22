@@ -318,10 +318,6 @@ void CSoftAE::InternalOpenSink()
     CLog::Log(LOGINFO, "  Frame Samples : %d", newFormat.m_frameSamples);
     CLog::Log(LOGINFO, "  Frame Size    : %d", newFormat.m_frameSize);
 
-    /* setup a 50ms buffer */
-    m_bufferFrames = std::max(newFormat.m_frames, newFormat.m_sampleRate / 20);
-    CLog::Log(LOGINFO, "  Buffer Frames : %d", m_bufferFrames);
-
     m_sinkFormat              = newFormat;
     m_sinkFormatSampleRateMul = 1.0 / (float)newFormat.m_sampleRate;
     m_sinkFormatFrameSizeMul  = 1.0 / (float)newFormat.m_frameSize;
@@ -344,7 +340,7 @@ void CSoftAE::InternalOpenSink()
     m_convertFn      = NULL;
     m_bytesPerSample = CAEUtil::DataFormatToBits(m_sinkFormat.m_dataFormat) >> 3;
     m_frameSize      = m_sinkFormat.m_frameSize;
-    neededBufferSize = m_bufferFrames * m_sinkFormat.m_frameSize;
+    neededBufferSize = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
   }
   else
   {
@@ -377,18 +373,18 @@ void CSoftAE::InternalOpenSink()
 
       /* remap directly to the format we need for encode */
       reInit = (reInit || m_chLayout != m_encoderFormat.m_channelLayout);
-      m_bufferFrames = m_encoderFormat.m_frames;
-      m_chLayout     = m_encoderFormat.m_channelLayout;
-      m_convertFn    = CAEConvert::FrFloat(m_encoderFormat.m_dataFormat);
+      m_chLayout       = m_encoderFormat.m_channelLayout;
+      m_convertFn      = CAEConvert::FrFloat(m_encoderFormat.m_dataFormat);
+      neededBufferSize = m_encoderFormat.m_frames * sizeof(float) * m_chLayout.Count();
       CLog::Log(LOGDEBUG, "CSoftAE::Initialize - Encoding using layout: %s", ((std::string)m_chLayout).c_str());
     }
     else
     {
-      m_convertFn = CAEConvert::FrFloat(m_sinkFormat.m_dataFormat);
+      m_convertFn      = CAEConvert::FrFloat(m_sinkFormat.m_dataFormat);
+      neededBufferSize = m_sinkFormat.m_frames * sizeof(float) * m_chLayout.Count();
       CLog::Log(LOGDEBUG, "CSoftAE::Initialize - Using speaker layout: %s", CAEUtil::GetStdChLayoutName(m_stdChLayout));
     }
 
-    neededBufferSize = m_bufferFrames * sizeof(float) * m_chLayout.Count();
     m_bytesPerSample = CAEUtil::DataFormatToBits(AE_FMT_FLOAT) >> 3;
     m_frameSize      = m_bytesPerSample * m_chLayout.Count();
   }
@@ -820,15 +816,7 @@ void CSoftAE::Run()
   {
     m_reOpened = false;
 
-    /* output the buffer to the sink if its full */
     (this->*m_outputStageFn)();
-
-    /* if there is no room left in the buffer */
-    if (m_buffer.Free() < m_frameSize)
-    {
-      CLog::Log(LOGDEBUG, "CSoftAE::Run - no room left in output buffer");
-      continue;
-    }
 
     /* take some data for our use from the buffer */
     uint8_t *out = (uint8_t*)m_buffer.Take(m_frameSize);
@@ -982,9 +970,9 @@ void CSoftAE::RunOutputStage()
   m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
 }
 
+bool buffering = true;
 void CSoftAE::RunRawOutputStage()
 {
-  /* this normally only loops once */
   if(m_buffer.Used() < m_sinkBlockSize)
     return;
 

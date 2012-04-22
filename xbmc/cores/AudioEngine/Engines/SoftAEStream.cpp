@@ -144,7 +144,7 @@ void CSoftAEStream::Initialize()
   m_format.m_sampleRate    = m_initSampleRate;
   m_format.m_encodedRate   = m_initEncodedSampleRate;
   m_format.m_channelLayout = m_initChannelLayout;
-  m_format.m_frames        = AE.GetSampleRate() / 100;
+  m_format.m_frames        = AE.GetSampleRate() / 10;
   m_format.m_frameSamples  = m_format.m_frames * m_initChannelLayout.Count();
   m_format.m_frameSize     = m_bytesPerFrame;
 
