@@ -214,6 +214,10 @@ void CSoftAE::InternalOpenSink()
           m_transcode = false;
       }
     }
+
+    /* if the stream is paused we cant use it for anything else */
+    if (m_masterStream->m_paused)
+      m_masterStream = NULL;
   }
   else
     m_transcode = false;
@@ -1061,6 +1065,10 @@ unsigned int CSoftAE::RunRawStreamStage(unsigned int channelCount, void *out, bo
     if (!frame && sitt->IsDrained() && sitt->m_slave && sitt->m_slave->IsPaused())
       resumeStreams.push_back(sitt);
   }
+
+  /* nothing to do if we dont have a master stream */
+  if (!m_masterStream)
+    return 0;
 
   /* get the frame and append it to the output */
   uint8_t *frame = m_masterStream->GetFrame();

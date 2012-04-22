@@ -133,6 +133,7 @@ private:
   uint8_t            *m_packetPos;
   float              *m_vizPacketPos;
   bool                m_paused;
+  bool                m_autoStart;
   bool                m_draining;
 
   /* vizualization internals */

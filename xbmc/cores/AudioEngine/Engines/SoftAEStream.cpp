@@ -65,6 +65,10 @@ CSoftAEStream::CSoftAEStream(enum AEDataFormat dataFormat, unsigned int sampleRa
   m_chLayoutCount         = channelLayout.Count();
   m_forceResample         = (options & AESTREAM_FORCE_RESAMPLE) != 0;
   m_paused                = (options & AESTREAM_PAUSED) != 0;
+  m_autoStart             = (options & AESTREAM_AUTOSTART) != 0;
+
+  if (m_autoStart)
+    m_paused = true;
 
   ASSERT(m_initChannelLayout.Count());
 }
@@ -383,6 +387,10 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
     m_newPacket->data.Empty();
   }
 
+  /* if the stream is flagged to autoStart when the buffer is full, then do it */
+  if (m_autoStart && m_framesBuffered >= m_waterLevel)
+    Resume();
+
   return consumed;
 }
 
@@ -492,7 +500,8 @@ void CSoftAEStream::Resume()
 {
   if (!m_paused)
     return;
-  m_paused = false;
+  m_paused    = false;
+  m_autoStart = false;
   AE.ResumeStream(this);
 }
 
