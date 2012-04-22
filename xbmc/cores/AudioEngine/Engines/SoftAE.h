@@ -204,7 +204,6 @@ private:
 
   void         ResumeSlaveStreams(const StreamList &streams);
   void         RunNormalizeStage (unsigned int channelCount, void *out, unsigned int mixed);
-  void         RunBufferStage    (void *out);
 
   void         RemoveStream(StreamList &streams, CSoftAEStream *stream);
 };

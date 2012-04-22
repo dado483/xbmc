@@ -806,10 +806,6 @@ void CSoftAE::Run()
 {
   /* we release this when we exit the thread unblocking anyone waiting on "Stop" */
   CSingleLock runningLock(m_runningLock);
-
-  uint8_t *out = NULL;
-  size_t   outSize = 0;
-
   CLog::Log(LOGINFO, "CSoftAE::Run - Thread Started");
 
   while (m_running)
@@ -819,14 +815,14 @@ void CSoftAE::Run()
     /* output the buffer to the sink */
     (this->*m_outputStageFn)();
 
-    /* make sure we have enough room to fetch a frame */
-    if (m_frameSize > outSize)
+    if (m_buffer.Free() < m_frameSize)
     {
-      /* allocate space for the samples */
-      _aligned_free(out);
-      out = (uint8_t *)_aligned_malloc(m_frameSize, 16);
-      outSize = m_frameSize;
+      CLog::Log(LOGDEBUG, "CSoftAE::Run - no room left in output buffer");
+      continue;
     }
+
+    /* take some data for our use from the buffer */
+    uint8_t *out = (uint8_t*)m_buffer.Take(m_frameSize);
     memset(out, 0, m_frameSize);
 
     /* run the stream stage */
@@ -849,15 +845,8 @@ void CSoftAE::Run()
     {
       if (!m_rawPassthrough && mixed)
         RunNormalizeStage(m_chLayout.Count(), out, mixed);
-
-      /* buffer the samples into the output buffer */
-      RunBufferStage(out);
     }
   }
-
-  /* free the frame storage */
-  if (out)
-    _aligned_free(out);
 }
 
 void CSoftAE::MixSounds(float *buffer, unsigned int samples)
@@ -920,7 +909,7 @@ void CSoftAE::FinalizeSamples(float *buffer, unsigned int samples)
       for (unsigned int i = 0; i < samples; ++i)
       {
         buffer[i] *= m_volume;
-        if (!clamp && buffer[i] < -1.0f || buffer[i] > 1.0f)
+        if (!clamp && (buffer[i] < -1.0f || buffer[i] > 1.0f))
           clamp = true;
       }
     #endif
@@ -1179,14 +1168,6 @@ inline void CSoftAE::RunNormalizeStage(unsigned int channelCount, void *out, uns
     for (unsigned int i = 0; i < channelCount; ++i)
       dst[i] *= mul;
   }
-}
-
-inline void CSoftAE::RunBufferStage(void *out)
-{
-  if (m_rawPassthrough)
-    m_buffer.Push(out, m_sinkFormat.m_frameSize);
-  else
-    m_buffer.Push(out, m_frameSize);
 }
 
 inline void CSoftAE::RemoveStream(StreamList &streams, CSoftAEStream *stream)

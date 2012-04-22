@@ -103,6 +103,17 @@ void CAEBuffer::UnShift(const void *src, const size_t size)
   m_bufferPos += size;
 }
 
+void* CAEBuffer::Take(const size_t size)
+{
+#ifdef _DEBUG
+  ASSERT(size <= m_bufferSize - m_bufferPos);
+#endif
+
+  void* ret = m_buffer + m_bufferPos;
+  m_bufferPos += size;
+  return ret;
+}
+
 void CAEBuffer::Read(void *dst, const size_t size)
 {
 #ifdef _DEBUG

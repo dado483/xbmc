@@ -50,9 +50,10 @@ public:
   inline void   Empty() { m_bufferPos = 0; }
 
   /* write methods */
-  void Write  (const void *src, const size_t size);
-  void Push   (const void *src, const size_t size);
-  void UnShift(const void *src, const size_t size);
+  void  Write  (const void *src, const size_t size);
+  void  Push   (const void *src, const size_t size);
+  void  UnShift(const void *src, const size_t size);
+  void* Take   (const size_t size);
 
   /* raw methods */
   void* Raw(const size_t size);
