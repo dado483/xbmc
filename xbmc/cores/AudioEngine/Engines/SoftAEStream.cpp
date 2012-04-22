@@ -30,8 +30,6 @@
 #include "SoftAE.h"
 #include "SoftAEStream.h"
 
-#define SOFTAE_FRAMES 1024
-
 /* typecast AE to CSoftAE */
 #define AE (*((CSoftAE*)CAEFactory::AE))
 
@@ -87,7 +85,7 @@ void CSoftAEStream::InitializeRemap()
     {
       InternalFlush();
       m_aeChannelLayout = AE.GetChannelLayout();
-      m_aePacketSamples = SOFTAE_FRAMES * m_aeChannelLayout.Count();
+      m_aePacketSamples = AE.GetSampleRate() / 10 * m_aeChannelLayout.Count();
     }
   }
 }
@@ -132,14 +130,14 @@ void CSoftAEStream::Initialize()
   m_bytesPerFrame   = m_bytesPerSample * m_initChannelLayout.Count();
 
   m_aeChannelLayout = AE.GetChannelLayout();
-  m_aePacketSamples = SOFTAE_FRAMES * m_aeChannelLayout.Count();
-  m_waterLevel      = SOFTAE_FRAMES * 8;
+  m_aePacketSamples = AE.GetSampleRate() / 10 * m_aeChannelLayout.Count();
+  m_waterLevel      = AE.GetSampleRate() / 10 * 8;
 
   m_format.m_dataFormat    = useDataFormat;
   m_format.m_sampleRate    = m_initSampleRate;
   m_format.m_encodedRate   = m_initEncodedSampleRate;
   m_format.m_channelLayout = m_initChannelLayout;
-  m_format.m_frames        = SOFTAE_FRAMES;
+  m_format.m_frames        = AE.GetSampleRate() / 100;
   m_format.m_frameSamples  = m_format.m_frames * m_initChannelLayout.Count();
   m_format.m_frameSize     = m_bytesPerFrame;
 
@@ -512,6 +510,7 @@ bool CSoftAEStream::IsDrained()
 
 void CSoftAEStream::Flush()
 {
+  CLog::Log(LOGDEBUG, "CSoftAEStream::Flush");
   CExclusiveLock lock(m_lock);
   InternalFlush();
 
