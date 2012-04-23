@@ -35,15 +35,7 @@
 #include "settings/GUISettings.h"
 
 #define ALSA_OPTIONS (SND_PCM_NONBLOCK | SND_PCM_NO_AUTO_FORMAT | SND_PCM_NO_AUTO_RESAMPLE)
-
-#define PERIOD_SIZE_MS     20
-#define PERIODS            8
-
-#define RAW_PERIOD_SIZE    64
-#define RAW_PERIODS        16
-
-#define RAW_PERIOD_SIZE_HD 256
-#define RAW_PERIODS_HD     16
+#define ALSA_PERIODS 4
 
 #define ALSA_MAX_CHANNELS 16
 static enum AEChannel ALSAChannelMap[ALSA_MAX_CHANNELS + 1] = {
@@ -226,7 +218,9 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
 {
   snd_pcm_hw_params_t *hw_params;
 
-  snd_pcm_hw_params_malloc(&hw_params);
+  snd_pcm_hw_params_alloca(&hw_params);
+  memset(hw_params, 0, snd_pcm_hw_params_sizeof());
+
   snd_pcm_hw_params_any(m_pcm, hw_params);
   snd_pcm_hw_params_set_access(m_pcm, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED);
 
@@ -239,7 +233,6 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
   if (format.m_channelLayout.Count() > channelCount)
   {
     CLog::Log(LOGERROR, "CAESinkALSA::InitializeHW - Unable to open the required number of channels");
-    snd_pcm_hw_params_free(hw_params);
     return false;
   }
 
@@ -294,40 +287,25 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
     if (fmt == SND_PCM_FORMAT_UNKNOWN)
     {
       CLog::Log(LOGERROR, "CAESinkALSA::InitializeHW - Unable to find a suitable output format");
-      snd_pcm_hw_params_free(hw_params);
       return false;
     }
   }
 
-  unsigned int framesPerMs = 0;
+  unsigned int framesPerMs = sampleRate / 1000;
   unsigned int periods;
 
   snd_pcm_uframes_t periodSize, bufferSize;
-  if (AE_IS_RAW(m_initFormat.m_dataFormat))
-  {
-    if (AE_IS_RAW_HD(m_initFormat.m_dataFormat))
-    {
-      periodSize = RAW_PERIOD_SIZE_HD;
-      periods    = RAW_PERIODS_HD;
-    }
-    else
-    {
-      periodSize = RAW_PERIOD_SIZE;
-      periods    = RAW_PERIODS;
-    }
-  }
-  else
-  {
-    framesPerMs = sampleRate / 1000; /* 1 ms of audio */
-    periodSize  = framesPerMs * PERIOD_SIZE_MS;
-    periods     = PERIODS;
-  }
+  snd_pcm_hw_params_get_buffer_size_max(hw_params, &bufferSize);
 
-  bufferSize = periodSize  * periods;
+  bufferSize  = std::min(bufferSize, (snd_pcm_uframes_t)8192);
+  periodSize  = bufferSize / ALSA_PERIODS;
+  periods     = ALSA_PERIODS;
+
+  CLog::Log(LOGDEBUG, "CAESinkALSA::InitializeHW - Request: periodSize %lu, periods %u, bufferSize %lu", periodSize, periods, bufferSize);
 
   /* work on a copy of the hw params */
   snd_pcm_hw_params_t *hw_params_copy;
-  snd_pcm_hw_params_malloc(&hw_params_copy);
+  snd_pcm_hw_params_alloca(&hw_params_copy);
 
   /* try to set the buffer size then the period size */
   snd_pcm_hw_params_copy(hw_params_copy, hw_params);
@@ -356,16 +334,16 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
         if (snd_pcm_hw_params(m_pcm, hw_params_copy) != 0)
         {
           CLog::Log(LOGERROR, "CAESinkALSA::InitializeHW - Failed to set the parameters");
-          snd_pcm_hw_params_free(hw_params_copy);
-          snd_pcm_hw_params_free(hw_params     );
           return false;
-	      }
+	}
       }
     }
   }
 
   snd_pcm_hw_params_get_period_size(hw_params_copy, &periodSize, NULL);
   snd_pcm_hw_params_get_buffer_size(hw_params_copy, &bufferSize);
+
+  CLog::Log(LOGDEBUG, "CAESinkALSA::InitializeHW - Got: periodSize %lu, periods %u, bufferSize %lu", periodSize, periods, bufferSize);
 
   /* set the format parameters */
   format.m_sampleRate   = sampleRate;
@@ -380,8 +358,6 @@ bool CAESinkALSA::InitializeHW(AEAudioFormat &format)
 
   CLog::Log(LOGDEBUG, "CAESinkALSA::InitializeHW - Setting timeout to %d ms", m_timeout);
 
-  snd_pcm_hw_params_free(hw_params_copy);
-  snd_pcm_hw_params_free(hw_params    );
   return true;
 }
 
@@ -390,7 +366,8 @@ bool CAESinkALSA::InitializeSW(AEAudioFormat &format)
   snd_pcm_sw_params_t *sw_params;
   snd_pcm_uframes_t boundary;
 
-  snd_pcm_sw_params_malloc(&sw_params);
+  snd_pcm_sw_params_alloca(&sw_params);
+  memset(sw_params, 0, snd_pcm_sw_params_sizeof());
 
   snd_pcm_sw_params_current              (m_pcm, sw_params);
   snd_pcm_sw_params_set_start_threshold  (m_pcm, sw_params, INT_MAX);
@@ -402,7 +379,6 @@ bool CAESinkALSA::InitializeSW(AEAudioFormat &format)
   if (snd_pcm_sw_params(m_pcm, sw_params) < 0)
   {
     CLog::Log(LOGERROR, "CAESinkALSA::InitializeSW - Failed to set the parameters");
-    snd_pcm_sw_params_free(sw_params);
     return false;
   }
 
@@ -454,49 +430,70 @@ unsigned int CAESinkALSA::AddPackets(uint8_t *data, unsigned int frames)
   if (snd_pcm_state(m_pcm) == SND_PCM_STATE_PREPARED)
     snd_pcm_start(m_pcm);
 
-  if (snd_pcm_wait(m_pcm, m_timeout) == 0)
+  int ret;
+
+  ret = snd_pcm_avail(m_pcm);
+  if (ret < 0) 
   {
-    CLog::Log(LOGERROR, "CAESinkALSA::AddPackets - Timeout waiting for space");
-    return 0;
+    HandleError("snd_pcm_avail", ret);
+    ret = 0;
   }
 
-  int ret = snd_pcm_writei(m_pcm, (void*)data, frames);
-  if (ret < 0)
-    switch(ret)
-    {
-      case -EPIPE:
-        CLog::Log(LOGERROR, "CAESinkALSA::AddPackets - Underrun");
-        if ((ret = snd_pcm_prepare(m_pcm)) < 0)
-        {
-          CLog::Log(LOGERROR, "CAESinkALSA::AddPackets - snd_pcm_prepare returned %d (%s)", ret, snd_strerror(ret));
-          return 0;
-        }
-        break;
-
-      case -ESTRPIPE:
-        CLog::Log(LOGINFO, "CAESinkALSA::AddPackets - Resuming after suspend");
-
-        /* try to resume the stream */
-        while((ret = snd_pcm_resume(m_pcm)) == -EAGAIN)
-          Sleep(1);
-
-        /* if the hardware doesnt support resume, prepare the stream */
-        if (ret == -ENOSYS)
-        {
-          if ((ret = snd_pcm_prepare(m_pcm)) < 0)
-          {
-            CLog::Log(LOGERROR, "CAESinkALSA::AddPackets - snd_pcm_prepare returned %d (%s)", ret, snd_strerror(ret));
-            return 0;
-          }
-        }
-        break;
-
-      default:
-        CLog::Log(LOGERROR, "CAESinkALSA::AddPackets - snd_pcm_writei returned %d (%s)", ret, snd_strerror(ret));
+  if ((unsigned int)ret < frames);
+  {
+    ret = snd_pcm_wait(m_pcm, m_timeout);
+    if (ret < 0)
+      HandleError("snd_pcm_wait", ret);
+    else
+      if (ret == 0)
+      {
+        CLog::Log(LOGERROR, "CAESinkALSA::AddPackets - Timeout waiting for space");
         return 0;
+      }
+  }
+
+  ret = snd_pcm_writei(m_pcm, (void*)data, frames);
+  if (ret < 0)
+  {
+    HandleError("snd_pcm_writei(1)", ret);
+    ret = snd_pcm_writei(m_pcm, (void*)data, frames);
+    if (ret < 0)
+    {
+      HandleError("snd_pcm_writei(2)", ret);
+      ret = 0;
     }
+  }
 
   return ret;
+}
+
+void CAESinkALSA::HandleError(const char* name, int err)
+{
+  switch(err)
+  {
+    case -EPIPE:
+      CLog::Log(LOGERROR, "CAESinkALSA::HandleError(%s) - underrun", name);
+      if ((err = snd_pcm_prepare(m_pcm)) < 0)
+        CLog::Log(LOGERROR, "CAESinkALSA::HandleError(%s) - snd_pcm_prepare returned %d (%s)", name, err, snd_strerror(err));
+      break;
+
+    case -ESTRPIPE:
+      CLog::Log(LOGINFO, "CAESinkALSA::HandleError(%s) - Resuming after suspend", name);
+
+      /* try to resume the stream */
+      while((err = snd_pcm_resume(m_pcm)) == -EAGAIN)
+        Sleep(1);
+
+      /* if the hardware doesnt support resume, prepare the stream */
+      if (err == -ENOSYS)
+        if ((err = snd_pcm_prepare(m_pcm)) < 0)
+          CLog::Log(LOGERROR, "CAESinkALSA::HandleError(%s) - snd_pcm_prepare returned %d (%s)", name, err, snd_strerror(err));
+      break;
+
+    default:
+      CLog::Log(LOGERROR, "CAESinkALSA::HandleError(%s) - snd_pcm_writei returned %d (%s)", name, err, snd_strerror(err));
+      break;
+  }
 }
 
 void CAESinkALSA::Drain()
@@ -520,12 +517,15 @@ void CAESinkALSA::EnumerateDevicesEx(AEDeviceInfoList &list)
 
   snd_ctl_card_info_t *ctlinfo;
   snd_ctl_card_info_alloca(&ctlinfo);
+  memset(ctlinfo, 0, snd_ctl_card_info_sizeof());
 
   snd_pcm_hw_params_t *hwparams;
   snd_pcm_hw_params_alloca(&hwparams);
+  memset(hwparams, 0, snd_pcm_hw_params_sizeof());
 
   snd_pcm_info_t *pcminfo;
   snd_pcm_info_alloca(&pcminfo);
+  memset(pcminfo, 0, snd_pcm_info_sizeof());
 
   /* get the sound config */
   snd_config_t *config;
@@ -693,6 +693,8 @@ bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool
   snd_hctl_elem_t      *elem;
 
   snd_ctl_elem_id_alloca(&id);
+  memset(id, 0, snd_ctl_elem_id_sizeof());
+
   snd_ctl_elem_id_set_interface(id, SND_CTL_ELEM_IFACE_PCM);
   snd_ctl_elem_id_set_name     (id, "ELD" );
   snd_ctl_elem_id_set_device   (id, device);
@@ -701,6 +703,8 @@ bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool
     return false;
 
   snd_ctl_elem_info_alloca(&einfo);
+  memset(einfo, 0, snd_ctl_elem_info_sizeof());
+
   if (snd_hctl_elem_info(elem, einfo) < 0)
     return false;
 
@@ -711,6 +715,8 @@ bool CAESinkALSA::GetELD(snd_hctl_t *hctl, int device, CAEDeviceInfo& info, bool
     return false;
 
   snd_ctl_elem_value_alloca(&control);
+  memset(control, 0, snd_ctl_elem_value_sizeof());
+
   if (snd_hctl_elem_read(elem, control) < 0)
     return false;
 

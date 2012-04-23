@@ -61,6 +61,7 @@ public:
   unsigned int              GetChannels      () { return m_channels      ; }
   unsigned int              GetFrameSize     () { return m_fsize         ; }
   unsigned int              GetDTSBlocks     () { return m_dtsBlocks     ; }
+  unsigned int              GetDTSPeriod     () { return m_dtsPeriod     ; }
   enum DataType             GetDataType      () { return m_dataType      ; }
   bool                      IsLittleEndian   () { return m_dataIsLE      ; }
   CAEPackIEC61937::PackFunc GetPackFunc      () { return m_packFunc      ; }
@@ -84,6 +85,7 @@ private:
   unsigned int              m_channels;         /* the actual number of channels in the stream */
   unsigned int              m_coreSize;         /* core size for dtsHD */
   unsigned int              m_dtsBlocks;
+  unsigned int              m_dtsPeriod;        /* used for dtsHD */
   unsigned int              m_fsize;
   unsigned int              m_repeat;
   int                       m_substreams;       /* used for TrueHD  */

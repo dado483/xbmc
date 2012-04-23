@@ -67,8 +67,12 @@ bool CDVDAudioCodecFFmpeg::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options
     CLog::Log(LOGDEBUG,"CDVDAudioCodecFFmpeg::Open() Unable to find codec %d", hints.codec);
     return false;
   }
-  
-  m_bLpcmMode = g_guiSettings.GetBool("audiooutput.multichannellpcm");
+
+#if defined(TARGET_DARWIN)
+  int audioMode = g_guiSettings.GetInt("audiooutput.mode");
+  if (audioMode == AUDIO_HDMI)
+    m_bLpcmMode = g_guiSettings.GetBool("audiooutput.multichannellpcm");
+#endif
 
   m_pCodecContext = m_dllAvCodec.avcodec_alloc_context3(pCodec);
   m_pCodecContext->debug_mv = 0;
@@ -250,7 +254,15 @@ int CDVDAudioCodecFFmpeg::GetChannels()
 
 int CDVDAudioCodecFFmpeg::GetSampleRate()
 {
-  if (m_pCodecContext) return m_pCodecContext->sample_rate;
+  if (m_pCodecContext)
+    return m_pCodecContext->sample_rate;
+  return 0;
+}
+
+int CDVDAudioCodecFFmpeg::GetEncodedSampleRate()
+{
+  if (m_pCodecContext)
+    return m_pCodecContext->sample_rate;
   return 0;
 }
 

@@ -30,8 +30,6 @@
 #include "SoftAE.h"
 #include "SoftAEStream.h"
 
-#define SOFTAE_FRAMES 1024
-
 /* typecast AE to CSoftAE */
 #define AE (*((CSoftAE*)CAEFactory::AE))
 
@@ -67,6 +65,10 @@ CSoftAEStream::CSoftAEStream(enum AEDataFormat dataFormat, unsigned int sampleRa
   m_chLayoutCount         = channelLayout.Count();
   m_forceResample         = (options & AESTREAM_FORCE_RESAMPLE) != 0;
   m_paused                = (options & AESTREAM_PAUSED) != 0;
+  m_autoStart             = (options & AESTREAM_AUTOSTART) != 0;
+
+  if (m_autoStart)
+    m_paused = true;
 
   ASSERT(m_initChannelLayout.Count());
 }
@@ -87,7 +89,8 @@ void CSoftAEStream::InitializeRemap()
     {
       InternalFlush();
       m_aeChannelLayout = AE.GetChannelLayout();
-      m_aePacketSamples = SOFTAE_FRAMES * m_aeChannelLayout.Count();
+      m_samplesPerFrame = AE.GetChannelLayout().Count();
+      m_aeBytesPerFrame = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
     }
   }
 }
@@ -132,14 +135,14 @@ void CSoftAEStream::Initialize()
   m_bytesPerFrame   = m_bytesPerSample * m_initChannelLayout.Count();
 
   m_aeChannelLayout = AE.GetChannelLayout();
-  m_aePacketSamples = SOFTAE_FRAMES * m_aeChannelLayout.Count();
-  m_waterLevel      = SOFTAE_FRAMES * 8;
+  m_aeBytesPerFrame = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
+  m_waterLevel      = AE.GetSampleRate();
 
   m_format.m_dataFormat    = useDataFormat;
   m_format.m_sampleRate    = m_initSampleRate;
   m_format.m_encodedRate   = m_initEncodedSampleRate;
   m_format.m_channelLayout = m_initChannelLayout;
-  m_format.m_frames        = SOFTAE_FRAMES;
+  m_format.m_frames        = m_initSampleRate;
   m_format.m_frameSamples  = m_format.m_frames * m_initChannelLayout.Count();
   m_format.m_frameSize     = m_bytesPerFrame;
 
@@ -253,25 +256,17 @@ unsigned int CSoftAEStream::AddData(void *data, unsigned int size)
   if (m_framesBuffered >= m_waterLevel)
     return 0;
 
-  uint8_t *ptr = (uint8_t*)data;
-  while (size)
+  size_t copy = std::min(m_inputBuffer.Free(), (size_t)size);
+  if (copy > 0)
+    m_inputBuffer.Push(data, copy);
+
+  if (m_inputBuffer.Free() == 0)
   {
-    size_t copy = std::min(m_inputBuffer.Free(), (size_t)size);
-    if (copy == 0)
-      break;
-
-    m_inputBuffer.Push(ptr, copy);
-    size -= copy;
-    ptr  += copy;
-
-    if (m_inputBuffer.Used() / m_bytesPerSample < m_format.m_frameSamples)
-      continue;
-
     unsigned int consumed = ProcessFrameBuffer();
     m_inputBuffer.Shift(NULL, consumed);
   }
 
-  return ptr - (uint8_t*)data;
+  return copy;
 }
 
 unsigned int CSoftAEStream::ProcessFrameBuffer()
@@ -385,6 +380,10 @@ unsigned int CSoftAEStream::ProcessFrameBuffer()
     m_newPacket->data.Empty();
   }
 
+  /* if the stream is flagged to autoStart when the buffer is full, then do it */
+  if (m_autoStart && m_framesBuffered >= m_waterLevel)
+    Resume();
+
   return consumed;
 }
 
@@ -440,8 +439,7 @@ uint8_t* CSoftAEStream::GetFrame()
   }
 
   /* fetch one frame of data */
-  ssize_t bytes = AE_IS_RAW(m_initDataFormat) ? m_bytesPerFrame : (m_samplesPerFrame * sizeof(float));
-  uint8_t *ret  = (uint8_t*)m_packet->data.CursorRead(bytes);
+  uint8_t *ret = (uint8_t*)m_packet->data.CursorRead(m_aeBytesPerFrame);
 
   /* we have a frame, if we have a viz we need to hand the data to it */
   if (m_audioCallback && !m_packet->vizData.CursorEnd())
@@ -464,22 +462,31 @@ double CSoftAEStream::GetDelay()
 {
   if (m_delete)
     return 0.0;
-  double delay = (double)m_framesBuffered / (double)AE.GetSampleRate();
-  return AE.GetDelay() + delay;
+
+  double delay = AE.GetDelay();
+  delay += (double)(m_inputBuffer.Used() / m_format.m_frameSize) / (double)m_format.m_sampleRate;
+  delay += (double)m_framesBuffered / (double)AE.GetSampleRate();
+  return delay;
 }
 
 double CSoftAEStream::GetCacheTime()
 {
   if (m_delete)
     return 0.0;
-  return (double)std::max((int)m_waterLevel - (int)m_refillBuffer, 0) / (double)AE.GetSampleRate();
+
+  double time = (double)m_inputBuffer.Free() / (double)m_format.m_sampleRate;
+  time += (double)std::max((int)m_waterLevel - (int)m_refillBuffer, 0) / (double)AE.GetSampleRate();
+  return time;
 }
 
 double CSoftAEStream::GetCacheTotal()
 {
   if (m_delete)
     return 0.0;
-  return (double)m_waterLevel / (double)AE.GetSampleRate();
+
+  double total = (double)m_inputBuffer.Size() / (double)m_format.m_sampleRate;
+  total += (double)m_waterLevel / (double)AE.GetSampleRate();
+  return total;
 }
 
 void CSoftAEStream::Pause()
@@ -494,7 +501,8 @@ void CSoftAEStream::Resume()
 {
   if (!m_paused)
     return;
-  m_paused = false;
+  m_paused    = false;
+  m_autoStart = false;
   AE.ResumeStream(this);
 }
 
@@ -512,6 +520,7 @@ bool CSoftAEStream::IsDrained()
 
 void CSoftAEStream::Flush()
 {
+  CLog::Log(LOGDEBUG, "CSoftAEStream::Flush");
   CExclusiveLock lock(m_lock);
   InternalFlush();
 

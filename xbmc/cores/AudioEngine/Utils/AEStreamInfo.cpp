@@ -426,8 +426,9 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
     unsigned int header = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3];
     unsigned int hd_sync = 0;
     bool match = true;
-    unsigned int sfreq;
+    unsigned int dtsBlocks;
     unsigned int amode;
+    unsigned int sfreq;
     unsigned int lfe;
     int bits;
 
@@ -440,7 +441,7 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
           match = false;
           break;
         }
-        m_dtsBlocks = (((data[5] & 0x7) << 4) | ((data[6] & 0x3C) >> 2)) + 1;
+        dtsBlocks = (((data[5] & 0x7) << 4) | ((data[6] & 0x3C) >> 2)) + 1;
         m_fsize     = ((((data[6] & 0x3 << 8) | data[7]) << 4) | ((data[8] & 0x3C) >> 2)) + 1;
         amode       = ((data[8] & 0x3) << 4) | ((data[9] & 0xF0) >> 4);
         sfreq       = data[9] & 0xF;
@@ -456,7 +457,7 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
           match = false;
           break;
         }
-        m_dtsBlocks = (((data[4] & 0x7) << 4) | ((data[7] & 0x3C) >> 2)) + 1;
+        dtsBlocks = (((data[4] & 0x7) << 4) | ((data[7] & 0x3C) >> 2)) + 1;
         m_fsize     = ((((data[7] & 0x3 << 8) | data[6]) << 4) | ((data[9] & 0x3C) >> 2)) + 1;
         amode       = ((data[9] & 0x3) << 4) | ((data[8] & 0xF0) >> 4);
         sfreq       = data[8] & 0xF;
@@ -467,7 +468,7 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
 
       /* 16bit BE */
       case DTS_PREAMBLE_16BE:
-        m_dtsBlocks = (((data[4] & 0x1) << 7) | ((data[5] & 0xFC) >> 2)) + 1;
+        dtsBlocks = (((data[4] & 0x1) << 7) | ((data[5] & 0xFC) >> 2)) + 1;
         m_fsize     = (((((data[5] & 0x3) << 8) | data[6]) << 4) | ((data[7] & 0xF0) >> 4)) + 1;
         amode       = ((data[7] & 0x0F) << 2) | ((data[8] & 0xC0) >> 6);
         sfreq       = (data[8] & 0x3C) >> 2;
@@ -478,7 +479,7 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
 
       /* 16bit LE */
       case DTS_PREAMBLE_16LE:
-        m_dtsBlocks = (((data[5] & 0x1) << 7) | ((data[4] & 0xFC) >> 2)) + 1;
+        dtsBlocks = (((data[5] & 0x1) << 7) | ((data[4] & 0xFC) >> 2)) + 1;
         m_fsize     = (((((data[4] & 0x3) << 8) | data[7]) << 4) | ((data[6] & 0xF0) >> 4)) + 1;
         amode       = ((data[6] & 0x0F) << 2) | ((data[9] & 0xC0) >> 6);
         sfreq       = (data[9] & 0x3C) >> 2;
@@ -501,7 +502,7 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
 
     bool invalid = false;
     DataType dataType;
-    switch (m_dtsBlocks << 5)
+    switch (dtsBlocks << 5)
     {
       case 512 : dataType = STREAM_TYPE_DTS_512 ; m_packFunc = &CAEPackIEC61937::PackDTS_512 ; break;
       case 1024: dataType = STREAM_TYPE_DTS_1024; m_packFunc = &CAEPackIEC61937::PackDTS_1024; break;
@@ -551,11 +552,12 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
     }
 
     unsigned int sampleRate = DTSSampleRates[sfreq];
-    if (!m_hasSync || skip || dataType != m_dataType || sampleRate != m_sampleRate)
+    if (!m_hasSync || skip || dataType != m_dataType || sampleRate != m_sampleRate || dtsBlocks != m_dtsBlocks)
     {
       m_hasSync        = true;
       m_dataType       = dataType;
       m_sampleRate     = sampleRate;
+      m_dtsBlocks      = dtsBlocks;
       m_channels       = DTSChannels[amode] + (lfe ? 1 : 0);
       m_syncFunc       = &CAEStreamInfo::SyncDTS;
       m_repeat         = 1;
@@ -582,9 +584,13 @@ unsigned int CAEStreamInfo::SyncDTS(uint8_t *data, unsigned int size)
         default                    : type = "dts"; break;
       }
 
-      CLog::Log(LOGINFO, "CAEStreamInfo::SyncDTS - %s stream detected (%d channels, %dHz, %dbit %s)",
+      /* calculate the period size for dtsHD */
+      m_dtsPeriod = (m_outputRate * (m_outputChannels >> 1)) * (m_dtsBlocks << 5) / m_sampleRate;
+
+      CLog::Log(LOGINFO, "CAEStreamInfo::SyncDTS - %s stream detected (%d channels, %dHz, %dbit %s, period: %u)",
                 type.c_str(), m_channels, m_sampleRate,
-                bits, m_dataIsLE ? "LE" : "BE");
+                bits, m_dataIsLE ? "LE" : "BE",
+                m_dtsPeriod);
     }
 
     return skip;

@@ -22,6 +22,10 @@
 
 #include "system.h"
 
+#ifdef _DEBUG
+#include "utils/StdString.h" /* needed for ASSERT */
+#endif
+
 /**
  * This class wraps a block of 16 byte aligned memory for simple buffer
  * operations, if _DEBUG is defined then size is always verified.
@@ -50,21 +54,114 @@ public:
   inline void   Empty() { m_bufferPos = 0; }
 
   /* write methods */
-  void Write  (const void *src, const size_t size);
-  void Push   (const void *src, const size_t size);
-  void UnShift(const void *src, const size_t size);
+  inline void Write(const void *src, const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(src);
+    ASSERT(size <= m_bufferSize);
+  #endif
+    memcpy(m_buffer, src, size);
+    m_bufferPos = 0;
+  }
+
+  inline void Push(const void *src, const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(src);
+    ASSERT(size <= m_bufferSize - m_bufferPos);
+  #endif
+    memcpy(m_buffer + m_bufferPos, src, size);
+    m_bufferPos += size;
+  }
+
+  inline void UnShift(const void *src, const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(src);
+    ASSERT(size < m_bufferSize - m_bufferPos);
+  #endif
+    memmove(m_buffer + size, m_buffer, m_bufferSize - size);
+    memcpy (m_buffer, src, size);
+    m_bufferPos += size;
+  }
+
+  inline void* Take(const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(size <= m_bufferSize - m_bufferPos);
+  #endif
+
+    void* ret = m_buffer + m_bufferPos;
+    m_bufferPos += size;
+    return ret;
+  }
 
   /* raw methods */
-  void* Raw(const size_t size);
+  inline void* Raw(const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(size <= m_bufferSize);
+  #endif
+    return m_buffer;
+  }
 
   /* read methods */
-  void  Read   (void *dst, const size_t size);
-  void  Pop    (void *dst, const size_t size);
-  void  Shift  (void *dst, const size_t size);
+  inline void Read(void *dst, const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(size <= m_bufferSize);
+    ASSERT(dst);
+  #endif
+    memcpy(dst, m_buffer, size);
+  }
+
+  inline void Pop(void *dst, const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(size <= m_bufferPos);
+  #endif
+    m_bufferPos -= size;
+    if (dst)
+      memcpy(dst, m_buffer + m_bufferPos, size);
+  }
+
+  inline void Shift(void *dst, const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(size <= m_bufferPos);
+  #endif
+    if (dst)
+      memcpy(dst, m_buffer, size);
+    memmove(m_buffer, m_buffer + size, m_bufferSize - size);
+    m_bufferPos -= size;
+  }
 
   /* cursor methods */
-  inline void  CursorReset() { m_cursorPos = 0; }
-  inline bool  CursorEnd  () { return m_cursorPos == m_bufferSize; }
-  void         CursorSeek (const size_t pos );
-  void*        CursorRead (const size_t size);
+  inline void CursorReset()
+  {
+    m_cursorPos = 0;
+  }
+
+  inline bool CursorEnd()
+  {
+    return m_cursorPos == m_bufferSize;
+  }
+
+  inline void CursorSeek (const size_t pos )
+  {
+  #ifdef _DEBUG
+    ASSERT(pos <= m_bufferSize);
+  #endif
+    m_cursorPos = pos;
+  }
+
+  inline void* CursorRead(const size_t size)
+  {
+  #ifdef _DEBUG
+    ASSERT(m_cursorPos + size <= m_bufferSize);
+  #endif
+    uint8_t* out = m_buffer + m_cursorPos;
+    m_cursorPos += size;
+    return out;
+  }
 };

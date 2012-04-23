@@ -122,7 +122,7 @@ private:
   unsigned int        m_bytesPerFrame;
   unsigned int        m_samplesPerFrame;
   CAEChannelInfo      m_aeChannelLayout;
-  unsigned int        m_aePacketSamples;
+  unsigned int        m_aeBytesPerFrame;
   SRC_STATE          *m_ssrc;
   SRC_DATA            m_ssrcData;
   unsigned int        m_framesBuffered;
@@ -133,6 +133,7 @@ private:
   uint8_t            *m_packetPos;
   float              *m_vizPacketPos;
   bool                m_paused;
+  bool                m_autoStart;
   bool                m_draining;
 
   /* vizualization internals */

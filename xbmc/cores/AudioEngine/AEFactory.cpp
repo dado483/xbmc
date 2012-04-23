@@ -21,7 +21,7 @@
 #include "system.h"
 
 #include "AEFactory.h"
-#ifdef __APPLE__
+#ifdef TARGET_DARWIN
 # include "Engines/CoreAudioAE.h"
 #else
 # include "Engines/SoftAE.h"
@@ -38,7 +38,7 @@ bool CAEFactory::LoadEngine()
 
   std::string engine;
 
-#if defined(__LINUX__) && !defined(__APPLE__)
+#if defined(__LINUX__) && !defined(TARGET_DARWIN)
   if (getenv("AE_ENGINE"))
   {
     engine = (std::string)getenv("AE_ENGINE");
@@ -58,7 +58,7 @@ bool CAEFactory::LoadEngine()
     loaded = CAEFactory::LoadEngine(AE_ENGINE_PULSE);
 #endif
 
-#ifdef __APPLE__
+#ifdef TARGET_DARWIN
   if (!loaded)
     loaded = CAEFactory::LoadEngine(AE_ENGINE_COREAUDIO);
 #else
@@ -77,10 +77,10 @@ bool CAEFactory::LoadEngine(enum AEEngine engine)
 
   switch(engine)
   {
-#ifndef __APPLE__
+#ifndef TARGET_DARWIN
     case AE_ENGINE_NULL     :
 #endif
-#ifdef __APPLE__
+#ifdef TARGET_DARWIN
     case AE_ENGINE_COREAUDIO: AE = new CCoreAudioAE(); break;
 #else
     case AE_ENGINE_SOFT     : AE = new CSoftAE(); break;

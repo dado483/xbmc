@@ -214,6 +214,10 @@ void CSoftAE::InternalOpenSink()
           m_transcode = false;
       }
     }
+
+    /* if the stream is paused we cant use it for anything else */
+    if (m_masterStream->m_paused)
+      m_masterStream = NULL;
   }
   else
     m_transcode = false;
@@ -317,6 +321,7 @@ void CSoftAE::InternalOpenSink()
     m_sinkFormat              = newFormat;
     m_sinkFormatSampleRateMul = 1.0 / (float)newFormat.m_sampleRate;
     m_sinkFormatFrameSizeMul  = 1.0 / (float)newFormat.m_frameSize;
+    m_sinkBlockSize           = newFormat.m_frames * newFormat.m_frameSize;
 
     /* invalidate the buffer */
     m_buffer.Empty();
@@ -371,7 +376,6 @@ void CSoftAE::InternalOpenSink()
       m_chLayout       = m_encoderFormat.m_channelLayout;
       m_convertFn      = CAEConvert::FrFloat(m_encoderFormat.m_dataFormat);
       neededBufferSize = m_encoderFormat.m_frames * sizeof(float) * m_chLayout.Count();
-
       CLog::Log(LOGDEBUG, "CSoftAE::Initialize - Encoding using layout: %s", ((std::string)m_chLayout).c_str());
     }
     else
@@ -806,27 +810,16 @@ void CSoftAE::Run()
 {
   /* we release this when we exit the thread unblocking anyone waiting on "Stop" */
   CSingleLock runningLock(m_runningLock);
-
-  uint8_t *out = NULL;
-  size_t   outSize = 0;
-
   CLog::Log(LOGINFO, "CSoftAE::Run - Thread Started");
 
   while (m_running)
   {
     m_reOpened = false;
 
-    /* output the buffer to the sink */
     (this->*m_outputStageFn)();
 
-    /* make sure we have enough room to fetch a frame */
-    if (m_frameSize > outSize)
-    {
-      /* allocate space for the samples */
-      _aligned_free(out);
-      out = (uint8_t *)_aligned_malloc(m_frameSize, 16);
-      outSize = m_frameSize;
-    }
+    /* take some data for our use from the buffer */
+    uint8_t *out = (uint8_t*)m_buffer.Take(m_frameSize);
     memset(out, 0, m_frameSize);
 
     /* run the stream stage */
@@ -843,21 +836,13 @@ void CSoftAE::Run()
     {
       CLog::Log(LOGDEBUG, "CSoftAE::Run - Sink restart flagged");
       InternalOpenSink();
+      if (m_reOpened)
+        continue;
     }
 
-    if (!m_reOpened)
-    {
-      if (!m_rawPassthrough && mixed)
-        RunNormalizeStage(m_chLayout.Count(), out, mixed);
-
-      /* buffer the samples into the output buffer */
-      RunBufferStage(out);
-    }
+    if (!m_rawPassthrough && mixed)
+      RunNormalizeStage(m_chLayout.Count(), out, mixed);
   }
-
-  /* free the frame storage */
-  if (out)
-    _aligned_free(out);
 }
 
 void CSoftAE::MixSounds(float *buffer, unsigned int samples)
@@ -920,7 +905,7 @@ void CSoftAE::FinalizeSamples(float *buffer, unsigned int samples)
       for (unsigned int i = 0; i < samples; ++i)
       {
         buffer[i] *= m_volume;
-        if (!clamp && buffer[i] < -1.0f || buffer[i] > 1.0f)
+        if (!clamp && (buffer[i] < -1.0f || buffer[i] > 1.0f))
           clamp = true;
       }
     #endif
@@ -945,59 +930,54 @@ void CSoftAE::FinalizeSamples(float *buffer, unsigned int samples)
 
 void CSoftAE::RunOutputStage()
 {
+  if (m_buffer.Used() / m_sinkFormat.m_frameSize < m_sinkFormat.m_frames)
+    return;
+
   const unsigned int rSamples = m_sinkFormat.m_frames * m_sinkFormat.m_channelLayout.Count();
+  int wroteFrames;
 
-  /* this normally only loops once */
-  while (m_buffer.Used() / m_sinkFormat.m_frameSize >= m_sinkFormat.m_frames)
+  if (m_remappedSize < rSamples)
   {
-    int wroteFrames;
-
-    if (m_remappedSize < rSamples)
-    {
-      _aligned_free(m_remapped);
-      m_remapped = (float *)_aligned_malloc(rSamples * sizeof(float), 16);
-      m_remappedSize = rSamples;
-    }
-
-    m_remap.Remap(
-      (float *)m_buffer.Raw(m_sinkFormat.m_frames * m_sinkFormat.m_frameSize),
-      m_remapped,
-      m_sinkFormat.m_frames
-    );
-    FinalizeSamples(m_remapped, rSamples);
-
-    if (m_convertFn)
-    {
-      unsigned int newSize = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
-      if (m_convertedSize < newSize)
-      {
-        _aligned_free(m_converted);
-        m_converted = (uint8_t *)_aligned_malloc(newSize, 16);
-        m_convertedSize = newSize;
-      }
-      m_convertFn(m_remapped, rSamples, m_converted);
-      wroteFrames = m_sink->AddPackets(m_converted, m_sinkFormat.m_frames);
-    }
-    else
-    {
-      wroteFrames = m_sink->AddPackets((uint8_t*)m_remapped, m_sinkFormat.m_frames);
-    }
-
-    m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
+    _aligned_free(m_remapped);
+    m_remapped = (float *)_aligned_malloc(rSamples * sizeof(float), 16);
+    m_remappedSize = rSamples;
   }
+
+  m_remap.Remap(
+    (float *)m_buffer.Raw(m_sinkFormat.m_frames * m_sinkFormat.m_frameSize),
+    m_remapped,
+    m_sinkFormat.m_frames
+  );
+  FinalizeSamples(m_remapped, rSamples);
+
+  if (m_convertFn)
+  {
+    unsigned int newSize = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
+    if (m_convertedSize < newSize)
+    {
+      _aligned_free(m_converted);
+      m_converted = (uint8_t *)_aligned_malloc(newSize, 16);
+      m_convertedSize = newSize;
+    }
+    m_convertFn(m_remapped, rSamples, m_converted);
+    wroteFrames = m_sink->AddPackets(m_converted, m_sinkFormat.m_frames);
+  }
+  else
+  {
+    wroteFrames = m_sink->AddPackets((uint8_t*)m_remapped, m_sinkFormat.m_frames);
+  }
+
+  m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
 }
 
+bool buffering = true;
 void CSoftAE::RunRawOutputStage()
 {
-  unsigned int block = m_sinkFormat.m_frames * m_sinkFormat.m_frameSize;
+  if(m_buffer.Used() < m_sinkBlockSize)
+    return;
 
-  /* this normally only loops once */
-  while (m_buffer.Used() >= block)
-  {
-    int wroteFrames;
-    wroteFrames = m_sink->AddPackets((uint8_t*)m_buffer.Raw(block), m_sinkFormat.m_frames);
-    m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
-  }
+  int wroteFrames = m_sink->AddPackets((uint8_t*)m_buffer.Raw(m_sinkBlockSize), m_sinkFormat.m_frames);
+  m_buffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
 }
 
 void CSoftAE::RunTranscodeStage()
@@ -1044,10 +1024,9 @@ void CSoftAE::RunTranscodeStage()
   }
 
   /* if we have enough data to write */
-  while (m_encodedBuffer.Used() >= sinkBlock)
+  if (m_encodedBuffer.Used() >= sinkBlock)
   {
-    unsigned int wroteFrames;
-    wroteFrames = m_sink->AddPackets((uint8_t*)m_encodedBuffer.Raw(sinkBlock), m_sinkFormat.m_frames);
+    int wroteFrames = m_sink->AddPackets((uint8_t*)m_encodedBuffer.Raw(sinkBlock), m_sinkFormat.m_frames);
     m_encodedBuffer.Shift(NULL, wroteFrames * m_sinkFormat.m_frameSize);
   }
 }
@@ -1056,8 +1035,6 @@ unsigned int CSoftAE::RunRawStreamStage(unsigned int channelCount, void *out, bo
 {
   StreamList resumeStreams;
   static StreamList::iterator itt;
-
-  /* identify the masterStream */
   CSingleLock streamLock(m_streamLock);
 
   /* handle playing streams */
@@ -1075,17 +1052,24 @@ unsigned int CSoftAE::RunRawStreamStage(unsigned int channelCount, void *out, bo
       resumeStreams.push_back(sitt);
   }
 
+  /* nothing to do if we dont have a master stream */
+  if (!m_masterStream)
+    return 0;
+
   /* get the frame and append it to the output */
   uint8_t *frame = m_masterStream->GetFrame();
-  unsigned int mixed = 0;
+  unsigned int mixed;
   if (frame)
   {
-    memcpy(out, frame, m_sinkFormat.m_frameSize);
     mixed = 1;
+    memcpy(out, frame, m_sinkFormat.m_frameSize);
   }
-
-  if (!frame && m_masterStream->IsDrained() && m_masterStream->m_slave && m_masterStream->m_slave->IsPaused())
-    resumeStreams.push_back(m_masterStream);
+  else
+  {
+    mixed = 0;
+    if (m_masterStream->IsDrained() && m_masterStream->m_slave && m_masterStream->m_slave->IsPaused())
+      resumeStreams.push_back(m_masterStream);
+  }
 
   ResumeSlaveStreams(resumeStreams);
   return mixed;
@@ -1179,14 +1163,6 @@ inline void CSoftAE::RunNormalizeStage(unsigned int channelCount, void *out, uns
     for (unsigned int i = 0; i < channelCount; ++i)
       dst[i] *= mul;
   }
-}
-
-inline void CSoftAE::RunBufferStage(void *out)
-{
-  if (m_rawPassthrough)
-    m_buffer.Push(out, m_sinkFormat.m_frameSize);
-  else
-    m_buffer.Push(out, m_frameSize);
 }
 
 inline void CSoftAE::RemoveStream(StreamList &streams, CSoftAEStream *stream)
