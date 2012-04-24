@@ -1076,12 +1076,6 @@ void CDVDPlayer::Process()
     && (m_dvdPlayerVideo.HasData() || m_CurrentVideo.id < 0))
       Sleep(0);
 
-    // check if input stream menus has some events
-    CDVDInputStream::IMenus* pMenus = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream);
-    if(pMenus)
-      pMenus->UpdateState();
-
-
     DemuxPacket* pPacket = NULL;
     CDemuxStream *pStream = NULL;
     ReadPacket(pPacket, pStream);
@@ -2431,16 +2425,18 @@ bool CDVDPlayer::SeekScene(bool bPlus)
 
 void CDVDPlayer::GetAudioInfo(CStdString& strAudioInfo)
 {
-  CSingleLock lock(m_StateSection);
-  strAudioInfo.Format("D(%s) P(%s)", m_State.demux_audio.c_str()
-                                   , m_dvdPlayerAudio.GetPlayerInfo().c_str());
+  { CSingleLock lock(m_StateSection);
+    strAudioInfo.Format("D(%s)", m_State.demux_audio.c_str());
+  }
+  strAudioInfo.AppendFormat(" P(%s)", m_dvdPlayerAudio.GetPlayerInfo().c_str());
 }
 
 void CDVDPlayer::GetVideoInfo(CStdString& strVideoInfo)
 {
-  CSingleLock lock(m_StateSection);
-  strVideoInfo.Format("D(%s) P(%s)", m_State.demux_video.c_str()
-                                   , m_dvdPlayerVideo.GetPlayerInfo().c_str());
+  { CSingleLock lock(m_StateSection);
+    strVideoInfo.Format("D(%s)", m_State.demux_video.c_str());
+  }
+  strVideoInfo.AppendFormat(" P(%s)", m_dvdPlayerVideo.GetPlayerInfo().c_str());
 }
 
 void CDVDPlayer::GetGeneralInfo(CStdString& strGeneralInfo)
@@ -3199,12 +3195,6 @@ int CDVDPlayer::OnDVDNavResult(void* pData, int iMessage)
         //Make sure we clear all the old overlays here, or else old forced items are left.
         m_overlayContainer.Clear();
 
-        // reset the demuxer, this also imples closing the video and the audio system
-        // this is a bit tricky cause it's the demuxer that's is making this call in the end
-        // so we send a message to indicate the main loop that the demuxer needs a reset
-        // this also means the libdvdnav may not return any data packets after this command
-        m_messenger.Put(new CDVDMsgDemuxerReset());
-
         //Force an aspect ratio that is set in the dvdheaders if available
         m_CurrentVideo.hint.aspect = pStream->GetVideoAspectRatio();
         if( m_dvdPlayerAudio.IsInited() )
@@ -3212,10 +3202,6 @@ int CDVDPlayer::OnDVDNavResult(void* pData, int iMessage)
 
         m_SelectionStreams.Clear(STREAM_NONE, STREAM_SOURCE_NAV);
         m_SelectionStreams.Update(m_pInputStream, m_pDemuxer);
-
-        // we must hold here once more, otherwise the demuxer message
-        // will be executed after demuxer have filled with data
-        return NAVRESULT_HOLD;
       }
       break;
     case DVDNAV_CELL_CHANGE:
