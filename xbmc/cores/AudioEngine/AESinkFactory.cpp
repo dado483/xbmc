@@ -156,11 +156,15 @@ void CAESinkFactory::EnumerateEx(AESinkInfoList &list)
   ENUMERATE_SINK(ALSA);
 #endif
 
+#if defined(TARGET_LINUX) || defined(TARGET_FREEBSD)
+  ENUMERATE_SINK(OSS);
+#endif
+
 #ifdef _WIN32
   if (g_sysinfo.IsVistaOrHigher() && !g_advancedSettings.m_audioForceDirectSound)
-    ENUMERATE_SINK(WASAPI)
-//  else
-//    ENUMERATE_SINK(DirectSound);
+    ENUMERATE_SINK(WASAPI);
+
+    ENUMERATE_SINK(DirectSound);
 #endif
 }
 #endif

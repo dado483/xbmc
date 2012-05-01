@@ -21,6 +21,7 @@
  */
 
 #include "Interfaces/AESink.h"
+#include "Utils/AEDeviceInfo.h"
 #include <stdint.h>
 
 #include "threads/CriticalSection.h"
@@ -39,9 +40,11 @@ public:
 
   virtual void         Stop            ();
   virtual double       GetDelay        ();
+  virtual double       GetCacheTime    () { return 0.0; } /* FIXME */
+  virtual double       GetCacheTotal   () { return 0.0; } /* FIXME */
   virtual unsigned int AddPackets      (uint8_t *data, unsigned int frames);
   virtual void         Drain           ();
-  static void          EnumerateDevices(AEDeviceList &devices, bool passthrough);
+  static  void         EnumerateDevicesEx(AEDeviceInfoList &list);
 private:
   int m_fd;
   std::string      m_device;
